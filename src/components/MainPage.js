@@ -1,6 +1,5 @@
 import { Outlet, NavLink } from "react-router-dom";
 import NavBar from "./NavBar";
-import Header from "./Header";
 import SearchBar from "./SearchBar";
 const MainPage = ()=> {
     return (
