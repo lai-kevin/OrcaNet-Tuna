@@ -3,6 +3,16 @@
   height: 100vh;
   overflow-y: hidden;
 }
+.top {
+  display: flex;
+  height: 80px;
+  background-color: rgb(241, 241, 241);
+}
+.content {
+  display: flex;
+  flex-direction: column;       
+  flex-grow: 1;                 
+}
 
 #title{
   margin-left: 20px;
@@ -11,7 +21,6 @@
 }
 .main_content {
   padding: 20px;
-  background-color: #fff; 
 }
 
 .sidebar {
@@ -70,14 +79,14 @@
 }
 #searchbox{
   position: fixed;
-  margin-left: 1000px;
+  margin-left: 800px;
   margin-top: 30px;
 }
 #searchInput{
   width: 300px; 
   height: 40px; 
   padding: 5px; 
-  margin-right: -5px; /* Overlap border with button */
+  margin-right: -5px; 
   border: None;
 }
 #searchButton{
@@ -122,5 +131,91 @@
   width: 35%;
   margin-left: auto;
   padding-inline: 1%;
+}
+.home, .settings{
+  padding: 5px;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+  grid-template-rows: repeat(3, auto);
+  gap: 20px; 
+  padding: 20px;
+}
+
+.box {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.line_graph_container{
+  grid-row: 2; 
+  grid-column: span 2;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  align-items: left;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.bar_graph_container{
+  grid-row: 2; 
+  grid-column: span 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  align-items: left;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.description {
+  text-align: center; 
+}
+.stat{
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+.info{
+  font-size: 20px
+}
+
+.tabs {
+  margin-bottom: 20px;
+}
+.settings_bar a:hover {
+  color: #007bff; 
+}
+.settings_bar {
+  border-radius: 3px; 
+  background-color: #f0f0f0; 
+  padding: 10px; 
+}
+.settings_bar a {
+  text-decoration: none; 
+  color: #333; 
+  font-size: 16px; 
+  padding-bottom: 5px; 
+}
+.settings_bar ul {
+  list-style-type: none; 
+  display: flex; 
+  padding: 0; 
+  margin: 0; 
+}
+
+.settings_bar li {
+  margin-right: 20px; 
+}
+
+.settings_bar a.tab:hover {
+  border-bottom: 2px solid #007bff; 
+}
+.current{
+  border-bottom: 2px solid #007bff; 
+  padding-bottom: 5px; 
 }
 
