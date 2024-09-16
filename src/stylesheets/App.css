@@ -94,4 +94,33 @@
   border-radius: 4px; 
 }
 
+#fileList {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 100%;
+  width: 75vw;
+  overflow-y: auto;
+}
+
+.fileCard{
+  display: grid;
+  width: 100%;
+  grid-template-columns: 15% 75% 10%;
+  padding: 5px;
+  border-bottom: 2px solid #8cd6e9;
+}
+
+.fileCard:hover{
+  background-color: lightgray;
+}
+
+.statistics{
+  background-color: rgba(211, 211, 211, 0.441);
+  display: flex;
+  align-items: center;
+  width: 35%;
+  margin-left: auto;
+  padding-inline: 1%;
+}
 
