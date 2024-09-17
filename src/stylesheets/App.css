@@ -106,7 +106,7 @@
 #fileList {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 70vh;
   max-width: 100%;
   width: 75vw;
   overflow-y: auto;
@@ -127,6 +127,8 @@
 .statistics{
   background-color: rgba(211, 211, 211, 0.441);
   display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
   width: 35%;
   margin-left: auto;
@@ -319,4 +321,40 @@
 #coin{
    font-size: 18px;
    font-weight: 500;
+}
+
+.statistics span{
+  color: gray;
+}
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal_content {
+  background-color: white;
+  padding: 35px;
+  justify-content: space-between;
+  border-radius: 5px;
+}
+
+.close {
+  bottom: 30px;
+  right: 25px;
+  position: relative;
+  cursor: pointer;
+}
+
+.primary_button{
+  background-color: #007bff;
+  color: white;
+  border-style: none;
+  font-size: 16px;
 }
