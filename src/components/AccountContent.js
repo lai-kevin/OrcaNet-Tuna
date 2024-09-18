@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FcBusinessman } from "react-icons/fc";
+import { GiDolphin } from "react-icons/gi";
 import InfoBox from './InfoBox';
 const AccountContent = () => {
     return(
@@ -10,46 +10,23 @@ const AccountContent = () => {
     )
 };
 const Profile = ()=>{
-    const [first, setFirst] = useState('');
-    const [last, setLast] = useState('');
-    const [email, setEmail] = useState('');
-    const [pass, setPass] = useState('');
     return(
-        <div className='profile'>
-        <div className="profile_pic">
-            <FcBusinessman />
-        </div>
-        <form className="account_info">
-        <div className='name_container'>
-        <div id="first_name">
-          <label htmlFor="first_name" className = "label">First Name </label><br></br>
-          <input type="text" className="up" value={first} onChange={(e) => setFirst(e.target.value)} placeholder="Bill" />
-          </div>
-          <div id="last_name">
-          <label htmlFor="first_name" className = "label">Last Name </label><br></br>
-          <input type="text" className="up" value={last} onChange={(e) => setLast(e.target.value)} placeholder="Smith"/>
-          </div>
-        </div>
-          <div id="mail">
-          <label htmlFor="email">Email </label><br></br>
-          <input type="text" className="bottom" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="abc@abc.com"/>
-          </div>
-          <div id="pass">
-          <label htmlFor="password">Password</label><br></br>
-          <input type="text" className="bottom" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="............"/>
-          </div>
-          <button type="submit" id="save_button">Save</button>
-        </form>
-        </div>
+        <div id="profile">
+            <h3 id="profile_title">Wallet Address</h3>
+            <p>0x d500fb92 ac8d9428 3fffde5b 07e8f624 6ad4e772</p>
+            </div> 
     )
 };
 const Balance = ()=>{
     return(
+        <>
         <div id="balance">
-            <h3 id="balance_title">Account Balance</h3>
-            <input id="balance_value" type="text" className="balance" value="200" readonly />
-            <span id="coin">Orcacoins</span>
+            <h3 id="balance_title">Balance</h3>
+            <span id = "coins">200</span>
+            <span id = "type">OrcaCoins</span>
         </div>
+        <button id="add"> Add Coins </button>
+        </>
     )
 }
 export default AccountContent;

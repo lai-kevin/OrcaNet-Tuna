@@ -3,8 +3,8 @@ const Dashboard=()=>{
     return(
     <div className="dashboard">
       <Box stat="200" info="Peer Connections" c="#1E90FF" />
-      <Box stat="100" info="Countries" c="#8884d8" />
-      <Box stat="400" info="Daily Files Upload/Download" c="#0000CD" />
+      <Box stat="200" info="Daily Files Uploads" c="#8884d8" />
+      <Box stat="400" info="Daily Files Downloads" c="#0000CD" />
       <LineGraph/>
       <BarGraph/>
     </div>

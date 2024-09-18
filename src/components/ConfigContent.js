@@ -14,22 +14,19 @@ const ConfigContent = () => {
 };
 
 const NetworkForm = () => {
-  const [ip, setIp] = useState('');
-  const [port, setPort] = useState('');
+  const [api, setApi] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
   };
 
   return (
-    <div>
-      <h4>Network Connection</h4>
+    <div id = "network">
+      <h3 id = "network_title">API Connection</h3>
       <form className= "network_form" onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="ip">IP Address: </label>
-          <input className= "network_input" type="text" id="ip" value={ip} onChange={(e) => setIp(e.target.value)} placeholder="Enter IP Address"/>
-          <label htmlFor="port">Port Number: </label>
-          <input className= "network_input" type="text" id="port" value={port} onChange={(e) => setPort(e.target.value)} placeholder="Enter Port Number"/>
+        <div id = "api_config">
+          <label htmlFor="api" id = "api_title"> API URL: </label>
+          <input className= "network_input" type="text" id="api" value={api} onChange={(e) => setApi(e.target.value)} placeholder="Enter API Address"/>
         </div>
         <button type="submit" id="connect_button">Connect</button>
       </form>

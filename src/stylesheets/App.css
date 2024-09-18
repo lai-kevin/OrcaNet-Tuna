@@ -244,7 +244,7 @@
   margin-top: 5px;
   border-radius: 4px;
 }
-#ip{
+#api{
   margin-right: 10px;
 }
 #connect_button{
@@ -252,12 +252,12 @@
   width: 100px;
   height: 36px;
   margin-top:4px;
-  background-color: #4681f4;
+  background-color: #85a7ea;
 }
 .profile_pic{
-  width: 150px; /* Set your desired width */
-  height: 150px; /* Set your desired height */
-  font-size: 150px;
+  width: 150px;
+  height: 150px;
+  font-size: 135px;
   color: grey;
   padding:10px;
   margin-right: 100px;
@@ -265,6 +265,7 @@
   margin-left: 40px;
   border: 2px solid black;
   border-radius: 50%;
+  color:#7193d7;
 }
 .profile{
   width:100%;
@@ -299,18 +300,39 @@
   padding:10px;
   width:70px;
   align-items: center;
-  background-color:#4681f4;
+  background-color:#85a7ea;
   border-radius:2px;
+}
+#add{
+  padding:10px;
+  width:100px;
+  align-items: center;
+  background-color:#85a7ea;
+  border-radius:2px;
+  margin-left:950px;
+}
+
+#network{
+  width:100%;
+  align-items: center;
+}
+#profile{
+  width:100%;
+  align-items: center;
+  display: flex;
+  gap: 500px;
 }
 #balance{
   width:100%;
   align-items: center;
+  display: flex;
+}
+#network_title, #profile_title{
+  margin-left:40px;
 }
 #balance_title{
   margin-left:40px;
-}
-#balance_value{
-  margin-left:315px;
+  margin-right: 830px;
 }
 .balance{
     width:300px;
@@ -318,9 +340,10 @@
     height:30px;
     margin-right: 10px;
 }
-#coin{
+#coins{
    font-size: 18px;
    font-weight: 500;
+   margin-right: 20px;
 }
 
 .statistics span{
@@ -357,4 +380,11 @@
   color: white;
   border-style: none;
   font-size: 16px;
+}
+#api_config{
+  margin-left: 300px;
+}
+#api_title{
+  margin-right: 20px;
+  font-size: 18px;
 }
