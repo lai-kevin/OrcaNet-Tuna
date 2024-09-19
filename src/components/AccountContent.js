@@ -25,7 +25,6 @@ const Balance = ()=>{
             <span id = "coins">200</span>
             <span id = "type">OrcaCoins</span>
         </div>
-        <button id="add"> Add Coins </button>
         </>
     )
 }
