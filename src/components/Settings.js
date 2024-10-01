@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import AccountContent from './AccountContent';
 import ConfigContent from './ConfigContent';
+import { useMode } from './Mode';
 
 const Settings = () => {
   const [current, setCurrent] = useState('account'); 
-
+  const { mode, chooseMode} = useMode();
   const handleTabChange = (page) => {
     setCurrent(page);
   };
@@ -30,7 +31,7 @@ const Settings = () => {
       </div>
       <div className="bottom_content">
         {current === 'account' && <AccountContent />}
-        {current === 'config' && <ConfigContent />}
+        {current === 'config' && <ConfigContent mode = {mode} chooseMode={chooseMode}/>}
       </div>
     </div>
   );

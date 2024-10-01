@@ -5,9 +5,17 @@ import MainPage from "./components/MainPage.js"
 import Home from './components/Home';
 import Files from './components/Files';
 import Settings from './components/Settings';
+import { ModeProvider } from "./components/Mode.js";
+import { useEffect } from "react";
+
 
 function App() {
+  useEffect(() => {
+    document.title = "OrcaNet Desktop App";
+  }, []);
+
   return (
+    <ModeProvider>
     <BrowserRouter>
     <Routes>
       <Route path="/" element={<MainPage />}>
@@ -17,6 +25,7 @@ function App() {
       </Route>
     </Routes>
   </BrowserRouter>
+  </ModeProvider>
   );
 }
 

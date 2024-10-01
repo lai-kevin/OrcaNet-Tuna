@@ -4,16 +4,18 @@ import { GiWhaleTail } from 'react-icons/gi';
 import { FaHome } from 'react-icons/fa';
 import { LuFileStack } from 'react-icons/lu';
 import { IoIosSettings } from 'react-icons/io';
+import { useMode } from './Mode';
 
 const Navbar = () => {
   const location = useLocation();
+  const { mode, chooseMode} = useMode();
   
   const activeClass = (path) => location.pathname === path ? 'active' : '';
 
   return (
-    <nav className="sidebar"> 
+    <nav className={`sidebar ${mode === 'dark' ? 'sidebar-dark' : 'sidebar-light'}`}> 
       <div className="heading">
-        <GiWhaleTail className="whale" />
+        <GiWhaleTail className={`${mode === 'dark' ? 'whale-dark' : 'whale-light'}`} />
         <h1 id="title">OrcaNet</h1>
       </div>
       <ul>

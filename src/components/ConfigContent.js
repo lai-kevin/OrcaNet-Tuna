@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useContext} from 'react';
 import InfoBox from './InfoBox';
-const ConfigContent = () => {
+import { Mode } from './Mode';
+const ConfigContent = ({ mode, chooseMode }) => {
     const boxes = [
-        { id: 1, content: <NetworkForm/>}
+        { id: 1, content: <NetworkForm/>},
+        { id: 2, content: <Theme mode = {mode} chooseMode = {chooseMode}/>}
       ];
     return(
         <div>
@@ -33,4 +35,18 @@ const NetworkForm = () => {
     </div>
   );
 };
+const Theme =({mode, chooseMode})=>{
+  return(
+      <div id = "theme">
+        <h3 id = "theme_title">Theme</h3>
+        <div id = "check" >
+          <label for="checkbox" id = "mode_title"> Dark Mode:</label> 
+          <input type="checkbox" id="check_box"
+          checked={mode === 'dark'} 
+          onChange={chooseMode} 
+          />
+      </div>
+     </div>
+  )
+}
 export default ConfigContent;

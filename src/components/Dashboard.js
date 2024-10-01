@@ -1,25 +1,38 @@
 import { LineChart, BarChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Bar } from 'recharts';
+import { IoCheckmarkCircleOutline } from "react-icons/io5";
+import { Mode } from './Mode';
+import { useContext } from 'react';
 const Dashboard=()=>{
+    const {mode} = useContext(Mode)
     return(
-    <div className="dashboard">
-      <Box stat="200" info="Peer Connections" c="#1E90FF" />
-      <Box stat="200" info="Daily Files Uploads" c="#8884d8" />
-      <Box stat="400" info="Daily Files Downloads" c="#0000CD" />
-      <LineGraph/>
-      <BarGraph/>
+    <div className= "homepage">
+      <div id="connection"> 
+        <IoCheckmarkCircleOutline color="green" size="24"/>
+        <span id= "connect_text">Connected to OrcaNet </span>
+        <span id = "app_version">Application Version: 1.0</span>
+      </div>
+      <div className="dashboard">
+        <Box stat="300 GB" info = "Files" c="#ADD8E6" mode = {mode}/>
+        <Box stat="200" info="Peer Connections" c="#1E90FF" mode = {mode}/>
+        <Box stat="200" info="Daily Files Uploads" c="#8884d8" mode={mode}/>
+        <Box stat="400" info="Daily Files Downloads" c="#ADD8E6" mode={mode}/>
+        <LineGraph mode={mode}/>
+        <BarGraph  mode={mode}/>
+      </div>
+      <div id="blank"></div>
     </div>
     )
 }
-const Box = ({stat, info, c}) => {
+const Box = ({stat, info, c, mode}) => {
     return (
-      <div className="box">
+      <div className={`${mode === 'dark' ? 'box-dark' : 'box-light'}`}>
         <h3 className="stat" style={{color:c}} >{stat}</h3>
         <p className="info">{info}</p>
       </div>
     );
 };
 
-const LineGraph = () => {
+const LineGraph = ({mode}) => {
     const data = [
         { month: 'Jan', users: 500 },
         { month: 'Feb', users: 405 },
@@ -30,11 +43,11 @@ const LineGraph = () => {
         { month: 'July', users: 550 }
       ];
     return (
-    <div className = "line_graph_container">
+    <div className={`${mode === 'dark' ? 'line_graph_container-dark' : 'line_graph_container-light'}`}>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
-          <XAxis dataKey="month" />
-          <YAxis />
+          <XAxis dataKey="month" tick={{ fill: mode === 'dark' ? 'white' : 'black' }} axisLine={{ stroke: mode === 'dark' ? 'white' : 'black' }} tickLine={{ stroke: mode === 'dark' ? 'white' : 'black' }}/>
+          <YAxis tick={{ fill: mode === 'dark' ? 'white' : 'black' }} axisLine={{ stroke: mode === 'dark' ? 'white' : 'black' }} tickLine={{ stroke: mode === 'dark' ? 'white' : 'black' }}/>
           <Line dataKey="users" stroke="#8884d8" />
           <Tooltip />
         </LineChart>
@@ -45,7 +58,7 @@ const LineGraph = () => {
     </div>
     );
   };
-  const BarGraph = () => {
+  const BarGraph = ({mode}) => {
     const data = [
         { month: 'Jan', transaction: 1000 },
         { month: 'Feb', transaction: 805 },
@@ -56,11 +69,11 @@ const LineGraph = () => {
         { month: 'July', transaction: 750 }
       ];
     return (
-    <div className = "bar_graph_container">
+    <div className={`${mode === 'dark' ? 'bar_graph_container-dark' : 'bar_graph_container-light'}`}>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
-          <XAxis dataKey="month" />
-          <YAxis />
+          <XAxis dataKey="month" tick={{ fill: mode === 'dark' ? 'white' : 'black' }} axisLine={{ stroke: mode === 'dark' ? 'white' : 'black' }} tickLine={{ stroke: mode === 'dark' ? 'white' : 'black' }}/>
+          <YAxis tick={{ fill: mode === 'dark' ? 'white' : 'black' }} axisLine={{ stroke: mode === 'dark' ? 'white' : 'black' }} tickLine={{ stroke: mode === 'dark' ? 'white' : 'black' }}/>
           <Bar dataKey="transaction" fill="#87CEEB"/>
           <Tooltip />
         </BarChart>
