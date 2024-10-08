@@ -7,19 +7,17 @@ import { IoIosSettings } from 'react-icons/io';
 import { useMode } from './Mode';
 
 const Navbar = () => {
-  const location = useLocation();
+  const loc = useLocation();
   const { mode, chooseMode} = useMode();
   
-  const activeClass = (path) => location.pathname === path ? 'active' : '';
-
   return (
     <nav className={`sidebar ${mode === 'dark' ? 'sidebar-dark' : 'sidebar-light'}`}> 
       <div className="heading">
         <GiWhaleTail className={`${mode === 'dark' ? 'whale-dark' : 'whale-light'}`} />
-        <h1 id="title">OrcaNet</h1>
+        <h1 id="title1">OrcaNet</h1>
       </div>
       <ul>
-        <li className={activeClass('/')}>
+        <li className={loc.pathname === '/'? 'active' : ''}>
           <NavLink to="/" >
             <div className="section">
               <FaHome className="icon" />
@@ -27,7 +25,7 @@ const Navbar = () => {
             </div>
           </NavLink>
         </li>
-        <li className={activeClass('/Files')}>
+        <li className={loc.pathname === '/Files' ? 'active' : ''}>
           <NavLink to="/Files" >
             <div className="section">
               <LuFileStack className="icon" />
@@ -35,7 +33,7 @@ const Navbar = () => {
             </div>
           </NavLink>
         </li>
-        <li className={activeClass('/Settings')}>
+        <li className={loc.pathname === '/Settings' ? 'active' : ''}>
           <NavLink to="/Settings" >
             <div className="section">
               <IoIosSettings className="icon" />

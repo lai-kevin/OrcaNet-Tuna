@@ -1,10 +1,12 @@
 import React, { useState, useContext} from 'react';
 import InfoBox from './InfoBox';
 import { Mode } from './Mode';
-const ConfigContent = ({ mode, chooseMode }) => {
+import { CiLight } from "react-icons/ci";
+import { CiDark } from "react-icons/ci";
+const ConfigContent = ({ mode, chooseLight, chooseDark }) => {
     const boxes = [
         { id: 1, content: <NetworkForm/>},
-        { id: 2, content: <Theme mode = {mode} chooseMode = {chooseMode}/>}
+        { id: 2, content: <Theme mode = {mode} chooseLight = {chooseLight} chooseDark = {chooseDark}/>}
       ];
     return(
         <div>
@@ -35,16 +37,19 @@ const NetworkForm = () => {
     </div>
   );
 };
-const Theme =({mode, chooseMode})=>{
+const Theme =({mode, chooseLight, chooseDark})=>{
   return(
       <div id = "theme">
         <h3 id = "theme_title">Theme</h3>
         <div id = "check" >
-          <label for="checkbox" id = "mode_title"> Dark Mode:</label> 
-          <input type="checkbox" id="check_box"
-          checked={mode === 'dark'} 
-          onChange={chooseMode} 
-          />
+          <button type = "button" id="light_button" onClick={chooseLight} style={{
+          border: `5px solid ${mode === 'light' ? '#5B9BD5' : 'transparent'}`}}><CiLight style={{ color: 'black', fontSize: '30px' }} /></button>
+          <button type = "button" id="dark_button" onClick={chooseDark}  style={{
+          border: `5px solid ${mode === 'dark' ? '#5B9BD5' : 'transparent'}`}}><CiDark style={{ color: 'black', fontSize: '30px' }} /></button>
+          <div id="labels">
+            <p id="light_title">Light</p>
+            <p id ="dark_title">Dark</p>
+          </div>
       </div>
      </div>
   )

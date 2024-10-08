@@ -3,13 +3,12 @@ import AccountContent from './AccountContent';
 import ConfigContent from './ConfigContent';
 import { useMode } from './Mode';
 
-const Settings = () => {
+const Settings = ({user}) => {
   const [current, setCurrent] = useState('account'); 
-  const { mode, chooseMode} = useMode();
+  const { mode, chooseLight, chooseDark} = useMode();
   const handleTabChange = (page) => {
     setCurrent(page);
   };
-
   return (
     <div className="settings">
       <h1 className="text">Settings</h1>
@@ -30,8 +29,8 @@ const Settings = () => {
         </nav>
       </div>
       <div className="bottom_content">
-        {current === 'account' && <AccountContent />}
-        {current === 'config' && <ConfigContent mode = {mode} chooseMode={chooseMode}/>}
+        {current === 'account' && <AccountContent user={user}/>}
+        {current === 'config' && <ConfigContent mode = {mode} chooseLight={chooseLight} chooseDark={chooseDark}/>}
       </div>
     </div>
   );

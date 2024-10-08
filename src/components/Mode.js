@@ -4,11 +4,14 @@ export const Mode = createContext();
 export const ModeProvider = ({ children }) => {
   const [mode, setMode] = useState('light');
 
-  const chooseMode = () => {
-    setMode(prevMode => prevMode === 'light' ? 'dark' : 'light');
+  const chooseLight = () => {
+    setMode("light")
+  };
+  const chooseDark = () => {
+    setMode('dark');
   };
   return (
-    <Mode.Provider value={{mode, chooseMode }}>
+    <Mode.Provider value={{mode, chooseLight, chooseDark}}>
        <div className={`${mode}`}>
         {children}
       </div>

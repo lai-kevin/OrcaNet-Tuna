@@ -1,14 +1,16 @@
 import { Outlet, NavLink } from "react-router-dom";
 import NavBar from "./NavBar";
 import SearchBar from "./SearchBar";
-const MainPage = ()=> {
+import Header from "./Header";
+import { DropMenu } from "./SearchBar";
+const MainPage = ({user, setUser})=> {
     return (
         <div className="base">
         <NavBar />  
         <div className="content">
-          <SearchBar/>
+          <SearchBar user={user} setUser = {setUser}/>
           <main className="main_content">
-            <Outlet />  
+            <Outlet user={user}/>  
           </main>
         </div>
       </div>

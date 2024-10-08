@@ -1,5 +1,5 @@
 .dark {
-  background: #1E1E1E ;
+  background: #000000 ;
   color: white;
 }
 .base {
@@ -7,18 +7,29 @@
   height: 100vh;
   overflow-y: hidden;
 }
-.top {
-  display: flex;
-  height: 80px;
-  background-color: rgb(241, 241, 241);
+.header{
+    display: flex;            
+    padding: 20px;             
+    margin-bottom: -50px;;
 }
+.top {
+  display: flex;          
+  align-items: center; 
+  padding: 20px;            
+  width: 100%;              
+  background-color: rgb(29, 27, 27);  
+  overflow-x: hidden;
+  position: fixed;
+  margin-bottom: 20px;
+}
+
 .content {
   display: flex;
   flex-direction: column;       
-  flex-grow: 1;                 
+  flex-grow: 1;         
 }
 
-#title{
+#title1{
   margin-left: 10px;
   text-align: center;
   font-size: 35px;
@@ -106,10 +117,10 @@
   color:black;
   border-radius: 12px;
 }
-#searchbox{
-  position: fixed;
-  margin-left: 800px;
-  margin-top: 30px;
+#searchContainer{
+  margin-left: 730px;
+  margin-top: 5px;
+  margin-right: 10px;
 }
 #searchInput{
   width: 300px; 
@@ -118,7 +129,7 @@
   margin-right: -5px; 
   border: None;
 }
-#searchButton{
+#findButton{
   height: 40px; 
   width: 50px;
   padding: 5px; 
@@ -169,12 +180,12 @@
 #connection {
   display: flex;
   align-items: center;
-  width: 100%; /* Adjust the width as needed */
+  width: 100%; 
   margin-left: 20px;
 }
 
 #connect_text {
-  margin-left: 4px; /* Adjust if necessary to give space between the icon and text */
+  margin-left: 4px; 
   margin-right: 680px;
   font-size: 20px;
 }
@@ -194,10 +205,11 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
   grid-template-rows: repeat(4, auto);
   gap: 20px; 
-  padding: 20px;
-  overflow-y:scroll;
+  padding: 10px;
+  overflow-x: hidden;
+  width: 98%;
+  height:100%;
 }
-
 .box-light {
   background-color: #fff;
   border: 1px solid #ddd;
@@ -259,11 +271,11 @@
   background-color:#2C2C2C;
 }
 .axis-dark .recharts-cartesian-axis-tick {
-  stroke: white; /* Axis text color in dark mode */
+  stroke: white; 
 }
 .axis-dark line,
 .axis-dark path {
-  stroke: white; /* Axis line color in dark mode */
+  stroke: white; 
 }
 
 .description {
@@ -358,23 +370,50 @@
   margin-top:4px;
   background-color: #85a7ea;
 }
+.profile_container{
+  display:flex;
+}
+#wID{
+  margin-left: 50px;
+  margin-top: 50px;
+  font-size: 20px;
+  font-weight: 400;
+}
+#number{
+  margin-left: 20px;
+  margin-top: 50px;
+  font-size: 20px;
+  font-weight: 400;
+}
 .profile_pic{
   width: 150px;
   height: 150px;
   font-size: 135px;
-  color: grey;
+  color: white;
   padding:10px;
-  margin-right: 100px;
-  margin-top:0px;
-  margin-left: 40px;
-  border: 2px solid black;
+  border: 2px solid rgb(84, 139, 202);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border-radius: 50%;
   color:#7193d7;
+  margin-left: 30px;
+  margin-top: 30px;
+}
+.bottom_content{
+  height: 100%;
+  overflow-y: auto;
+}
+#profile_bottom{
+  display: flex;
+  margin-top: -100px;
+  margin-left: 210px;
+}
+.account{
+  height: 500px;
+  overflow-y: scroll;
 }
 .profile{
   width:100%;
-  display:flex;
-  align-items: center;
+  padding-bottom: 20px;
 }
 .account_info{
   margin-top:50px;
@@ -434,6 +473,9 @@
 #network_title, #profile_title, #theme_title{
   margin-left:40px;
 }
+#profile_title{
+  font-size: 25px;
+}
 #balance_title{
   margin-left:40px;
   margin-right: 830px;
@@ -445,11 +487,17 @@
     margin-right: 10px;
 }
 #coins{
-   font-size: 18px;
-   font-weight: 500;
-   margin-right: 20px;
+   font-size: 20px;
+   font-weight: 800;
+   margin-right: 10px;
+   margin-top: 50px;
+   margin-left: 20px;
 }
-
+#type{
+   font-size: 20px;
+   font-weight: 400;
+   margin-top: 50px;
+}
 .statistics span{
   color: gray;
 }
@@ -497,11 +545,325 @@
   margin-right: 40px;
   font-size: 18px;
 }
-#check_box{
-  width: 20px;
-  height: 20px;
+#light_button{
+  margin-left: 400px;
+  margin-right: 30px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50px;
+  background: #E8E8E8;
+}
+#dark_button{
+  width: 100px;
+  height: 100px;
+  border-radius: 50px;
+  background: #E8E8E8;
 }
 #check{
   align-items: center;
+}
+#labels{
   display: flex;
+  gap: 10px;
+}
+#light_title{
+  margin-left: 435px;
+  font-size: 20px;
+  margin-right: 70px; 
+}
+#dark_title{
+  font-size: 20px;
+}
+#header{
+  display: flex;
+}
+#profile_button{
+  background-color: transparent;
+  width:70px;
+  height: 60px;
+  align-items: center;
+  border-radius: 100px;
+  border:transparent;
+  z-index: 10;
+  margin-top:-4px;
+}
+#profile_pic{
+  width: 50px;
+  height: 50px;
+  font-size: 50px;
+  color:#7193d7;
+}
+.menu{
+  width: 320px;
+  height: 180px;
+  border: 2px solid rgba(59, 59, 139, 0.799);
+  border-radius: 20px;
+  position: absolute;
+  margin-left: 850px;
+  margin-top: 40px;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); 
+}
+
+.wallet_info{
+  border-bottom: 1px solid #a6a6a6ab;
+}
+#actual_id{
+  font-size: 12px;
+  margin-left: 25px;
+}
+.menu_list a {
+  padding:5px;
+  text-decoration: none; 
+  color: black; 
+  display: block;
+  margin-left: -40px;
+  align-items: center;
+  z-index: 1000;
+  padding-left: 20px;
+}
+.menu_list a:hover {
+  background-color: #f1f1f189; 
+  color: blue;
+  border-radius: 2px;
+}
+#wallet_label{
+  color: blue;
+  font-size: 18px;
+  margin-left: 120px;
+  font-weight: 600;
+}
+#copy_button{
+  width: 40px;
+  height: 40px;
+  background-color: transparent;
+  border: 1px solid lightgrey;
+  margin-left: 20px;
+  margin-top: 40px;
+  
+}
+#wID{
+  font-style: italic;
+}
+#qr{
+  position:absolute;
+  background-color: white;
+  margin-left: 700px;
+  margin-top: 90px;
+  padding: 5px;
+  border: 1px solid black;
+}
+.transaction table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.transaction th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.transaction th {
+  background-color: #277fddb8;
+}
+.login{
+  background: linear-gradient(to right, #917ff5, #00BFFF);
+  width: 100%;
+  height: 100vh;
+}
+#title{
+  font-size: 60px;
+}
+#title_container{
+  padding: 60px;
+  padding-left: 40px;
+  display:flex;
+}
+.inner_container, #recover_page{
+  margin-top: -35px;
+  margin-left: 500px;
+  width: 500px;
+  height: 450px;
+  border: 1px solid rgb(8, 16, 85);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.681);
+  display:block;
+}
+.options {
+  display: flex;
+  border-collapse: collapse;
+  margin-top: -10px;
+  margin-left: 90px;
+  border: 1px solid black; 
+  border-radius: 10px;
+  align-items: center;
+  width: 300px;
+  height: 50px;
+  position: relative; 
+}
+
+#contents{
+  text-align: center;
+  margin-top: -300px;
+  overflow: hidden;
+
+}
+#head{
+  text-align:center;
+  font-size: 30px;
+}
+#login_page{
+  display:block;
+}
+#key{
+  margin-top: 20px;
+  width: 300px;
+  height: 30px;
+  margin-left: 50px;
+  margin-bottom: 10px;
+}
+#log_button{
+  width: 310px;
+  height: 30px;
+  background-color: #0055ff7d;
+  border-radius: 10px;
+  margin-top:30px;
+  margin-left:50px;
+  font-size: 18px;
+
+}
+#recover{
+  margin-left:-170px;
+  padding-top:30px;
+  color:#0068d7
+}
+.redirect{
+  margin-top: 100px;
+  margin-left:60px;
+}
+#signup{
+  color:#007BFF
+}
+
+.effect {
+  width: 100%;
+  transition: transform 0.5s ease; 
+}
+
+.right {
+  transform: translateX(10%); 
+}
+
+.left {
+  transform: translateX(0%); 
+}
+
+.options .highlight {
+  position: absolute;
+  width: 50%; 
+  height: 100%; 
+  background-color: rgba(0, 0, 255, 0.453); 
+  transition: left 0.3s ease; 
+  border-radius:10px;
+}
+.options a {
+  text-align: center; 
+  padding: 15px 0;
+  text-decoration: none; 
+  color: black; 
+  flex: 1; 
+}
+#welcome{
+  margin-left: 50px;
+}
+#welcome1{
+  margin-left: 50px;
+  margin-top: -3px;
+}
+.loading_container{
+  margin-left: 700px;
+}
+#loading{
+  height: 80px;
+  width:80px;
+  padding-left: 400px;
+}
+.loading-ring .ring {
+  border-color: blue; 
+}
+.info_list li{
+  margin-left: -1000px;
+  font-size: 18px;
+  padding-top: 5px;
+  align-items: center;
+  padding-bottom: 5px;;
+  font-weight: 600;
+}
+.info_list{
+  list-style-type: none; 
+  margin-left: 300px;
+}
+.info_list span{
+  font-size: 12px;
+  margin-left: 20px;
+  color: blue;
+}
+#err{
+  margin-top:-0px;
+  color:red;
+  font-weight: 800;
+  margin-left: 180px;
+}
+#phrase{
+  margin-top: 20px;
+  width: 300px;
+  height: 30px;
+  margin-left: 100px;
+  margin-bottom: 10px;
+}
+#button{
+  width: 310px;
+  height: 30px;
+  background-color: #0055ff7d;
+  border-radius: 10px;
+  margin-top:30px;
+  margin-left:100px;
+  font-size: 18px;
+}
+#err1{
+  margin-top:-0px;
+  color:red;
+  font-weight: 800;
+  margin-left: 230px;
+}
+#key_info_title{
+  margin-left: 160px;
+  margin-top: 50px;
+}
+#button1{
+  width: 310px;
+  height: 30px;
+  background-color: #0055ff7d;
+  border-radius: 10px;
+  margin-top:80px;
+  margin-left:100px;
+  font-size: 18px;
+}
+#info_key{
+  font-size: 13px;
+  margin-left: 13px;
+}
+#bottom_buttons{
+  gap: 20px;
+  display:flex;
+  margin-top: 100px;
+  margin-left: 140px;
+}
+#button3, #button4{
+  width: 100px;
+  height: 30px;
+  border-radius: 10px;
+  font-size: 18px;
+  background-color: #22aaf37d;
 }
