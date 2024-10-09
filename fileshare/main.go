@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 
 	libp2p "github.com/libp2p/go-libp2p"
@@ -175,5 +178,54 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 	}
 
 	fmt.Printf("Connected to peer via relay: %s\n", targetPeerID)
+	return nil
+}
+
+// handler for peer exchange with given node and relay using streams
+func handlePeerExhangeWithRelay(node host.Host) error {
+	relayAddr, err := ma.NewMultiaddr(RELAY_NODE_MULTIADDR)
+	if err != nil {
+		fmt.Errorf("Failed to create relay multiaddr: %v", err)
+		return err
+	}
+	relayInfo, err := peer.AddrInfoFromP2pAddr(relayAddr)
+	if err != nil {
+		fmt.Errorf("Failed to get relay AddrInfo: %w", err)
+		return err
+	}
+
+	// Set up a stream to the relay
+	node.SetStreamHandler("/orcanet/p2p", func(stream network.Stream) {
+		defer stream.Close()
+
+		buffer := bufio.NewReader(stream)
+		peerAddress, err := buffer.ReadString('\n')
+		if err != nil {
+			if err != io.EOF {
+				fmt.Errorf("EOF: Failed to read peer address: %w", err)
+			}
+			fmt.Errorf("Failed to read peer address: %w", err)
+		}
+		peerAddress = strings.TrimSpace(peerAddress)
+		var data map[string]interface{}
+		err = json.Unmarshal([]byte(peerAddress), &data)
+		if err != nil {
+			fmt.Errorf("Failed to unmarshal during relay exhange: %w", err)
+		}
+		if knownPeers, ok := data["known_peers"].([]interface{}); ok {
+			for _, peer := range knownPeers {
+				fmt.Println("Peer:")
+				if peerMap, ok := peer.(map[string]interface{}); ok {
+					if peerID, ok := peerMap["peer_id"].(string); ok {
+						if string(peerID) != string(relayInfo.ID) {
+							connectToNodeUsingRelay(node, peerID)
+						}
+					}
+				}
+			}
+		}
+
+	})
+
 	return nil
 }
