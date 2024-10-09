@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"strings"
 
 	libp2p "github.com/libp2p/go-libp2p"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
@@ -143,5 +144,36 @@ func connectToNode(node host.Host, targetNodeAddress string) error {
 	}
 
 	fmt.Println("Connected to target node: ", targetNodeInfo.ID)
+	return nil
+}
+
+// Connects to the target node through the relay node with the given targetPeerID
+func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
+	context := globalCtx
+
+	// Parse the target peer ID and create a multiaddress for the relay
+	targetPeerID = strings.TrimSpace(targetPeerID)
+	relayAddr, err := ma.NewMultiaddr(RELAY_NODE_MULTIADDR)
+	if err != nil {
+		fmt.Errorf("Failed to create relay multiaddr: %v", err)
+		return err
+	}
+
+	peerMultiaddr := relayAddr.Encapsulate(ma.StringCast("/p2p-circuit/p2p/" + targetPeerID))
+
+	relayedAddrInfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
+	if err != nil {
+		fmt.Errorf("Failed to get relayed AddrInfo: %w", err)
+		return err
+	}
+
+	// Connect to the peer through the relay
+	err = node.Connect(context, *relayedAddrInfo)
+	if err != nil {
+		fmt.Errorf("Failed to connect to peer through relay: %w", err)
+		return err
+	}
+
+	fmt.Printf("Connected to peer via relay: %s\n", targetPeerID)
 	return nil
 }
