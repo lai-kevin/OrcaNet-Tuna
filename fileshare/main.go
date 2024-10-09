@@ -13,6 +13,7 @@ import (
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/core/peerstore"
 	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv2/relay"
 	ma "github.com/multiformats/go-multiaddr"
 )
@@ -116,4 +117,31 @@ func createNode(mode dht.Mode) (host.Host, *dht.IpfsDHT, error) {
 	})
 
 	return node, orcaDHT, nil
+}
+
+// Connects to the target node with the given targetNodeAddress
+func connectToNode(node host.Host, targetNodeAddress string) error {
+	// Create multi address from targetNodeAddress
+	targetNodeMultiAddr, err := ma.NewMultiaddr(targetNodeAddress)
+	if err != nil {
+		fmt.Errorf("Error occured while creating multi address: %v", err)
+		return err
+	}
+
+	targetNodeInfo, err := peer.AddrInfoFromP2pAddr(targetNodeMultiAddr)
+	if err != nil {
+		fmt.Errorf("Error occured while creating peer address info: %v", err)
+		return err
+	}
+
+	// Add the target node to the peerstore of the current node
+	node.Peerstore().AddAddrs(targetNodeInfo.ID, targetNodeInfo.Addrs, peerstore.PermanentAddrTTL)
+	err = node.Connect(context.Background(), *targetNodeInfo)
+	if err != nil {
+		fmt.Errorf("Error occured while connecting to target node: %v", err)
+		return err
+	}
+
+	fmt.Println("Connected to target node: ", targetNodeInfo.ID)
+	return nil
 }
