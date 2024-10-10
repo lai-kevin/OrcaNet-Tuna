@@ -229,3 +229,41 @@ func handlePeerExhangeWithRelay(node host.Host) error {
 
 	return nil
 }
+
+func main() {
+	// Start node
+	node, orcaDHT, err := createNode(dht.ModeAuto)
+	if err != nil {
+		fmt.Errorf("Error occured while creating node: %v", err)
+		return
+	}
+
+	// Create context for the application
+	contex, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	globalCtx = contex
+
+	// Connect to relay node and bootstrap node
+	err = connectToNode(node, RELAY_NODE_MULTIADDR)
+	if err != nil {
+		fmt.Errorf("Error occured while connecting to relay node: %v", err)
+		return
+	}
+	err = makeReservation(node)
+	if err != nil {
+		fmt.Errorf("Error occured while making reservation: %v", err)
+		return
+	}
+	err = connectToNode(node, BOOTSTRAP_NODE_MULTIADDR)
+	if err != nil {
+		fmt.Errorf("Error occured while connecting to bootstrap node: %v", err)
+		return
+	}
+
+	go handlePeerExhangeWithRelay(node)
+	//go handleInput(context, orcaDHT)
+
+	defer node.Close()
+
+	select {}
+}
