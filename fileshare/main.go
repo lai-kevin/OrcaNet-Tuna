@@ -117,8 +117,7 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 		return nil, nil, err
 	}
 
-	// Notify the orca network that this node is online
-	// TODO: NOT SURE IF THIS NETWORK STUFF IS NEEDED
+	// Notify this peer when a new peer connects
 	node.Network().Notify(&network.NotifyBundle{
 		ConnectedF: func(n network.Network, conn network.Conn) {
 			fmt.Printf("Notification: New peer connected %s\n", conn.RemotePeer().String())
@@ -276,6 +275,23 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT) {
 		peerID = strings.TrimSpace(peerID)
 		connectToNodeUsingRelay(node, peerID)
 	}
+}
+
+// Listens for incoming connections from peers
+func listenForIncomingConnections(node host.Host) {
+	node.SetStreamHandler("/orcanet/p2p", func(stream network.Stream) {
+		defer stream.Close()
+		fmt.Println("Received incoming connection from peer")
+	})
+}
+
+// Listen for newly connected peers
+func listenForNewPeers(node host.Host) {
+	node.Network().Notify(&network.NotifyBundle{
+		ConnectedF: func(n network.Network, conn network.Conn) {
+			fmt.Printf("New peer connected: %s\n", conn.RemotePeer().String())
+		},
+	})
 }
 
 func main() {
