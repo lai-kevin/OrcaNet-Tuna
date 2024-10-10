@@ -18,6 +18,7 @@ import (
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/peerstore"
+	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv2/client"
 	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv2/relay"
 	ma "github.com/multiformats/go-multiaddr"
 )
@@ -266,4 +267,24 @@ func main() {
 	defer node.Close()
 
 	select {}
+}
+
+func makeReservation(node host.Host) error {
+	context := globalCtx
+	relayAddress, err := ma.NewMultiaddr(RELAY_NODE_MULTIADDR)
+	if err != nil {
+		fmt.Errorf("Failed to create relay multiaddr: %v", err)
+		return err
+	}
+	relayInfo, err := peer.AddrInfoFromP2pAddr(relayAddress)
+	if err != nil {
+		fmt.Errorf("Failed to create relay address: %v", err)
+		return err
+	}
+	_, err = client.Reserve(context, node, *relayInfo)
+	if err != nil {
+		fmt.Errorf("Failed to make reservation on relay: %v", err)
+		return err
+	}
+	return nil
 }
