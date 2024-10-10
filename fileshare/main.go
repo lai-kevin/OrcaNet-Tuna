@@ -1,3 +1,6 @@
+// Author: Kevin Lai
+// This file contains the main logic for starting the node and connecting to the relay
+// and bootstrap node.
 package main
 
 import (
@@ -8,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	libp2p "github.com/libp2p/go-libp2p"
@@ -182,7 +186,7 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 	return nil
 }
 
-// handler for peer exchange with given node and relay using streams
+// Handler for peer exchange with given node and relay using streams
 func handlePeerExhangeWithRelay(node host.Host) error {
 	relayAddr, err := ma.NewMultiaddr(RELAY_NODE_MULTIADDR)
 	if err != nil {
@@ -231,6 +235,49 @@ func handlePeerExhangeWithRelay(node host.Host) error {
 	return nil
 }
 
+// Make reservation on the relay node
+func makeReservation(node host.Host) error {
+	context := globalCtx
+	relayAddress, err := ma.NewMultiaddr(RELAY_NODE_MULTIADDR)
+	if err != nil {
+		fmt.Errorf("Failed to create relay multiaddr: %v", err)
+		return err
+	}
+	relayInfo, err := peer.AddrInfoFromP2pAddr(relayAddress)
+	if err != nil {
+		fmt.Errorf("Failed to create relay address: %v", err)
+		return err
+	}
+	_, err = client.Reserve(context, node, *relayInfo)
+	if err != nil {
+		fmt.Errorf("Failed to make reservation on relay: %v", err)
+		return err
+	}
+	return nil
+}
+
+// Handle input from stdio
+func handleInput(context context.Context, orcaDHT *dht.IpfsDHT) {
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Print("Enter peer ID to connect to: ")
+
+		// TODO: REPLACE THIS
+		peerID, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Errorf("Error occured while reading input: %v", err)
+			return
+		}
+		peerID = strings.TrimSpace(peerID)
+		if peerID == "" {
+			fmt.Println("Invalid peer ID")
+			continue
+		}
+		peerID = strings.TrimSpace(peerID)
+		connectToNodeUsingRelay(node, peerID)
+	}
+}
+
 func main() {
 	// Start node
 	node, orcaDHT, err := createNode(dht.ModeAuto)
@@ -262,29 +309,11 @@ func main() {
 	}
 
 	go handlePeerExhangeWithRelay(node)
-	//go handleInput(context, orcaDHT)
+
+	// Keep the node running until the user exits
+	go handleInput(contex, orcaDHT)
 
 	defer node.Close()
 
 	select {}
-}
-
-func makeReservation(node host.Host) error {
-	context := globalCtx
-	relayAddress, err := ma.NewMultiaddr(RELAY_NODE_MULTIADDR)
-	if err != nil {
-		fmt.Errorf("Failed to create relay multiaddr: %v", err)
-		return err
-	}
-	relayInfo, err := peer.AddrInfoFromP2pAddr(relayAddress)
-	if err != nil {
-		fmt.Errorf("Failed to create relay address: %v", err)
-		return err
-	}
-	_, err = client.Reserve(context, node, *relayInfo)
-	if err != nil {
-		fmt.Errorf("Failed to make reservation on relay: %v", err)
-		return err
-	}
-	return nil
 }
