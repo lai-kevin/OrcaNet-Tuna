@@ -51,7 +51,7 @@ func generatePrivateKeyFromSeed(seed string) (crypto.PrivKey, error) {
 }
 
 // Creates a new node in given mode. Use dht.ModeAuto to let the node decide the mode.
-func createNode(mode dht.Mode) (host.Host, *dht.IpfsDHT, error) {
+func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 	context := context.Background()
 	privateKey, err := generatePrivateKeyFromSeed(SBU_ID)
 	if err != nil {
