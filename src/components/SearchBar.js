@@ -1,10 +1,26 @@
 import { FaSearch } from "react-icons/fa";
 import { CgProfile } from "react-icons/cg";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import { NavLink} from 'react-router-dom';
+import { AppContext } from "./AppContext";
 const SearchBar = ({user, setUser}) => {
+    const { setSearchResultsFound, setFileToDownload, dummyFiles } = useContext(AppContext);
     const [open, setOpen] = useState("close")
     const menu = useRef(null);
+
+    const handleSearch = (event) => {
+      if (event.key === "Enter") {
+        // console.log(event.target.value); //can still extract info like this
+        let fullSearchText = event.target.value;
+        let file = dummyFiles.find((file) => file.hashId === fullSearchText);
+        event.target.value = ""; // this should clear it after clicking
+        setSearchResultsFound(true);
+        if(file !== undefined){
+          setFileToDownload(file);
+        }
+      }
+    }
+
     const handleDropDown = () =>{
         setOpen(prevState => (prevState ==="open" ? 'close' : 'open' ))
     }
@@ -17,7 +33,7 @@ const SearchBar = ({user, setUser}) => {
           <label htmlFor="searchInput">
             <input type="search" placeholder="Browse..." id="searchInput"></input>
           </label>
-          <button type="submit" id="findButton">
+          <button type="submit" id="findButton" onclick = {handleSearch}>
                 <FaSearch />
           </button>
           </div>

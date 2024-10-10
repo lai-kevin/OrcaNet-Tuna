@@ -9,6 +9,7 @@ import { ModeProvider } from "./components/Mode.js";
 import { useEffect, useState} from "react";
 import Entry from "./components/Entry.js";
 import { Buffer } from "buffer";
+import { AppContextProvider } from "./components/AppContext.js";
 window.Buffer = Buffer;
 function App() {
   const [user, setUser] = useState(null);
@@ -19,6 +20,7 @@ function App() {
     window.electronAppReady = true;
 }, []);
   return (
+    <AppContextProvider>
     <ModeProvider>
     <BrowserRouter>
     <Routes>
@@ -30,6 +32,7 @@ function App() {
     </Routes>
   </BrowserRouter>
   </ModeProvider>
+  </AppContextProvider>
   );
 }
 
