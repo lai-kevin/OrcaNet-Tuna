@@ -39,7 +39,6 @@ const Entry = ({user, setUser}) =>{
                     <a id="inner_button1" onClick={handleLoginPage}>Login</a>
                     <a id="inner_button2" onClick={handleRegPage}>Register</a>
                 </div>
-            </div>
             <div id="contents">
                 <div className={`effect ${effect ? (page === 'register' ? 'right' : 'left') : ''}`}>
                     {page === 'login' && <Login handleRegPage={handleRegPage} user={user} setUser={setUser} setPage ={setPage}/>}
@@ -47,6 +46,7 @@ const Entry = ({user, setUser}) =>{
                 <div className={`effect ${effect ? (page === 'login' ? 'right' : 'left') : ''}`}>
                     {page === 'register' && <Register handleLoginPage={handleLoginPage} user={user} setPage={setPage}/>}
                 </div>
+            </div>
             </div>
             </>}
         </div>
@@ -60,7 +60,7 @@ const Recover = ({setPage})=>{
     const verify=(e)=>{
         e.preventDefault();
         let p = phrase.trim();
-        if (p == ""){
+        if (p === ""){
             setErr({message:"^Field can't be empty", present:true});
             return
         }
@@ -203,39 +203,39 @@ const Register=({handleLoginPage, user, setPage})=>{
     return(
         <div>
             {current === "first" &&
-            (<div id = "register_page">
-                <h3 id="welcome">Let's Set Up Your Crypto Wallet!</h3>
+            (<div className = "register_page">
+                <h3 className="welcome">Let's Set Up Your Crypto Wallet!</h3>
                 <button id="log_button" onClick={() => handleSwitch("second")}> Continue</button>
-                <p className ="redirect">Have an account? <a id="signup" onClick={handleLoginPage}>Login</a></p>
+                <p className ="redirect1">Have an account? <a id="signup" onClick={handleLoginPage}>Login</a></p>
                 </div>
             )}
             {current === "second" &&
-            (<div id = "register_page">
-                <h3 id="welcome">Generating your 12-word phrase...</h3>
+            (<div className = "register_page">
+                <h3 className="welcome2">Generating your 12-word phrase...</h3>
                 <div className='loading_container'>
                      <Rings id="loading"/>
                 </div>
                 </div>
             )}
             {current === "third" &&
-            (<div id = "register_page">
-                <h3 id="welcome">Generating your private and public key...</h3>
+            (<div className= "register_page">
+                <h3 className="welcome3">Generating your private and public key...</h3>
                 <div className='loading_container'>
                      <Rings id="loading" />
                 </div>
                 </div>
             )}
             {current === "fourth" && (
-                <div id = "register_page">
+                <div className = "register_page">
                 <h3 id="welcome1">Please save these info:</h3>
-                <div className='loading_container'>
+                <div className='info_container'>
                     <ul className='info_list'>
-                        <li>Recovery phrase: <button type="button" id="copy" onClick={()=>handleCopy(data.phrase)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button> <br></br><span>{data.phrase.split(" ").slice(0, 6).join(" ")}</span><br></br>
-                        <span>{data.phrase.split(" ").slice(5, 12).join(" ")}</span>
+                        <li><span id="phrase_title">Recovery phrase:</span> <button type="button" id="copy" onClick={()=>handleCopy(data.phrase)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button> <br></br><span className="recover_phrase">{data.phrase.split(" ").slice(0, 6).join(" ")}</span><br></br>
+                        <span className="recover_phrase">{data.phrase.split(" ").slice(5, 12).join(" ")}</span>
                         </li>
-                        <li>Private key:  <button type="button" id="copy" onClick={()=>handleCopy(data.privateKey)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br> <span>{data.privateKey}</span></li>
-                        <li>Public key:  <button type="button" id="copy" onClick={()=>handleCopy(data.publicKey)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br><span>{data.publicKey}</span></li>
-                        <li>Wallet ID:  <button type="button" id="copy" onClick={()=>handleCopy(data.walletID)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br><span>{data.walletID}</span></li>
+                        <li>Private key:  <button type="button" id="copy" onClick={()=>handleCopy(data.privateKey)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br> <span id="private_key">{data.privateKey}</span></li>
+                        <li>Public key:  <button type="button" id="copy" onClick={()=>handleCopy(data.publicKey)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br><span id="public_key">{data.publicKey}</span></li>
+                        <li>Wallet ID:  <button type="button" id="copy" onClick={()=>handleCopy(data.walletID)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br><span id="w">{data.walletID}</span></li>
                     </ul>
                 </div>
             </div>

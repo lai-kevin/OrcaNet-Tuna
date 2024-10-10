@@ -38,7 +38,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "concurrently \"cross-env BROWSER=none npm run start-react\" \"wait-on http://localhost:3000 && electron .\"",
+    "start-react": "react-scripts start",
     "electron": "electron .",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -63,8 +64,11 @@
     ]
   },
   "devDependencies": {
+    "concurrently": "^9.0.1",
+    "cross-env": "^7.0.3",
     "electron": "^32.1.2",
     "electron-builder": "^25.0.5",
-    "electron-is-dev": "^3.0.1"
+    "electron-is-dev": "^3.0.1",
+    "wait-on": "^8.0.1"
   }
 }

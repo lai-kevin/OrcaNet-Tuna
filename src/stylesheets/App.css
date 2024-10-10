@@ -649,7 +649,7 @@
   position:absolute;
   background-color: white;
   margin-left: 700px;
-  margin-top: 90px;
+  margin-top: 10px;
   padding: 5px;
   border: 1px solid black;
 }
@@ -689,12 +689,13 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   background-color: rgba(255, 255, 255, 0.681);
   display:block;
+  position: absolute;
 }
 .options {
   display: flex;
   border-collapse: collapse;
   margin-top: -10px;
-  margin-left: 90px;
+  margin-left: 110px;
   border: 1px solid black; 
   border-radius: 10px;
   align-items: center;
@@ -704,10 +705,9 @@
 }
 
 #contents{
-  text-align: center;
-  margin-top: -300px;
-  overflow: hidden;
-
+  align-content: center;
+  padding-left: 60px;
+  padding-top: 30px;
 }
 #head{
   text-align:center;
@@ -733,14 +733,13 @@
   font-size: 18px;
 
 }
-#recover{
-  margin-left:-170px;
-  padding-top:30px;
-  color:#0068d7
-}
 .redirect{
-  margin-top: 100px;
-  margin-left:60px;
+  margin-top: 80px;
+  margin-left:100px;
+}
+.redirect1{
+  margin-top: 80px;
+  margin-left:120px;
 }
 #signup{
   color:#007BFF
@@ -774,39 +773,39 @@
   color: black; 
   flex: 1; 
 }
-#welcome{
-  margin-left: 50px;
+.welcome{
+  margin-left: 60px;
 }
 #welcome1{
-  margin-left: 50px;
+  margin-left: 100px;
   margin-top: -3px;
 }
 .loading_container{
-  margin-left: 700px;
+  justify-content: center;
+  padding-left: 160px;
+}
+.info_container{
+  align-self: start;
+  align-items: center;
+
 }
 #loading{
-  height: 80px;
-  width:80px;
-  padding-left: 400px;
-}
-.loading-ring .ring {
   border-color: blue; 
+  margin-left: 130px;
 }
 .info_list li{
-  margin-left: -1000px;
   font-size: 18px;
   padding-top: 5px;
   align-items: center;
   padding-bottom: 5px;;
   font-weight: 600;
+  margin-left: 90px;
 }
 .info_list{
   list-style-type: none; 
-  margin-left: 300px;
 }
 .info_list span{
   font-size: 12px;
-  margin-left: 20px;
   color: blue;
 }
 #err{
@@ -866,4 +865,39 @@
   border-radius: 10px;
   font-size: 18px;
   background-color: #22aaf37d;
+}
+.register_page{
+  display: block;
+  align-items: center;
+}
+.welcome2{
+  margin-left:50px;
+}
+.welcome3{
+  margin-left:40px;
+}
+#recover{
+  margin-left: 50px;
+  color: #007BFF;
+}
+.recover_phrase{
+  margin-left: -50px;
+}
+#private_key{
+  margin-left: -175px;
+}
+#w{
+  margin-left: -80px;
+}
+#public_key{
+  margin-left: -185px;
+}
+#phrase_title{
+  font-size: 18px;
+  padding-top: 5px;
+  align-items: center;
+  padding-bottom: 5px;;
+  font-weight: 600;
+  margin-left: -10px;
+  color:black
 }

@@ -15,6 +15,9 @@ function App() {
   useEffect(() => {
     document.title = "OrcaNet Desktop App";
   }, []);
+  useEffect(() => {
+    window.electronAppReady = true;
+}, []);
   return (
     <ModeProvider>
     <BrowserRouter>

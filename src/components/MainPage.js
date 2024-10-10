@@ -1,7 +1,6 @@
 import { Outlet, NavLink } from "react-router-dom";
 import NavBar from "./NavBar";
 import SearchBar from "./SearchBar";
-import Header from "./Header";
 import { DropMenu } from "./SearchBar";
 const MainPage = ({user, setUser})=> {
     return (

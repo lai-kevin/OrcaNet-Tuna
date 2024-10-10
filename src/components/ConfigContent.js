@@ -5,7 +5,6 @@ import { CiLight } from "react-icons/ci";
 import { CiDark } from "react-icons/ci";
 const ConfigContent = ({ mode, chooseLight, chooseDark }) => {
     const boxes = [
-        { id: 1, content: <NetworkForm/>},
         { id: 2, content: <Theme mode = {mode} chooseLight = {chooseLight} chooseDark = {chooseDark}/>}
       ];
     return(
