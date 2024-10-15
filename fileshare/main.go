@@ -34,7 +34,7 @@ import (
 // CHANGE AS NEEDED
 const BOOTSTRAP_NODE_MULTIADDR = "/ip4/130.245.173.222/tcp/61000/p2p/12D3KooWQd1K1k8XA9xVEzSAu7HUCodC7LJB6uW5Kw4VwkRdstPE"
 const RELAY_NODE_MULTIADDR = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
-const SBU_ID = "114433442"
+const SBU_ID = "114433445"
 
 // Global context for the application
 var globalCtx context.Context
@@ -125,6 +125,7 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 	node.Network().Notify(&network.NotifyBundle{
 		ConnectedF: func(n network.Network, conn network.Conn) {
 			fmt.Printf("Notification: New peer connected %s\n", conn.RemotePeer().String())
+			connectToNodeUsingRelay(node, conn.RemotePeer().String())
 		},
 	})
 
