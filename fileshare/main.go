@@ -260,7 +260,7 @@ func makeReservation(node host.Host) error {
 }
 
 // Handle input from stdio
-func handleInput(context context.Context, orcaDHT *dht.IpfsDHT) {
+func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("> ")
@@ -330,7 +330,7 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT) {
 				fmt.Printf("Failed to put record: %v\n", err)
 				continue
 			}
-			// provideKey(ctx, dht, key)
+			provideKey(context, orcaDHT, key)
 			fmt.Println("Record stored successfully")
 
 		case "PUT_PROVIDER":
@@ -340,13 +340,88 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT) {
 			}
 			key := args[1]
 			provideKey(context, orcaDHT, key)
+		case "PROVIDE_FILE":
+			if len(args) < 2 {
+				fmt.Println("Expected file path")
+				continue
+			}
+			filepath := args[1]
+			peerID := node.ID().String()
+
+			// Generate a file hash
+			file, err := os.Open(filepath)
+			if err != nil {
+				fmt.Println("Error opening file: ", err)
+			}
+			defer file.Close()
+
+			hash := sha256.New()
+
+			if _, err := io.Copy(hash, file); err != nil {
+				fmt.Println("Error copying file contents: ", err)
+			}
+
+			fileHash := fmt.Sprintf("%x", hash.Sum(nil))
+
+			// Provide the file on DHT
+			dhtKey := "/orcanet/" + fileHash
+
+			fmt.Println("Providing file with key: ", dhtKey)
+
+			err = orcaDHT.PutValue(context, dhtKey, []byte(peerID))
+			if err != nil {
+				fmt.Println("Error providing file: ", err)
+			}
+
+			provideKey(context, orcaDHT, fileHash)
+
+			fmt.Println("File provided successfully")
+		case "PROVIDE_FILE_META":
+			if len(args) < 2 {
+				fmt.Println("Expected file path")
+				continue
+			}
+			// TODO: Implement
+			continue
+		case "GET_FILE":
+			if len(args) < 2 {
+				fmt.Println("Expected file hash")
+				continue
+			}
+			fileHash := args[1]
+			dhtKey := "/orcanet/" + fileHash
+			res, err := orcaDHT.GetValue(context, dhtKey)
+			if err != nil {
+				fmt.Printf("Failed to get record: %v\n", err)
+			}
+			fmt.Printf("File found at peerID: %s\n", res)
+
+			// Connect to the peer
+			providerPeerID := string(res)
+			providerMultiAddress, err := findPeerAndConnect(context, orcaDHT, node, providerPeerID)
+			if err != nil {
+				fmt.Printf("Failed to connect to peer: %v\n", err)
+			}
+
+			// Request the file from the peer
+			err = sendFileRequestToPeer(context, node, providerMultiAddress, fileHash)
+			if err != nil {
+				fmt.Printf("Failed to request file from peer: %v\n", err)
+			}
+
+		case "GET_FILE_META":
+			if len(args) < 2 {
+				fmt.Println("Expected file hash")
+			}
+			// TODO: Implement
+
 		default:
-			fmt.Println("Expected GET, GET_PROVIDERS, PUT or PUT_PROVIDER")
+			fmt.Println("Expected GET, GET_PROVIDERS, PUT, PUT_PROVIDER, PROVIDE_FILE, PROVIDE_FILE_META, DOWNLOAD_FILE, DOWNLOAD_FILE_META")
 		}
 	}
 }
 
-// TODO: NOT SURE WHAT THIS DOES. FROM EXAMPLE CODE
+// Annouce to the network that the node is providing a key for a file
 func provideKey(ctx context.Context, dht *dht.IpfsDHT, key string) error {
 	data := []byte(key)
 	hash := sha256.Sum256(data)
@@ -364,22 +439,22 @@ func provideKey(ctx context.Context, dht *dht.IpfsDHT, key string) error {
 	return nil
 }
 
-// // Listens for incoming connections from peers
-// func listenForIncomingConnections(node host.Host) {
-// 	node.SetStreamHandler("/orcanet/p2p", func(stream network.Stream) {
-// 		defer stream.Close()
-// 		fmt.Println("Received incoming connection from peer")
-// 	})
-// }
+// Listens for incoming connections from peers
+func listenForIncomingConnections(node host.Host) {
+	node.SetStreamHandler("/orcanet/fileshare/requestFile", func(stream network.Stream) {
+		defer stream.Close()
+		fmt.Println("Received incoming file request from peer.")
+	})
+}
 
-// // Listen for newly connected peers
-// func listenForNewPeers(node host.Host) {
-// 	node.Network().Notify(&network.NotifyBundle{
-// 		ConnectedF: func(n network.Network, conn network.Conn) {
-// 			fmt.Printf("New peer connected: %s\n", conn.RemotePeer().String())
-// 		},
-// 	})
-// }
+// Download a file from a peer
+func listenForDataTransfer(node host.Host) {
+	node.SetStreamHandler("/orcanet/fileshare/sendFile", func(stream network.Stream) {
+		defer stream.Close()
+		fmt.Println("Received incoming connection from peer. File available for download")
+		// TODO: Send file
+	})
+}
 
 func main() {
 	// Start node
@@ -419,7 +494,13 @@ func main() {
 	go handlePeerExhangeWithRelay(node)
 
 	// Keep the node running until the user exits
-	go handleInput(contex, orcaDHT)
+	go handleInput(contex, orcaDHT, node)
+
+	// Listen for file requests
+	go listenForIncomingConnections(node)
+
+	// Listen for file transfers
+	go listenForDataTransfer(node)
 
 	defer node.Close()
 
