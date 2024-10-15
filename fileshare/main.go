@@ -243,18 +243,16 @@ func makeReservation(node host.Host) error {
 	context := globalCtx
 	relayAddress, err := ma.NewMultiaddr(RELAY_NODE_MULTIADDR)
 	if err != nil {
-		fmt.Errorf("Failed to create relay multiaddr: %v", err)
-		return err
+		return fmt.Errorf("failed to create relay multiaddr: %v", err)
 	}
 	relayInfo, err := peer.AddrInfoFromP2pAddr(relayAddress)
 	if err != nil {
-		fmt.Errorf("Failed to create relay address: %v", err)
-		return err
+		return fmt.Errorf("failed to create relay address: %v", err)
 	}
+
 	_, err = client.Reserve(context, node, *relayInfo)
 	if err != nil {
-		fmt.Errorf("Failed to make reservation on relay: %v", err)
-		return err
+		return fmt.Errorf("failed to make reservation on relay: %v", err)
 	}
 	return nil
 }
