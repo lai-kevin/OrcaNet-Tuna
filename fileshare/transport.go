@@ -54,13 +54,13 @@ func findPeerAndConnect(context context.Context, orcaDHT *dht.IpfsDHT, node host
 		return "ERROR", err
 	}
 	peerMultiAddress = peerInfo.Addrs[0].String()
-	fullMultiAddress := fmt.Sprintf("%s/p2p/%s", peerMultiAddress, peerID)
+	//fullMultiAddress := fmt.Sprintf("%s/p2p/%s", peerMultiAddress, peerID)
 	err = connectToNodeUsingRelay(node, peerID)
 	if err != nil {
 		err := fmt.Errorf("findPeerAndConnect: Error occured while connecting to peer during: %v", err)
 		return "ERROR", err
 	}
-	return fullMultiAddress, nil
+	return "SUCESS", nil
 }
 
 // Send a file request to a peer from a given node. This function assumes peer is already connected. Use in conjunction with findPeerAndConnect.
@@ -71,7 +71,6 @@ func findPeerAndConnect(context context.Context, orcaDHT *dht.IpfsDHT, node host
 func sendFileRequestToPeer(
 	context context.Context,
 	node host.Host,
-	targetNodeMultiAddr string,
 	targetNodePeerID string,
 	fileHash string) (err error) {
 
