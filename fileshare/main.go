@@ -398,13 +398,13 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) 
 
 			// Connect to the peer
 			providerPeerID := string(res)
-			providerMultiAddress, err := findPeerAndConnect(context, orcaDHT, node, providerPeerID)
+			err = connectToNodeUsingRelay(node, providerPeerID)
 			if err != nil {
 				fmt.Printf("Failed to connect to peer: %v\n", err)
 			}
 
 			// Request the file from the peer
-			err = sendFileRequestToPeer(context, node, providerMultiAddress, providerPeerID, fileHash)
+			err = sendFileRequestToPeer(context, node, providerPeerID, fileHash)
 			if err != nil {
 				fmt.Printf("Failed to request file from peer: %v\n", err)
 			}
