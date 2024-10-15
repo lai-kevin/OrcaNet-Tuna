@@ -54,6 +54,7 @@ func sendFileRequestToPeer(
 
 	fmt.Printf("Sending file request to peer %s\n", targetNodePeerID)
 
+	fmt.Println("Creating stream to" + decodedPeerID)
 	stream, err := node.NewStream(context, decodedPeerID, "/orcanet/fileshare/requestFile")
 	if err != nil {
 		return fmt.Errorf("sendFileRequestToPeer: %v", err)
