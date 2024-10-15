@@ -404,7 +404,7 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) 
 			}
 
 			// Request the file from the peer
-			err = sendFileRequestToPeer(context, node, providerMultiAddress, fileHash)
+			err = sendFileRequestToPeer(context, node, providerMultiAddress, providerPeerID, fileHash)
 			if err != nil {
 				fmt.Printf("Failed to request file from peer: %v\n", err)
 			}

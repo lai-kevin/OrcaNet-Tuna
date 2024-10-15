@@ -72,17 +72,20 @@ func sendFileRequestToPeer(
 	context context.Context,
 	node host.Host,
 	targetNodeMultiAddr string,
+	targetNodePeerID string,
 	fileHash string) (err error) {
-	// Parse the peerID from the multiaddress
-	decodedPeerID, err := peer.Decode(targetNodeMultiAddr)
+
+	// Create a new stream to the target peer
+	decodedPeerID, err := peer.Decode(targetNodePeerID)
 	if err != nil {
 		return fmt.Errorf("sendFileRequestToPeer: failed to decode peerID: %v", err)
 	}
 
-	// Create a new stream to the target peer
-	stream, err := node.NewStream(context, decodedPeerID, "/fileshare/requestFile")
+	fmt.Printf("Sending file request to peer %s\n", targetNodePeerID)
+
+	stream, err := node.NewStream(context, decodedPeerID, "/orcanet/fileshare/requestFile")
 	if err != nil {
-		return fmt.Errorf("sendFileRequestToPeer: failed to open stream: %v", err)
+		return fmt.Errorf("sendFileRequestToPeer: %v", err)
 	}
 	defer stream.Close()
 
@@ -132,7 +135,7 @@ func sendFileToPeer(context context.Context, fullPeerMultiAddress string, node h
 	}
 
 	// Create a new stream to the target peer
-	stream, err := node.NewStream(context, decodedPeerID, "/fileshare/sendFile")
+	stream, err := node.NewStream(context, decodedPeerID, "/orcanet/fileshare/sendFile")
 	if err != nil {
 		return fmt.Errorf("sendFileToPeer: failed to open stream: %v", err)
 	}
