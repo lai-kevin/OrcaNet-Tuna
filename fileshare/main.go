@@ -223,7 +223,6 @@ func handlePeerExhangeWithRelay(node host.Host) error {
 		}
 		if knownPeers, ok := data["known_peers"].([]interface{}); ok {
 			for _, peer := range knownPeers {
-				fmt.Println("Peer:")
 				if peerMap, ok := peer.(map[string]interface{}); ok {
 					if peerID, ok := peerMap["peer_id"].(string); ok {
 						if string(peerID) != string(relayInfo.ID) {
@@ -264,8 +263,6 @@ func makeReservation(node host.Host) error {
 func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print("> ")
-
 		input, _ := reader.ReadString('\n') // Read input from keyboard
 		input = strings.TrimSpace(input)    // Trim any trailing newline or spaces
 		args := strings.Split(input, " ")
@@ -506,7 +503,7 @@ func main() {
 
 	// print the node's multiaddress
 	for _, addr := range node.Addrs() {
-		fmt.Printf("Node's address: %s/p2p/%s\n", addr, node.ID())
+		fmt.Printf("This node's multiaddress: %s/p2p/%s\n", addr, node.ID())
 	}
 
 	go handlePeerExhangeWithRelay(node)
@@ -518,7 +515,7 @@ func main() {
 	go listenForIncomingConnections(node)
 
 	// Listen for file transfers
-	go listenForDataTransfer(node)
+	// go listenForDataTransfer(node)
 
 	defer node.Close()
 
