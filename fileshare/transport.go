@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
 )
@@ -37,35 +36,8 @@ type MetaData struct {
 	PeerPublicKey string
 }
 
-// Find a peer in orcanet and connect to it. Returns the peer's multiaddress.
-// context: the context for the operation
-// orcaDHT: the DHT to search for the peer
-// node: the source node
-// peerID: the target peer's ID
-func findPeerAndConnect(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host, peerID string) (peerMultiAddress string, err error) {
-	// Get multiaddress of peer
-	decodedPeerID, err := peer.Decode(peerID)
-	if err != nil {
-		return "ERROR", err
-	}
-	peerInfo, err := orcaDHT.FindPeer(context, decodedPeerID)
-	if err != nil {
-		err := fmt.Errorf("findPeerAndConnect: Error occured while finding peer: %v", err)
-		return "ERROR", err
-	}
-	peerMultiAddress = peerInfo.Addrs[0].String()
-	fullMultiAddress := fmt.Sprintf("%s/p2p/%s", peerMultiAddress, peerID)
-	err = connectToNodeUsingRelay(node, peerID)
-	if err != nil {
-		err := fmt.Errorf("findPeerAndConnect: Error occured while connecting to peer during: %v", err)
-		return "ERROR", err
-	}
-	return fullMultiAddress, nil
-}
-
 // Send a file request to a peer from a given node. This function assumes peer is already connected. Use in conjunction with findPeerAndConnect.
 // context: the context for the operation
-// fullPeerMultiAddress: the target peer's multiaddress
 // node: the source node
 // fileName: the name of the file to request
 func sendFileRequestToPeer(

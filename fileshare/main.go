@@ -84,6 +84,7 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 		libp2p.EnableAutoRelayWithStaticRelays([]peer.AddrInfo{*relayInfo}),
 		libp2p.EnableRelayService(),
 		libp2p.EnableHolePunching(),
+		libp2p.EnableRelay(),
 	)
 	if err != nil {
 		err := fmt.Errorf("error occured while creating node: %v", err)
@@ -153,7 +154,7 @@ func connectToNode(node host.Host, targetNodeAddress string) error {
 		return err
 	}
 
-	fmt.Println("Connected to target node: ", targetNodeInfo.ID)
+	fmt.Println("Connected to: ", targetNodeInfo.ID)
 	return nil
 }
 
@@ -444,17 +445,34 @@ func listenForIncomingConnections(node host.Host) {
 	node.SetStreamHandler("/orcanet/fileshare/requestFile", func(stream network.Stream) {
 		defer stream.Close()
 		fmt.Println("Received incoming file request from peer.")
+
+		// Read the file request
+		buffer := bufio.NewReader(stream)
+		fileRequest, err := buffer.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading file request: ", err)
+			return
+		}
+
+		// Parse the file request
+		var data map[string]interface{}
+		err = json.Unmarshal([]byte(fileRequest), &data)
+		if err != nil {
+			fmt.Println("Error unmarshalling file request: ", err)
+			return
+		}
+
 	})
 }
 
-// Download a file from a peer
-func listenForDataTransfer(node host.Host) {
-	node.SetStreamHandler("/orcanet/fileshare/sendFile", func(stream network.Stream) {
-		defer stream.Close()
-		fmt.Println("Received incoming connection from peer. File available for download")
-		// TODO: Send file
-	})
-}
+// // Download a file from a peer
+// func listenForDataTransfer(node host.Host) {
+// 	node.SetStreamHandler("/orcanet/fileshare/sendFile", func(stream network.Stream) {
+// 		defer stream.Close()
+// 		fmt.Println("Received incoming connection from peer. File available for download")
+// 		// TODO: Send file
+// 	})
+// }
 
 func main() {
 	// Start node
