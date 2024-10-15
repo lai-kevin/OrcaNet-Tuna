@@ -135,13 +135,13 @@ func connectToNode(node host.Host, targetNodeAddress string) error {
 	// Create multi address from targetNodeAddress
 	targetNodeMultiAddr, err := ma.NewMultiaddr(targetNodeAddress)
 	if err != nil {
-		fmt.Errorf("Error occured while creating multi address: %v", err)
+		err = fmt.Errorf("error occured while creating multi address: %v", err)
 		return err
 	}
 
 	targetNodeInfo, err := peer.AddrInfoFromP2pAddr(targetNodeMultiAddr)
 	if err != nil {
-		fmt.Errorf("Error occured while creating peer address info: %v", err)
+		err = fmt.Errorf("error occured while creating peer address info: %v", err)
 		return err
 	}
 
@@ -149,7 +149,7 @@ func connectToNode(node host.Host, targetNodeAddress string) error {
 	node.Peerstore().AddAddrs(targetNodeInfo.ID, targetNodeInfo.Addrs, peerstore.PermanentAddrTTL)
 	err = node.Connect(context.Background(), *targetNodeInfo)
 	if err != nil {
-		fmt.Errorf("Error occured while connecting to target node: %v", err)
+		err = fmt.Errorf("error occured while connecting to target node: %v", err)
 		return err
 	}
 
@@ -209,9 +209,10 @@ func handlePeerExhangeWithRelay(node host.Host) error {
 		peerAddress, err := buffer.ReadString('\n')
 		if err != nil {
 			if err != io.EOF {
-				fmt.Printf("EOF: Failed to read peer address")
+				fmt.Printf("EOF: Failed to read peer address\n")
 			}
-			fmt.Printf("Failed to read peer address")
+
+			// Ignore EOF
 		}
 		peerAddress = strings.TrimSpace(peerAddress)
 		var data map[string]interface{}
@@ -408,6 +409,11 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error occured while connecting to bootstrap node: %v", err)
 		return
+	}
+
+	// print the node's multiaddress
+	for _, addr := range node.Addrs() {
+		fmt.Printf("Node's address: %s/p2p/%s\n", addr, node.ID())
 	}
 
 	go handlePeerExhangeWithRelay(node)
