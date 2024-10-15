@@ -4,9 +4,8 @@ package main
 
 import (
 	"context"
-	"encoding/binary"
+	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
@@ -14,12 +13,26 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 )
 
-type Chunk struct {
-	CID  int
-	Data []byte
+// File struct for file data
+type FileData struct {
+	FileName string
+	FileSize int
+}
+
+// MetaData struct for file metadata
+type MetaData struct {
+	FileName      string
+	FileSize      int
+	Multiaddress  string
+	PeerID        string
+	PeerPublicKey string
 }
 
 // Find a peer in orcanet and connect to it. Returns the peer's multiaddress.
+// context: the context for the operation
+// orcaDHT: the DHT to search for the peer
+// node: the source node
+// peerID: the target peer's ID
 func findPeerAndConnect(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host, peerID string) (peerMultiAddress string, err error) {
 	// Get multiaddress of peer
 	decodedPeerID, err := peer.Decode(peerID)
@@ -59,24 +72,60 @@ func sendFileToPeer(context context.Context, fullPeerMultiAddress string, node h
 	}
 	fileSize := fileInfo.Size()
 
-	// Write the file size to the stream
-	fileSizeBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(fileSizeBytes, uint64(fileSize))
-	_, err = stream.Write(fileSizeBytes)
-	if err != nil {
-		return fmt.Errorf("sendFileToPeer: failed to write file size to stream: %v", err)
+	// Get the file name
+	fileName := fileInfo.Name()
+
+	// // Write the file size to the stream
+	// fileSizeBytes := make([]byte, 8)
+	// binary.BigEndian.PutUint64(fileSizeBytes, uint64(fileSize))
+	// _, err = stream.Write(fileSizeBytes)
+	// if err != nil {
+	// 	return fmt.Errorf("sendFileToPeer: failed to write file size to stream: %v", err)
+	// }
+
+	// Create file struct
+	fileHeader := FileData{
+		FileName: fileName,
+		FileSize: int(fileSize),
 	}
 
-	// Open the file and write it to the stream
+	// Convert the file header to JSON
+	fileHeaderBytes, err := json.Marshal(fileHeader)
+	if err != nil {
+		return fmt.Errorf("sendFileToPeer: failed to marshal file to JSON: %v", err)
+	}
+
+	// Write the file header to the stream
+	_, err = stream.Write(fileHeaderBytes)
+	if err != nil {
+		return fmt.Errorf("sendFileToPeer: failed to write file to stream: %v", err)
+	}
+
+	// Open the file and store it in a buffer
 	file, err := os.Open(filepath)
 	if err != nil {
 		return fmt.Errorf("sendFileToPeer: failed to open file: %v", err)
 	}
 	defer file.Close()
 
-	_, err = io.Copy(stream, file)
-	if err != nil {
-		return fmt.Errorf("sendFileToPeer: failed to write file to stream: %v", err)
+	// Create a buffer to store the file data
+	buffer := make([]byte, 1024)
+	for {
+		// Read the file data into the buffer
+		bytesRead, err := file.Read(buffer)
+		if err != nil {
+			if err.Error() == "EOF" {
+				break
+			}
+			return fmt.Errorf("sendFileToPeer: failed to read file: %v", err)
+		}
+
+		// Write the buffer to the stream
+		_, err = stream.Write(buffer[:bytesRead])
+		if err != nil {
+			return fmt.Errorf("sendFileToPeer: failed to write buffer to stream: %v", err)
+		}
+
 	}
 
 	// Close the stream
@@ -88,68 +137,74 @@ func sendFileToPeer(context context.Context, fullPeerMultiAddress string, node h
 	return nil
 }
 
-// Send chunks to a peer from a given node. This function assumes peer is already connected.
-// WARNGING: THIS FUNCTION IS NOT TESTED AND MAY NOT BE SUPPORTED IN THE FINAL VERSION.
-func sendChunksToPeer(context context.Context, fullPeerMultiAddress string, node host.Host, chunks []Chunk) (err error) {
-	// Parse peer peerID from multiaddress
+// Send file and source node metadata to a peer from a given node. This function assumes peer is already connected. Use in conjunction with findPeerAndConnect.
+// context: the context for the operation
+// orcaDHT: the DHT to search for the peer
+// node: the source node
+// peerID: the target peer's ID
+func sendFileMetaDataToPeer(context context.Context, fullPeerMultiAddress string, node host.Host, filepath string) (err error) {
+	// Parse the peerID from the multiaddress
 	decodedPeerID, err := peer.Decode(fullPeerMultiAddress)
+	if err != nil {
+		return fmt.Errorf("sendFileToPeer: failed to decode peerID: %v", err)
+	}
 
 	// Create a new stream to the target peer
-	stream, err := node.NewStream(context, decodedPeerID, "/fileshare/sendChunks")
+	stream, err := node.NewStream(context, decodedPeerID, "/fileshare/sendFile")
 	if err != nil {
-		return fmt.Errorf("failed to open stream: %v", err)
+		return fmt.Errorf("sendFileToPeer: failed to open stream: %v", err)
 	}
 	defer stream.Close()
 
-	totalBytes := 0
-	for _, chunk := range chunks {
-		totalBytes += len(chunk.Data)
+	// Get the file size
+	fileInfo, err := os.Stat(filepath)
+	if err != nil {
+		return fmt.Errorf("sendFileToPeer: failed to get file size: %v", err)
+	}
+	fileSize := fileInfo.Size()
+
+	// Get the file name
+	fileName := fileInfo.Name()
+
+	// Get the source node's multiaddress
+	sourceMultiAddress := node.Addrs()[0].String()
+
+	// Get the source node's ID
+	sourceID := node.ID().String()
+
+	// Get the source node's public key
+	pubKeyBytes, err := node.Peerstore().PubKey(node.ID()).Raw()
+	if err != nil {
+		return fmt.Errorf("sendFileMetaDataToPeer: failed to get raw public key: %v", err)
+	}
+	sourcePublicKey := fmt.Sprintf("%x", pubKeyBytes)
+
+	// Create metadata struct
+	metaData := MetaData{
+		FileName:      fileName,
+		FileSize:      int(fileSize),
+		Multiaddress:  sourceMultiAddress,
+		PeerID:        sourceID,
+		PeerPublicKey: sourcePublicKey,
 	}
 
-	transferredBytes := 0
-
-	// Send chunks to peer
-	for _, chunk := range chunks {
-		// Write the chunk CID to the stream
-		cidBytes := make([]byte, 4)
-		binary.BigEndian.PutUint32(cidBytes, uint32(chunk.CID))
-		_, err = stream.Write(cidBytes)
-		if err != nil {
-			return fmt.Errorf("sendChunksToPeer: failed to write chunk CID to stream: %v", err)
-		}
-
-		// Write the chunk data length
-		dataLengthBytes := make([]byte, 4)
-		binary.BigEndian.PutUint32(dataLengthBytes, uint32(len(chunk.Data)))
-		_, err = stream.Write(dataLengthBytes)
-		if err != nil {
-			return fmt.Errorf("sendChunksToPeer: failed to write chunk data length to stream: %v", err)
-		}
-
-		// Write total bytes to be transferred
-		totalBytesBytes := make([]byte, 4)
-		binary.BigEndian.PutUint32(totalBytesBytes, uint32(totalBytes))
-
-		// Write the chunk data
-		_, err = stream.Write(chunk.Data)
-		if err != nil {
-			return fmt.Errorf("failed to write to stream: %v", err)
-		}
-
-		// Update the number of transferred bytes
-		transferredBytes += len(chunk.Data)
+	// Convert metadata to JSON
+	metaDataBytes, err := json.Marshal(metaData)
+	if err != nil {
+		return fmt.Errorf("sendFileMetaDataToPeer: failed to marshal metadata to JSON: %v", err)
 	}
 
-}
+	// Write the metadata to the stream as JSON
+	_, err = stream.Write(metaDataBytes)
+	if err != nil {
+		return fmt.Errorf("sendFileMetaDataToPeer: failed to write metadata to stream: %v", err)
+	}
 
-func receiveChunksFromPeer(peerID string, chunkpath string) (err error) {
-	return
-}
+	// Close the stream
+	err = stream.Close()
+	if err != nil {
+		return fmt.Errorf("sendFileMetaDataToPeer: failed to close stream: %v", err)
+	}
 
-func sendFileMetaDataToPeer(peerID string, filepath string) (err error) {
-	return
-}
-
-func receiveFileMetaDataFromPeer(peerID string, filepath string) (err error) {
-	return
+	return nil
 }
