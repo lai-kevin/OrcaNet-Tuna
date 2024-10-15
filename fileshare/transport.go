@@ -51,6 +51,10 @@ func findPeerAndConnect(context context.Context, orcaDHT *dht.IpfsDHT, node host
 }
 
 // Send a file to a peer from a given node. This function assumes peer is already connected. Use in conjunction with findPeerAndConnect.
+// context: the context for the operation
+// fullPeerMultiAddress: the target peer's multiaddress
+// node: the source node
+// filepath: the path to the file to send
 func sendFileToPeer(context context.Context, fullPeerMultiAddress string, node host.Host, filepath string) (err error) {
 	// Parse the peerID from the multiaddress
 	decodedPeerID, err := peer.Decode(fullPeerMultiAddress)
@@ -74,14 +78,6 @@ func sendFileToPeer(context context.Context, fullPeerMultiAddress string, node h
 
 	// Get the file name
 	fileName := fileInfo.Name()
-
-	// // Write the file size to the stream
-	// fileSizeBytes := make([]byte, 8)
-	// binary.BigEndian.PutUint64(fileSizeBytes, uint64(fileSize))
-	// _, err = stream.Write(fileSizeBytes)
-	// if err != nil {
-	// 	return fmt.Errorf("sendFileToPeer: failed to write file size to stream: %v", err)
-	// }
 
 	// Create file struct
 	fileHeader := FileData{
