@@ -44,7 +44,7 @@ func findPeerAndConnect(context context.Context, orcaDHT *dht.IpfsDHT, node host
 	fullMultiAddress := fmt.Sprintf("%s/p2p/%s", peerMultiAddress, peerID)
 	err = connectToNode(node, fullMultiAddress)
 	if err != nil {
-		fmt.Errorf("findPeerAndConnect: Error occured while connecting to peer during: %v", err)
+		err := fmt.Errorf("findPeerAndConnect: Error occured while connecting to peer during: %v", err)
 		return "ERROR", err
 	}
 	return fullMultiAddress, nil

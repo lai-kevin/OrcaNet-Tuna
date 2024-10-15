@@ -11,10 +11,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strings"
 
-	libp2p "github.com/libp2p/go-libp2p"
+	"github.com/ipfs/go-cid"
+	"github.com/libp2p/go-libp2p"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	record "github.com/libp2p/go-libp2p-record"
 	"github.com/libp2p/go-libp2p/core/crypto"
@@ -25,6 +27,7 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv2/client"
 	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv2/relay"
 	ma "github.com/multiformats/go-multiaddr"
+	"github.com/multiformats/go-multihash"
 )
 
 // Hard coded values to connect to TA provided relay node and bootstrap node
@@ -44,7 +47,7 @@ func generatePrivateKeyFromSeed(seed string) (crypto.PrivKey, error) {
 	hash := sha256.Sum256([]byte(seed))
 	privateKey, _, err := crypto.GenerateEd25519Key(bytes.NewReader(hash[:]))
 	if err != nil {
-		fmt.Errorf("Error occured while generating private key: %v", err)
+		err := fmt.Errorf("error occured while generating private key: %v", err)
 		return nil, err
 	}
 	return privateKey, nil
@@ -83,7 +86,7 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 		libp2p.EnableHolePunching(),
 	)
 	if err != nil {
-		fmt.Errorf("Error occured while creating node: %v", err)
+		err := fmt.Errorf("error occured while creating node: %v", err)
 		return nil, nil, err
 	}
 
@@ -91,14 +94,14 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 	// TODO: NOT SURE IF THIS IS NEEDED
 	_, err = relay.New(node)
 	if err != nil {
-		fmt.Errorf("Error occured while creating relay: %v", err)
+		err := fmt.Errorf("error occured while creating relay: %v", err)
 		return nil, nil, err
 	}
 
 	// Create DHT
 	orcaDHT, err := dht.New(context, node, dht.Mode(mode))
 	if err != nil {
-		fmt.Errorf("Error occured while creating DHT: %v", err)
+		err := fmt.Errorf("error occured while creating DHT: %v", err)
 		return nil, nil, err
 	}
 
@@ -113,7 +116,7 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 	// Bootstrap the DHT
 	err = orcaDHT.Bootstrap(context)
 	if err != nil {
-		fmt.Errorf("Error occured while bootstrapping DHT: %v", err)
+		err := fmt.Errorf("error occured while bootstrapping DHT: %v", err)
 		return nil, nil, err
 	}
 
@@ -162,7 +165,7 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 	targetPeerID = strings.TrimSpace(targetPeerID)
 	relayAddr, err := ma.NewMultiaddr(RELAY_NODE_MULTIADDR)
 	if err != nil {
-		fmt.Errorf("Failed to create relay multiaddr: %v", err)
+		err := fmt.Errorf("failed to create relay multiaddr: %v", err)
 		return err
 	}
 
@@ -170,14 +173,14 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 
 	relayedAddrInfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
 	if err != nil {
-		fmt.Errorf("Failed to get relayed AddrInfo: %w", err)
+		err := fmt.Errorf("failed to get relayed AddrInfo: %w", err)
 		return err
 	}
 
 	// Connect to the peer through the relay
 	err = node.Connect(context, *relayedAddrInfo)
 	if err != nil {
-		fmt.Errorf("Failed to connect to peer through relay: %w", err)
+		err := fmt.Errorf("failed to connect to peer through relay: %w", err)
 		return err
 	}
 
@@ -189,12 +192,12 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 func handlePeerExhangeWithRelay(node host.Host) error {
 	relayAddr, err := ma.NewMultiaddr(RELAY_NODE_MULTIADDR)
 	if err != nil {
-		fmt.Errorf("Failed to create relay multiaddr: %v", err)
+		err := fmt.Errorf("failed to create relay multiaddr: %v", err)
 		return err
 	}
 	relayInfo, err := peer.AddrInfoFromP2pAddr(relayAddr)
 	if err != nil {
-		fmt.Errorf("Failed to get relay AddrInfo: %w", err)
+		err := fmt.Errorf("failed to get relay AddrInfo: %w", err)
 		return err
 	}
 
@@ -206,15 +209,15 @@ func handlePeerExhangeWithRelay(node host.Host) error {
 		peerAddress, err := buffer.ReadString('\n')
 		if err != nil {
 			if err != io.EOF {
-				fmt.Errorf("EOF: Failed to read peer address: %w", err)
+				fmt.Printf("EOF: Failed to read peer address")
 			}
-			fmt.Errorf("Failed to read peer address: %w", err)
+			fmt.Printf("Failed to read peer address")
 		}
 		peerAddress = strings.TrimSpace(peerAddress)
 		var data map[string]interface{}
 		err = json.Unmarshal([]byte(peerAddress), &data)
 		if err != nil {
-			fmt.Errorf("Failed to unmarshal during relay exhange: %w", err)
+			fmt.Printf("Failed to unmarshal during relay exhange")
 		}
 		if knownPeers, ok := data["known_peers"].([]interface{}); ok {
 			for _, peer := range knownPeers {
@@ -259,46 +262,129 @@ func makeReservation(node host.Host) error {
 func handleInput(context context.Context, orcaDHT *dht.IpfsDHT) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print("Enter peer ID to connect to: ")
+		fmt.Print("> ")
 
-		// TODO: REPLACE THIS
-		peerID, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Errorf("Error occured while reading input: %v", err)
-			return
-		}
-		peerID = strings.TrimSpace(peerID)
-		if peerID == "" {
-			fmt.Println("Invalid peer ID")
+		input, _ := reader.ReadString('\n') // Read input from keyboard
+		input = strings.TrimSpace(input)    // Trim any trailing newline or spaces
+		args := strings.Split(input, " ")
+		if len(args) < 1 {
+			fmt.Println("No command provided")
 			continue
 		}
-		peerID = strings.TrimSpace(peerID)
-		connectToNodeUsingRelay(node, peerID)
+		command := args[0]
+		command = strings.ToUpper(command)
+		switch command {
+		case "GET":
+			if len(args) < 2 {
+				fmt.Println("Expected key")
+				continue
+			}
+			key := args[1]
+			dhtKey := "/orcanet/" + key
+			res, err := orcaDHT.GetValue(context, dhtKey)
+			if err != nil {
+				fmt.Printf("Failed to get record: %v\n", err)
+				continue
+			}
+			fmt.Printf("Record: %s\n", res)
+
+		case "GET_PROVIDERS":
+			if len(args) < 2 {
+				fmt.Println("Expected key")
+				continue
+			}
+			key := args[1]
+			data := []byte(key)
+			hash := sha256.Sum256(data)
+			mh, err := multihash.EncodeName(hash[:], "sha2-256")
+			if err != nil {
+				fmt.Printf("Error encoding multihash: %v\n", err)
+				continue
+			}
+			c := cid.NewCidV1(cid.Raw, mh)
+			providers := orcaDHT.FindProvidersAsync(context, c, 20)
+
+			fmt.Println("Searching for providers...")
+			for p := range providers {
+				if p.ID == peer.ID("") {
+					break
+				}
+				fmt.Printf("Found provider: %s\n", p.ID.String())
+				for _, addr := range p.Addrs {
+					fmt.Printf(" - Address: %s\n", addr.String())
+				}
+			}
+
+		case "PUT":
+			if len(args) < 3 {
+				fmt.Println("Expected key and value")
+				continue
+			}
+			key := args[1]
+			value := args[2]
+			dhtKey := "/orcanet/" + key
+			log.Println(dhtKey)
+			err := orcaDHT.PutValue(context, dhtKey, []byte(value))
+			if err != nil {
+				fmt.Printf("Failed to put record: %v\n", err)
+				continue
+			}
+			// provideKey(ctx, dht, key)
+			fmt.Println("Record stored successfully")
+
+		case "PUT_PROVIDER":
+			if len(args) < 2 {
+				fmt.Println("Expected key")
+				continue
+			}
+			key := args[1]
+			provideKey(context, orcaDHT, key)
+		default:
+			fmt.Println("Expected GET, GET_PROVIDERS, PUT or PUT_PROVIDER")
+		}
 	}
 }
 
-// Listens for incoming connections from peers
-func listenForIncomingConnections(node host.Host) {
-	node.SetStreamHandler("/orcanet/p2p", func(stream network.Stream) {
-		defer stream.Close()
-		fmt.Println("Received incoming connection from peer")
-	})
+// TODO: NOT SURE WHAT THIS DOES. FROM EXAMPLE CODE
+func provideKey(ctx context.Context, dht *dht.IpfsDHT, key string) error {
+	data := []byte(key)
+	hash := sha256.Sum256(data)
+	mh, err := multihash.EncodeName(hash[:], "sha2-256")
+	if err != nil {
+		return fmt.Errorf("error encoding multihash: %v", err)
+	}
+	c := cid.NewCidV1(cid.Raw, mh)
+
+	// Start providing the key
+	err = dht.Provide(ctx, c, true)
+	if err != nil {
+		return fmt.Errorf("failed to start providing key: %v", err)
+	}
+	return nil
 }
 
-// Listen for newly connected peers
-func listenForNewPeers(node host.Host) {
-	node.Network().Notify(&network.NotifyBundle{
-		ConnectedF: func(n network.Network, conn network.Conn) {
-			fmt.Printf("New peer connected: %s\n", conn.RemotePeer().String())
-		},
-	})
-}
+// // Listens for incoming connections from peers
+// func listenForIncomingConnections(node host.Host) {
+// 	node.SetStreamHandler("/orcanet/p2p", func(stream network.Stream) {
+// 		defer stream.Close()
+// 		fmt.Println("Received incoming connection from peer")
+// 	})
+// }
+
+// // Listen for newly connected peers
+// func listenForNewPeers(node host.Host) {
+// 	node.Network().Notify(&network.NotifyBundle{
+// 		ConnectedF: func(n network.Network, conn network.Conn) {
+// 			fmt.Printf("New peer connected: %s\n", conn.RemotePeer().String())
+// 		},
+// 	})
+// }
 
 func main() {
 	// Start node
 	node, orcaDHT, err := createNode(dht.ModeAuto)
 	if err != nil {
-		fmt.Errorf("Error occured while creating node: %v", err)
+		fmt.Printf("Error occured while creating node: %v", err)
 		return
 	}
 
@@ -310,17 +396,17 @@ func main() {
 	// Connect to relay node and bootstrap node
 	err = connectToNode(node, RELAY_NODE_MULTIADDR)
 	if err != nil {
-		fmt.Errorf("Error occured while connecting to relay node: %v", err)
+		fmt.Printf("Error occured while connecting to relay node: %v", err)
 		return
 	}
 	err = makeReservation(node)
 	if err != nil {
-		fmt.Errorf("Error occured while making reservation: %v", err)
+		fmt.Printf("Error occured while making reservation: %v", err)
 		return
 	}
 	err = connectToNode(node, BOOTSTRAP_NODE_MULTIADDR)
 	if err != nil {
-		fmt.Errorf("Error occured while connecting to bootstrap node: %v", err)
+		fmt.Printf("Error occured while connecting to bootstrap node: %v", err)
 		return
 	}
 
