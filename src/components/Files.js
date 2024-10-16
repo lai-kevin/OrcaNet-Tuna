@@ -1,11 +1,17 @@
 import { LuFile } from "react-icons/lu";
 import { LuFolder } from "react-icons/lu";
 import { LuFileImage } from "react-icons/lu";
+import { LuPlay } from "react-icons/lu";
+import { MdOutlineCancel } from "react-icons/md";
+import { LuPause } from "react-icons/lu";
+
+
 import { useContext, useEffect, useState } from 'react';
 import FileModal from "./FileModal";
 import TabSelectHorizontal from "./Tabs";
 import { LuUpload } from "react-icons/lu";
 import { AppContext } from "./AppContext";
+import DownloadModal from "./DownloadModal";
 const bip39 = require('bip39');
 const { HDKey } = require('ethereum-cryptography/hdkey');
 
@@ -20,13 +26,10 @@ const Files = () => {
     {type: "folder",name: "node_modules",hashId: "12zxaweqr3zc25zca;/';45",size: "50GB"}
   ];
 
-  const {searchResultsFound,fileToDownload} = useContext(AppContext);
+  const {searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads} = useContext(AppContext);
   const [downloadHistory, setDownloadHistory] = useState(sampleData);// move to a global app context in the future?
-  const [uploadHistory, setUploadHistory] = useState([]);
-  const [proxyHistory, setProxyHistory] = useState([]);
+  // const [proxyHistory, setProxyHistory] = useState([]);this should probably somewhere else now that we know what it is
 
-  const [spaceUsing, setSpaceUsing] = useState(0); // file space
-  const [numOfFiles, setNumFiles] = useState(0); // num of files
   const [fileToUpload, setFileToUpload] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [sort, setSort] = useState("");
@@ -60,13 +63,14 @@ const Files = () => {
     if(activeTab === "Uploads"){
       sortedList = uploadHistory;
     }
-    if(activeTab === "Proxy History"){
-      sortedList = proxyHistory;
+    if(activeTab === "Current Downloads"){
+      // sortedList = proxyHistory;
+      sortedList = downloads;
     }
     if (curSort === "A-Z"){
       sortedList = sortedList.sort((a, b) =>{
-        const nameA = a.name.toUpperCase(); // ignore upper and lowercase
-        const nameB = b.name.toUpperCase(); // ignore upper and lowercase
+        const nameA = a.name.toUpperCase(); 
+        const nameB = b.name.toUpperCase(); 
         if (nameA < nameB) {
           return -1;
         }
@@ -81,8 +85,8 @@ const Files = () => {
     }
     if(curSort === "Z-A"){
       sortedList = sortedList.sort((a, b) =>{
-        const nameA = a.name.toUpperCase(); // ignore upper and lowercase
-        const nameB = b.name.toUpperCase(); // ignore upper and lowercase
+        const nameA = a.name.toUpperCase(); 
+        const nameB = b.name.toUpperCase(); 
         if (nameA < nameB) {
           return 1;
         }
@@ -103,12 +107,13 @@ const Files = () => {
     if(activeTab === "Uploads"){
       setUploadHistory([...sortedList]);
     }
-    if(activeTab === "Proxy History"){
-      setProxyHistory([...sortedList]);
+    if(activeTab === "Current Downloads"){
+      // setProxyHistory([...sortedList]); move somewhere else
+      setDownloads([...sortedList]);
     }
   }
 
-
+  //update with a stop sharing button resume sharing
   const FileCard = ({type,name,hashId,size}) => {
     let FileIcon = LuFile; //image , folder, .pdf/.txt/everything else 
     if(type === "image"){ 
@@ -130,6 +135,54 @@ const Files = () => {
 
     );
 
+  }
+  
+
+  const FileCardDownload = ({type,name,hashId,size,status}) =>{
+    //Variation of file cards meant for displaying files downloading
+    //additional rendering for pause, resume, and cancel buttons based on status of download
+    let FileIcon = LuFile; //image , folder, .pdf/.txt/everything else 
+
+    //OMG this is disgusting but its quick maybe I will move the cards to their own file
+    const handlePause = () => {
+      let updatedDownloads = downloads.map((download) => download.hashId === hashId ? {...download, status: "paused"}: download);
+      setDownloads([...updatedDownloads]);
+    }
+    const handleResume = () => {
+      const updatedDownloads = downloads.map((download) => download.hashId === hashId ? {...download, status: "downloading"}: download);
+      setDownloads([...updatedDownloads]);
+    }
+    const handleCancel = () => {
+      const updatedDownloads = downloads.filter((download) => download.hashId !== hashId);
+      setDownloads([...updatedDownloads]);
+    }
+
+
+    if(type === "image"){ 
+      FileIcon = LuFileImage;
+    }
+    if(type === "folder"){
+      FileIcon = LuFolder;
+    }
+    let buttons = <></>;
+    if(status === "downloading"){
+      buttons = <div> <button className="primary_button" onClick={handleCancel}><MdOutlineCancel/></button> <button className="primary_button" onClick={handlePause}><LuPause/></button> </div>
+    }
+    if(status === "paused"){
+      buttons = <div> <button className="primary_button" onClick={handleCancel}><MdOutlineCancel/></button> <button className="primary_button" onClick={handleResume}><LuPlay/></button> </div>
+    }
+    //Might need to take into account possible key confliction when rendering if lets say a person queues the same file for download again
+    return(
+      <div className = "fileCard">
+        <div style = {{display: 'flex', alignItems: "center"}}><FileIcon style={{ width: '40%', height: '40%' }}/> </div>
+        <div>
+          <p>{name}</p>
+          <p style = {{color: "#9b9b9b"}} >{hashId}</p>
+        </div>
+        <div>{size} <> {buttons}</></div>
+      </div>
+
+    );
   }
 
   const generateFileItems = () =>{
@@ -162,15 +215,16 @@ const Files = () => {
           )
         });
 
-      case "Proxy History":
-        return proxyHistory.map(file =>{
+      case "Current Downloads":
+        return downloads.map(file =>{
           return(
-            <FileCard
-              key = {file.hashId}
+            <FileCardDownload
+              key = {file.status + file.hashId}
               type = {file.type}
               name = {file.name}
               hashId = {file.hashId}
               size = {file.size}
+              status = {file.status}
             />
           )
         });
@@ -196,7 +250,8 @@ const Files = () => {
         <TabSelectHorizontal  setActiveTab = {setActiveTab} activeTab={activeTab}/>
         
         {isOpen && <FileModal setIsOpen={setIsOpen} setFileToUpload={setFileToUpload}/>}
-        <button className="primary_button" onClick={() => setIsOpen(true)}>Upload <LuUpload /></button>
+        {searchResultsFound && <DownloadModal/>}
+        <button className="primary_button" onClick={() => setIsOpen(true)}>Share <LuUpload /></button>
         <div className= "sort-container">
           <p className="sort-label">Sort By: </p>
           <select className="sort-select" value={sort} onChange={handleSort}>

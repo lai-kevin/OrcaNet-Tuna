@@ -1,24 +1,29 @@
 import { FaSearch } from "react-icons/fa";
 import { CgProfile } from "react-icons/cg";
 import { useState, useRef, useEffect, useContext } from "react";
-import { NavLink} from 'react-router-dom';
+import { NavLink, useLocation} from 'react-router-dom';
 import { AppContext } from "./AppContext";
 const SearchBar = ({user, setUser}) => {
-    const { setSearchResultsFound, setFileToDownload, dummyFiles } = useContext(AppContext);
-    const [open, setOpen] = useState("close")
+    const { setSearchResultsFound, setFileToDownload, dummyFiles, setDownloadOpen } = useContext(AppContext);
+    const [open, setOpen] = useState("close");
+    const [searchInput, setSearchInput] = useState("");
     const menu = useRef(null);
+    const location = useLocation();
 
     const handleSearch = (event) => {
-      if (event.key === "Enter") {
+      // if (event.key === "Enter") {
         // console.log(event.target.value); //can still extract info like this
-        let fullSearchText = event.target.value;
+        event.preventDefault(); // Prevent the default form submission behavior i hate forms ;-; 
+        let fullSearchText = searchInput;
         let file = dummyFiles.find((file) => file.hashId === fullSearchText);
         event.target.value = ""; // this should clear it after clicking
+        // setSearchInput("");
         setSearchResultsFound(true);
         if(file !== undefined){
           setFileToDownload(file);
+          // setDownloadOpen(true);
         }
-      }
+      // }
     }
 
     const handleDropDown = () =>{
@@ -31,9 +36,9 @@ const SearchBar = ({user, setUser}) => {
         <form id="search">
          <div id="searchWrapper">
           <label htmlFor="searchInput">
-            <input type="search" placeholder="Browse..." id="searchInput"></input>
+            <input type="search" placeholder="Browse..." id="searchInput" onChange={(event)=>{setSearchInput(event.target.value)}} disabled = {location.pathname !== "/Files"}></input>
           </label>
-          <button type="submit" id="findButton" onclick = {handleSearch}>
+          <button type="submit" id="findButton" onClick = {handleSearch} disabled = {location.pathname !== "/Files"}>
                 <FaSearch />
           </button>
           </div>
@@ -63,7 +68,7 @@ export const DropMenu = ({handleDropDown, user, setUser})=>{
           </div>
         <ul className= "menu_list">
         <NavLink to="/Settings"> View Profile</NavLink>
-        <a href="/" id="log_out" onclick={()=>setUser(null)}>Log Out</a>
+        <a href="/" id="log_out" onClick={()=>setUser(null)}>Log Out</a>
         </ul>
       </div>
     )

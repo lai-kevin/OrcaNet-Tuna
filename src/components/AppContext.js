@@ -14,12 +14,17 @@ export function AppContextProvider(props){
     ]
     const [searchResultsFound,setSearchResultsFound] = useState(false);
     const [fileToDownload,setFileToDownload] = useState("");
-
+    const [downloadOpen, setDownloadOpen] = useState(false);
+    const [uploadHistory, setUploadHistory] = useState([]);
+    const [downloads, setDownloads] = useState([]);
     return(
         <AppContext.Provider value = {
             {
             searchResultsFound,setSearchResultsFound,
             fileToDownload,setFileToDownload,
+            downloadOpen, setDownloadOpen,
+            downloads, setDownloads,
+            uploadHistory, setUploadHistory,
             dummyFiles
             }}
             >

@@ -20,9 +20,9 @@ const TabSelectHorizontal = ({setActiveTab, activeTab}) => {
                 Uploads
               </a>
             </li>
-            <li className={activeTab === 'Proxy History' ? 'current' : ''}>
-              <a onClick={() => handleTabChange('Proxy History')} className="tab">
-                Proxy History
+            <li className={activeTab === 'Current Downloads' ? 'current' : ''}>
+              <a onClick={() => handleTabChange('Current Downloads')} className="tab">
+                Current Downloads
               </a>
             </li>
           </ul>

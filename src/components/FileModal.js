@@ -31,9 +31,10 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
           <LuFile/> {file === null ? "Choose File" : file.name} 
         </label>
         <br/>
-        <div>
-          <button className="primary_button" onClick={handleClose}>Close</button>
+        <br/>
+        <div style={{ display: "flex", gap: "10px" }}>
           <button className="primary_button" onClick={handleSubmit}>Submit</button>
+          <button className="primary_button" onClick={handleClose}>Close</button>
         </div>
       </div>
     </div>
