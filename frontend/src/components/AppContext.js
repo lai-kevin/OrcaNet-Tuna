@@ -15,7 +15,7 @@ export function AppContextProvider(props){
     const [searchResultsFound,setSearchResultsFound] = useState(false);
     const [fileToDownload,setFileToDownload] = useState("");
     const [downloadOpen, setDownloadOpen] = useState(false);
-    const [uploadHistory, setUploadHistory] = useState([]);
+    const [uploadHistory, setUploadHistory] = useState([]); //currently storing apps "uploads" here in this global context for demo purposes as there is no real data
     const [downloads, setDownloads] = useState([]);
     return(
         <AppContext.Provider value = {

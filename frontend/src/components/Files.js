@@ -35,6 +35,9 @@ const Files = () => {
   const [sort, setSort] = useState("");
   const [activeTab, setActiveTab] = useState("Downloads");
 
+  //UseEffect hook that currently deals with adding the "upload" to the list of uploads in the global context once a fileToUpload has been selected
+  //uploads list is used by Files.js to render cards of uploads
+  //No real format for this just filler hash key generated, name, and size for display purposes
   useEffect(()=>{
     if(fileToUpload != null){
       const phrase = bip39.generateMnemonic(128);
