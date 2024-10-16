@@ -3,9 +3,11 @@ import InfoBox from './InfoBox';
 import { Mode } from './Mode';
 import { CiLight } from "react-icons/ci";
 import { CiDark } from "react-icons/ci";
+import { AppContext } from './AppContext';
 const ConfigContent = ({ mode, chooseLight, chooseDark }) => {
     const boxes = [
-        { id: 2, content: <Theme mode = {mode} chooseLight = {chooseLight} chooseDark = {chooseDark}/>}
+        { id: 1, content: <Theme mode = {mode} chooseLight = {chooseLight} chooseDark = {chooseDark}/>},
+        { id: 2, content: <Proxy/>}
       ];
     return(
         <div>
@@ -52,5 +54,22 @@ const Theme =({mode, chooseLight, chooseDark})=>{
       </div>
      </div>
   )
+}
+const Proxy = ()=>{
+  const {proxy, setProxy} = useContext(AppContext);
+  const handleProxy = ()=>{
+    setProxy(!proxy);
+  }
+   return(
+      <div id ="proxy">
+         <h3 id = "proxy_title">Proxy</h3>
+         <div id="inner_proxy">
+          <h4 id ="description">Proxy Server Node</h4>
+          <input id="ch" type="checkbox" 
+            checked={proxy} 
+            onChange={handleProxy} ></input>
+        </div>
+      </div>
+   )
 }
 export default ConfigContent;

@@ -4,6 +4,7 @@ import { GiWhaleTail } from 'react-icons/gi';
 import { FaHome } from 'react-icons/fa';
 import { LuFileStack } from 'react-icons/lu';
 import { IoIosSettings } from 'react-icons/io';
+import { SiEnvoyproxy } from "react-icons/si";
 import { useMode } from './Mode';
 
 const Navbar = () => {
@@ -30,6 +31,14 @@ const Navbar = () => {
             <div className="section">
               <LuFileStack className="icon" />
               <span className="link">Files</span>
+            </div>
+          </NavLink>
+        </li>
+        <li className={loc.pathname === '/Proxy' ? 'active' : ''}>
+          <NavLink to="/Proxy" >
+            <div className="section">
+              <SiEnvoyproxy className="icon" />
+              <span className="link">Proxy</span>
             </div>
           </NavLink>
         </li>

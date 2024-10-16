@@ -17,8 +17,8 @@ const startLocalServer = (done) => {
 function createWindow() {
 
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 2000,
+    height: 1000,
     title: "OrcaNet Desktop App",
     resizable:true,
     webPreferences: {

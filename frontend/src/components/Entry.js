@@ -192,7 +192,7 @@ const Register=({handleLoginPage, user, setPage})=>{
                 publicKey: publicKey,
                 publicKeyHash: publicKeyHash,
                 walletID: id,
-                balance: 0,
+                balance: 100,
                 transactions:[],
                 fileHistory:[]
             };

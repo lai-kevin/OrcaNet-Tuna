@@ -29,7 +29,7 @@ const Settings = ({user}) => {
         </nav>
       </div>
       <div className="bottom_content">
-        {current === 'account' && <AccountContent user={user}/>}
+        {current === 'account' && <AccountContent user={user} mode={mode}/>}
         {current === 'config' && <ConfigContent mode = {mode} chooseLight={chooseLight} chooseDark={chooseDark}/>}
       </div>
     </div>

@@ -10,6 +10,7 @@ import { useEffect, useState} from "react";
 import Entry from "./components/Entry.js";
 import { Buffer } from "buffer";
 import { AppContextProvider } from "./components/AppContext.js";
+import ProxyContent from "./components/ProxyContent.js";
 window.Buffer = Buffer;
 function App() {
   const [user, setUser] = useState(null);
@@ -27,6 +28,7 @@ function App() {
       <Route path="/" element={user ? <MainPage user={user} setUser={setUser}/> : <Entry user={user} setUser={setUser} />}>
         <Route index element={<Home user={user} />} /> 
         <Route path="Files" element={<Files user={user}/>} />
+        <Route path="Proxy" element={<ProxyContent user={user} setUser={setUser}/>} />
         <Route path="Settings" element={<Settings user={user}/>} />
       </Route>
     </Routes>

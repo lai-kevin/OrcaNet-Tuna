@@ -46,7 +46,7 @@ const SearchBar = ({user, setUser}) => {
         </div>
         <button type="button" id="profile_button" onClick={handleDropDown}><CgProfile id="profile_pic"/></button>
         </div>
-        {open === "open" && <DropMenu handleDropDown={handleDropDown} user={user}/>}
+        {open === "open" && <DropMenu handleDropDown={handleDropDown} user={user} setUser={setUser}/>}
         </div>
         );
 };
