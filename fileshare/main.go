@@ -126,7 +126,6 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 	node.Network().Notify(&network.NotifyBundle{
 		ConnectedF: func(n network.Network, conn network.Conn) {
 			fmt.Printf("Notification: New peer connected %s\n", conn.RemotePeer().String())
-			connectToNodeUsingRelay(node, conn.RemotePeer().String())
 		},
 	})
 
@@ -437,11 +436,11 @@ func provideKey(ctx context.Context, dht *dht.IpfsDHT, key string) error {
 	return nil
 }
 
-// Listens for incoming connections from peers
+// Listens for incoming file requests from peers
 func listenForIncomingConnections(node host.Host) {
-	node.SetStreamHandler("/orcanet/fileshare/requestFile", func(stream network.Stream) {
+	node.SetStreamHandler("/fileshare/1.0.0", func(stream network.Stream) {
 		defer stream.Close()
-		fmt.Println("Received incoming file request from peer.")
+		log.Println("Received incoming file request from peer. Stream opened")
 
 		// Read the file request
 		buffer := bufio.NewReader(stream)
@@ -450,6 +449,9 @@ func listenForIncomingConnections(node host.Host) {
 			fmt.Println("Error reading file request: ", err)
 			return
 		}
+
+		connection := stream.Conn()
+		log.Printf("Message from %s: %s\n", connection.RemotePeer().String(), fileRequest)
 
 		// Parse the file request
 		var data map[string]interface{}

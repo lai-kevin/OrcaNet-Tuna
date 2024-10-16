@@ -55,11 +55,8 @@ func sendFileRequestToPeer(
 	fmt.Printf("Sending file request to peer %s\n", targetNodePeerID)
 
 	fmt.Println("Creating stream to" + decodedPeerID)
-	// Increase the context deadline
-	ctx, cancel := context.WithTimeout(appContext, 30*time.Second)
-	defer cancel()
 
-	stream, err := node.NewStream(ctx, decodedPeerID, "/orcanet/fileshare/requestFile")
+	stream, err := node.NewStream(appContext, decodedPeerID, "/fileshare/1.0.0")
 	if err != nil {
 		return fmt.Errorf("sendFileRequestToPeer: %v", err)
 	}
