@@ -41,7 +41,7 @@ type MetaData struct {
 // node: the source node
 // fileName: the name of the file to request
 func sendFileRequestToPeer(
-	context context.Context,
+	appContext context.Context,
 	node host.Host,
 	targetNodePeerID string,
 	fileHash string) (err error) {
@@ -55,7 +55,11 @@ func sendFileRequestToPeer(
 	fmt.Printf("Sending file request to peer %s\n", targetNodePeerID)
 
 	fmt.Println("Creating stream to" + decodedPeerID)
-	stream, err := node.NewStream(context, decodedPeerID, "/orcanet/fileshare/requestFile")
+	// Increase the context deadline
+	ctx, cancel := context.WithTimeout(appContext, 30*time.Second)
+	defer cancel()
+
+	stream, err := node.NewStream(ctx, decodedPeerID, "/orcanet/fileshare/requestFile")
 	if err != nil {
 		return fmt.Errorf("sendFileRequestToPeer: %v", err)
 	}
