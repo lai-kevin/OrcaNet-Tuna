@@ -14,7 +14,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p"
@@ -483,7 +482,6 @@ func main() {
 
 	// Create context for the application
 	contex, cancel := context.WithCancel(context.Background())
-	contex, cancel = context.WithTimeout(contex, time.Second*30)
 	defer cancel()
 	globalCtx = contex
 
