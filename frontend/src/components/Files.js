@@ -12,6 +12,7 @@ import TabSelectHorizontal from "./Tabs";
 import { LuUpload } from "react-icons/lu";
 import { AppContext } from "./AppContext";
 import DownloadModal from "./DownloadModal";
+import CancelUploadModal from "./UploadModal";
 const bip39 = require('bip39');
 const { HDKey } = require('ethereum-cryptography/hdkey');
 
@@ -26,7 +27,7 @@ const Files = () => {
     {type: "folder",name: "node_modules",hashId: "12zxaweqr3zc25zca;/';45",size: "50GB"}
   ];
 
-  const {searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads} = useContext(AppContext);
+  const {searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads,setFileToRemove,fileToRemove} = useContext(AppContext);
   const [downloadHistory, setDownloadHistory] = useState(sampleData);// move to a global app context in the future?
   // const [proxyHistory, setProxyHistory] = useState([]);this should probably somewhere else now that we know what it is
 
@@ -116,6 +117,8 @@ const Files = () => {
     }
   }
 
+  
+
   //update with a stop sharing button resume sharing
   const FileCard = ({type,name,hashId,size}) => {
     let FileIcon = LuFile; //image , folder, .pdf/.txt/everything else 
@@ -126,6 +129,23 @@ const Files = () => {
       FileIcon = LuFolder;
     }
 
+    const HandleRemoveUpload = () =>{
+      setFileToRemove({name,hashId});
+    }
+
+    if(activeTab === "Uploads"){
+      return(
+        <div className = "fileCard" onClick={HandleRemoveUpload}>
+          <div style = {{display: 'flex', alignItems: "center"}}><FileIcon style={{ width: '40%', height: '40%' }}/> </div>
+          <div>
+            <p>{name}</p>
+            <p style = {{color: "#9b9b9b"}} >{hashId}</p>
+          </div>
+          <div>{size}</div>
+        </div>
+  
+      );
+    }
     return(
       <div className = "fileCard">
         <div style = {{display: 'flex', alignItems: "center"}}><FileIcon style={{ width: '40%', height: '40%' }}/> </div>
@@ -254,6 +274,7 @@ const Files = () => {
         
         {isOpen && <FileModal setIsOpen={setIsOpen} setFileToUpload={setFileToUpload}/>}
         {searchResultsFound && <DownloadModal/>}
+        {fileToRemove === null ? <></> : <CancelUploadModal/>}
         <button className="primary_button" onClick={() => setIsOpen(true)}>Share <LuUpload /></button>
         <div className= "sort-container">
           <p className="sort-label">Sort By: </p>

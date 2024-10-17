@@ -48,6 +48,7 @@ export function AppContextProvider(props){
     ]
     const [searchResultsFound,setSearchResultsFound] = useState(false);
     const [fileToDownload,setFileToDownload] = useState("");
+    const [fileToRemove,setFileToRemove] = useState(null);
     const [downloadOpen, setDownloadOpen] = useState(false);
     const [uploadHistory, setUploadHistory] = useState([]); //currently storing apps "uploads" here in this global context for demo purposes as there is no real data
     const [downloads, setDownloads] = useState([]);
@@ -59,6 +60,7 @@ export function AppContextProvider(props){
             {
             searchResultsFound,setSearchResultsFound,
             fileToDownload,setFileToDownload,
+            fileToRemove,setFileToRemove,
             downloadOpen, setDownloadOpen,
             downloads, setDownloads,
             uploadHistory, setUploadHistory,
