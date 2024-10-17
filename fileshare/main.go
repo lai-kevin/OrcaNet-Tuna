@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p"
@@ -184,6 +185,12 @@ func connectToNode(node host.Host, targetNodeAddress string) error {
 		return err
 	}
 
+	time.Sleep(10 * time.Second)
+	// Check peer reachability
+	if node.Network().Connectedness(targetNodeInfo.ID) != network.Connected {
+		log.Println("connectToNode: target peer is not connected")
+	}
+
 	fmt.Println("Connected to: ", targetNodeInfo.ID)
 	return nil
 }
@@ -208,11 +215,20 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 		return err
 	}
 
+	// Add the target node to the peerstore of the current node
+	node.Peerstore().AddAddrs(relayedAddrInfo.ID, relayedAddrInfo.Addrs, peerstore.PermanentAddrTTL)
+
 	// Connect to the peer through the relay
 	err = node.Connect(context, *relayedAddrInfo)
 	if err != nil {
 		err := fmt.Errorf("failed to connect to peer through relay: %w", err)
 		return err
+	}
+
+	time.Sleep(10 * time.Second)
+	// Check peer reachability
+	if node.Network().Connectedness(relayedAddrInfo.ID) != network.Connected {
+		log.Println("connectToNodeUsingRelay: target peer is not connected")
 	}
 
 	fmt.Printf("Connected to peer via relay: %s\n", targetPeerID)
