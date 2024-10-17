@@ -212,6 +212,8 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 
 	peerMultiaddr := relayAddr.Encapsulate(ma.StringCast("/p2p-circuit/p2p/" + targetPeerID))
 
+	fmt.Println("Connecting to peer through relay: ", peerMultiaddr)
+
 	relayedAddrInfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
 	if err != nil {
 		err := fmt.Errorf("failed to get relayed AddrInfo: %w", err)

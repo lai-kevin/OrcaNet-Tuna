@@ -61,6 +61,14 @@ func sendFileRequestToPeer(
 		log.Printf("sendFileRequestToPeer: target peer is %s", node.Network().Connectedness(decodedPeerID))
 	}
 
+	// Check if the peer is in peerstore
+	res := node.Peerstore().PeerInfo(decodedPeerID)
+	if len(res.Addrs) == 0 {
+		return fmt.Errorf("sendFileRequestToPeer: peer not in peerstore")
+	} else {
+		log.Printf("Peer in peerstore: %s,\n %s", res.ID, res.Addrs)
+	}
+
 	stream, err := node.NewStream(context.Background(), decodedPeerID, "/fileshare/1.0.0")
 	if err != nil {
 		return fmt.Errorf("sendFileRequestToPeer: %v", err)
