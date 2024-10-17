@@ -525,7 +525,7 @@ func listenForIncomingConnections(node host.Host) {
 
 func main() {
 	// Start node
-	node, orcaDHT, err := createNode(dht.ModeClient)
+	node, orcaDHT, err := createNode(dht.ModeServer)
 	if err != nil {
 		fmt.Printf("Error occured while creating node: %v", err)
 		return
