@@ -220,6 +220,7 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 		return err
 	}
 
+	relayedAddrInfo.Addrs = []ma.Multiaddr{peerMultiaddr}
 	// Add the target node to the peerstore of the current node
 	node.Peerstore().AddAddrs(relayedAddrInfo.ID, relayedAddrInfo.Addrs, peerstore.PermanentAddrTTL)
 
