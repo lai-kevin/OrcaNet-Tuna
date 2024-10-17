@@ -14,7 +14,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p"
@@ -35,7 +34,7 @@ import (
 // CHANGE AS NEEDED
 const BOOTSTRAP_NODE_MULTIADDR = "/ip4/130.245.173.222/tcp/61000/p2p/12D3KooWQd1K1k8XA9xVEzSAu7HUCodC7LJB6uW5Kw4VwkRdstPE"
 const RELAY_NODE_MULTIADDR = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
-const SBU_ID = "114433446"
+const SBU_ID = "724433446"
 
 // Global context for the application
 var globalCtx context.Context
@@ -188,13 +187,15 @@ func connectToNode(node host.Host, targetNodeAddress string) error {
 		return err
 	}
 
-	time.Sleep(2 * time.Second)
 	// Check peer reachability
 	if node.Network().Connectedness(targetNodeInfo.ID) != network.Connected {
 		log.Println("connectToNode: target peer is not connected")
 	} else {
 		log.Println("connectToNode: target peer is connected")
 	}
+
+	log.Println("Connected to: ", targetNodeInfo.ID)
+
 	return nil
 }
 
@@ -212,8 +213,6 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 
 	peerMultiaddr := relayAddr.Encapsulate(ma.StringCast("/p2p-circuit/p2p/" + targetPeerID))
 
-	fmt.Println("Connecting to peer through relay: ", peerMultiaddr)
-
 	relayedAddrInfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
 	if err != nil {
 		err := fmt.Errorf("failed to get relayed AddrInfo: %w", err)
@@ -224,8 +223,6 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 	// Add the target node to the peerstore of the current node
 	node.Peerstore().AddAddrs(relayedAddrInfo.ID, relayedAddrInfo.Addrs, peerstore.PermanentAddrTTL)
 
-	log.Println("connectToNodeUsingRelay: connecting to peer through relay: ", relayedAddrInfo)
-
 	// Connect to the peer through the relay
 	err = node.Connect(context, *relayedAddrInfo)
 	if err != nil {
@@ -233,12 +230,7 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 		return err
 	}
 
-	// Check peer reachability
-	if node.Network().Connectedness(relayedAddrInfo.ID) != network.Connected {
-		log.Println("connectToNodeUsingRelay: target peer status: ", node.Network().Connectedness(relayedAddrInfo.ID))
-	} else {
-		log.Println("connectToNodeUsingRelay: target peer is connected")
-	}
+	log.Printf("connectToNodeUsingRelay: %s is connected via relay", targetPeerID)
 
 	return nil
 }
