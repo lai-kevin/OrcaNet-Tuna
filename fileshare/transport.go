@@ -58,7 +58,7 @@ func sendFileRequestToPeer(
 
 	// Check peer reachability
 	if node.Network().Connectedness(decodedPeerID) != network.Connected {
-		log.Println("sendFileRequestToPeer: target peer is not connected")
+		log.Printf("sendFileRequestToPeer: target peer is %s", node.Network().Connectedness(decodedPeerID))
 	}
 
 	stream, err := node.NewStream(context.Background(), decodedPeerID, "/fileshare/1.0.0")
