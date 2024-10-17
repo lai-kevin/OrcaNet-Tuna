@@ -127,6 +127,9 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 		ConnectedF: func(n network.Network, conn network.Conn) {
 			fmt.Printf("Notification: New peer connected %s\n", conn.RemotePeer().String())
 		},
+		DisconnectedF: func(n network.Network, conn network.Conn) {
+			log.Printf("Disconnected from: %s", conn.RemotePeer())
+		},
 	})
 
 	return node, orcaDHT, nil
@@ -522,7 +525,7 @@ func listenForIncomingConnections(node host.Host) {
 
 func main() {
 	// Start node
-	node, orcaDHT, err := createNode(dht.ModeAuto)
+	node, orcaDHT, err := createNode(dht.ModeClient)
 	if err != nil {
 		fmt.Printf("Error occured while creating node: %v", err)
 		return
