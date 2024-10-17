@@ -61,11 +61,7 @@ func sendFileRequestToPeer(
 		log.Println("sendFileRequestToPeer: target peer is not connected")
 	}
 
-	// Use context with longer timeout for file requests
-	ctx, cancel := context.WithTimeout(appContext, 1*time.Minute)
-	defer cancel()
-
-	stream, err := node.NewStream(ctx, decodedPeerID, "/fileshare/1.0.0")
+	stream, err := node.NewStream(context.Background(), decodedPeerID, "/fileshare/1.0.0")
 	if err != nil {
 		return fmt.Errorf("sendFileRequestToPeer: %v", err)
 	}
