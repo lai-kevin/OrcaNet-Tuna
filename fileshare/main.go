@@ -225,10 +225,11 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 		return err
 	}
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 	// Check peer reachability
 	if node.Network().Connectedness(relayedAddrInfo.ID) != network.Connected {
 		log.Println("connectToNodeUsingRelay: target peer is not connected")
+		log.Println("connectToNodeUsingRelay: target peer status: ", node.Network().Connectedness(relayedAddrInfo.ID))
 	} else {
 		log.Println("connectToNodeUsingRelay: target peer is connected")
 	}
