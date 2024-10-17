@@ -81,6 +81,7 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 		libp2p.Identity(privateKey),
 		libp2p.NATPortMap(),
 		libp2p.EnableNATService(),
+		libp2p.NATPortMap(),
 		libp2p.EnableAutoRelayWithStaticRelays([]peer.AddrInfo{*relayInfo}),
 		libp2p.EnableRelayService(),
 		libp2p.EnableHolePunching(),

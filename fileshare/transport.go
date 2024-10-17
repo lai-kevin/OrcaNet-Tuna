@@ -6,10 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
 	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
 )
 
@@ -54,9 +56,16 @@ func sendFileRequestToPeer(
 
 	fmt.Printf("Sending file request to peer %s\n", targetNodePeerID)
 
-	fmt.Println("Creating stream to" + decodedPeerID)
+	// Check peer reachability
+	if node.Network().Connectedness(decodedPeerID) != network.Connected {
+		log.Println("sendFileRequestToPeer: target peer is not connected")
+	}
 
-	stream, err := node.NewStream(appContext, decodedPeerID, "/fileshare/1.0.0")
+	// Use context with longer timeout for file requests
+	ctx, cancel := context.WithTimeout(appContext, 1*time.Minute)
+	defer cancel()
+
+	stream, err := node.NewStream(ctx, decodedPeerID, "/fileshare/1.0.0")
 	if err != nil {
 		return fmt.Errorf("sendFileRequestToPeer: %v", err)
 	}
