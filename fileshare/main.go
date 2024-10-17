@@ -131,6 +131,36 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 	return node, orcaDHT, nil
 }
 
+// Connedts to the target node given the targetNodePeerID
+func connectToNodeUsingPeerID(node host.Host, orcaDHT *dht.IpfsDHT, targetNodePeerID string) error {
+	// Decode the peer ID
+	decodedPeerID, err := peer.Decode(targetNodePeerID)
+	if err != nil {
+		err = fmt.Errorf("error occured while decoding peer ID: %v", err)
+		return err
+	}
+
+	// Find the target node's multiaddress
+	targetNodeInfo, err := orcaDHT.FindPeer(context.Background(), decodedPeerID)
+	if err != nil {
+		err = fmt.Errorf("error occured while finding peer: %v", err)
+		return err
+	}
+
+	// Add the target node to the peerstore of the current node
+	node.Peerstore().AddAddrs(targetNodeInfo.ID, targetNodeInfo.Addrs, peerstore.PermanentAddrTTL)
+
+	// Connect to the target node
+	err = node.Connect(globalCtx, targetNodeInfo)
+	if err != nil {
+		err = fmt.Errorf("error occured while connecting to target node: %v", err)
+		return err
+	}
+
+	fmt.Println("Connected to: ", decodedPeerID)
+	return nil
+}
+
 // Connects to the target node with the given targetNodeAddress
 func connectToNode(node host.Host, targetNodeAddress string) error {
 	// Create multi address from targetNodeAddress
@@ -394,7 +424,7 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) 
 
 			// Connect to the peer
 			providerPeerID := string(res)
-			err = connectToNodeUsingRelay(node, providerPeerID)
+			err = connectToNodeUsingPeerID(node, orcaDHT, providerPeerID)
 			if err != nil {
 				fmt.Printf("Failed to connect to peer: %v\n", err)
 			}
