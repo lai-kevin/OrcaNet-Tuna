@@ -185,13 +185,13 @@ func connectToNode(node host.Host, targetNodeAddress string) error {
 		return err
 	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(2 * time.Second)
 	// Check peer reachability
 	if node.Network().Connectedness(targetNodeInfo.ID) != network.Connected {
 		log.Println("connectToNode: target peer is not connected")
+	} else {
+		log.Println("connectToNode: target peer is connected")
 	}
-
-	fmt.Println("Connected to: ", targetNodeInfo.ID)
 	return nil
 }
 
@@ -225,13 +225,14 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 		return err
 	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(2 * time.Second)
 	// Check peer reachability
 	if node.Network().Connectedness(relayedAddrInfo.ID) != network.Connected {
 		log.Println("connectToNodeUsingRelay: target peer is not connected")
+	} else {
+		log.Println("connectToNodeUsingRelay: target peer is connected")
 	}
 
-	fmt.Printf("Connected to peer via relay: %s\n", targetPeerID)
 	return nil
 }
 
