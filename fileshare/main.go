@@ -224,6 +224,8 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 	// Add the target node to the peerstore of the current node
 	node.Peerstore().AddAddrs(relayedAddrInfo.ID, relayedAddrInfo.Addrs, peerstore.PermanentAddrTTL)
 
+	log.Println("connectToNodeUsingRelay: connecting to peer through relay: ", relayedAddrInfo)
+
 	// Connect to the peer through the relay
 	err = node.Connect(context, *relayedAddrInfo)
 	if err != nil {
