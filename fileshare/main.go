@@ -424,10 +424,10 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) 
 
 			// Connect to the peer
 			providerPeerID := string(res)
-			err = connectToNodeUsingPeerID(node, orcaDHT, providerPeerID)
-			if err != nil {
-				fmt.Printf("Failed to connect to peer: %v\n", err)
-			}
+			// err = connectToNodeUsingPeerID(node, orcaDHT, providerPeerID)
+			// if err != nil {
+			// 	fmt.Printf("Failed to connect to peer: %v\n", err)
+			// }
 
 			// Request the file from the peer
 			err = sendFileRequestToPeer(context, node, providerPeerID, fileHash)
