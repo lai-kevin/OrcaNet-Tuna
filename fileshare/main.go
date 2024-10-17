@@ -79,7 +79,6 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 	node, err := libp2p.New(
 		libp2p.ListenAddrs(customAddress),
 		libp2p.Identity(privateKey),
-		libp2p.NATPortMap(),
 		libp2p.EnableNATService(),
 		libp2p.NATPortMap(),
 		libp2p.EnableAutoRelayWithStaticRelays([]peer.AddrInfo{*relayInfo}),
@@ -425,10 +424,10 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) 
 
 			// Connect to the peer
 			providerPeerID := string(res)
-			// err = connectToNodeUsingPeerID(node, orcaDHT, providerPeerID)
-			// if err != nil {
-			// 	fmt.Printf("Failed to connect to peer: %v\n", err)
-			// }
+			err = connectToNodeUsingRelay(node, providerPeerID)
+			if err != nil {
+				fmt.Printf("Failed to connect to peer: %v\n", err)
+			}
 
 			// Request the file from the peer
 			err = sendFileRequestToPeer(context, node, providerPeerID, fileHash)
