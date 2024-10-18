@@ -1182,3 +1182,29 @@
   font-size: 16px;
   color: #007bff;
 }
+
+.provider-row:hover {
+  background-color: #f0f0f0 !important;
+  transition: background-color 0.3s ease;
+}
+
+.provider-table-container {
+  height: 300px; /* Adjust this value as needed */
+  overflow-y: auto;
+}
+
+#providers_table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#providers_table thead {
+  position: sticky;
+  top: 0;
+  background-color: #277fddb8; /* Adjust color as needed */
+}
+
+#providers_table th, #providers_table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+}

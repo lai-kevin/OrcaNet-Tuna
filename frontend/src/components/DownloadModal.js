@@ -6,11 +6,11 @@ import { LiaDownloadSolid } from "react-icons/lia";
 const DownloadModal = ({}) =>{
     const {fileToDownload, setDownloadOpen, setSearchResultsFound, setFileToDownload,downloads,setDownloads} = useContext(AppContext);
     const [activeStep, setActiveStep] = useState(0); //0 is choosing a provider, 1 is the confirm 
-    const [selectedProvider, setSelectedProvider] = useState(null);
+    const [selectedProvider, setSelectedProvider] = useState("--");
 
     const handleClose = () => {
         setFileToDownload(null);
-        setSelectedProvider(null);
+        setSelectedProvider("--");
         setActiveStep(0);
         setSearchResultsFound(false)
         setDownloadOpen(false)
@@ -19,20 +19,26 @@ const DownloadModal = ({}) =>{
     const handleDownload = () => {
         let file = fileToDownload;
         file.status = "downloading"
+        file.priority = downloads.length + 1; //set the priority. By default is the lowest possible priority of all the ongoing downloads
         setDownloads([...downloads,file]);
         setFileToDownload(null);
-        setSelectedProvider(null);//maybe figure out if this would be nice to have somewhere else
+        setSelectedProvider("--");//maybe figure out if this would be nice to have somewhere else
         setActiveStep(0);        
         setSearchResultsFound(false);
         setDownloadOpen(false);
       
     }
     const handleContinue = () =>{
-      if(activeStep === 0 && selectedProvider !== null){
+      if(activeStep === 0 && selectedProvider !== "--"){
         setActiveStep(1);
       }
       else{
         //modify an error msg letting the user know they must select one before continuing
+      }
+    }
+    const handleBack = () => {
+      if(activeStep === 1){
+        setActiveStep(0);
       }
     }
 
@@ -43,7 +49,12 @@ const DownloadModal = ({}) =>{
     const generateListProviders = () =>{
       return fileToDownload.providers.map((provider) =>{
         return(
-        <tr key = {provider.id} onClick={()=> {setSelectedProvider(provider)}}>
+        <tr key = {provider.id} onClick={()=> {setSelectedProvider(provider)}} style={{
+          backgroundColor: (selectedProvider.id === provider.id) ? '#d3d3d3' : 'white', 
+          cursor: 'pointer',
+      }}
+        className="provider-row"
+      >
           <td>{provider.id}</td>
           <td>{provider.price}</td>
           <td>{String(provider.timestamp)}</td>
@@ -63,18 +74,20 @@ const DownloadModal = ({}) =>{
               <br/>
               <p>Select a provider from the following list of providers</p>
               <br/>
-              <table>
-                <thead>
-                  <tr>
-                    <th>File Provider</th>
-                    <th>Price (OrcaCoins)</th>
-                    <th>Timestamp</th>                    
-                  </tr>
-                </thead>
-                <tbody>
-                  {generateListProviders()}
-                </tbody>
-              </table>
+              <div className="provider-table-container">
+                <table id = "providers_table">
+                  <thead>
+                    <tr>
+                      <th>File Provider</th>
+                      <th>Price (OrcaCoins)</th>
+                      <th>Timestamp</th>                    
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {generateListProviders()}
+                  </tbody>
+                </table>
+              </div>
               <div style={{ display: "flex", gap: "10px" }}>
                 <button className="primary_button" onClick={handleContinue}>Continue</button>
                 <button className="primary_button" onClick={handleClose}>Close</button>
@@ -95,6 +108,7 @@ const DownloadModal = ({}) =>{
             <br/>
             <div style={{ display: "flex", gap: "10px" }}>
               <button className="primary_button" onClick={handleDownload}>Download <LiaDownloadSolid /></button>
+              <button className="primary_button" onClick={handleBack}>Back</button>
               <button className="primary_button" onClick={handleClose}>Close</button>
             </div>
           </div>
