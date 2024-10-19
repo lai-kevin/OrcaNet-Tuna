@@ -38,6 +38,8 @@ const RELAY_NODE_MULTIADDR = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7B
 const DESKTOP_NODE_MULTIADDR = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN/p2p-circuit/p2p/12D3KooWS9VBsbpZPzpxsK6by9LzFUsW62fHHk3owJGHRKWy4KnX"
 const SBU_ID = "111111110"
 
+var DOWNLOAD_DIRECTORY = "downloads"
+
 // Global context for the application
 var globalCtx context.Context
 
@@ -49,7 +51,7 @@ var fileHashToPath = make(map[string]string)
 // File hash to file type mapping
 // This is used when a node is requesting a file and needs the file type for saving.
 // This map is updated when a file is requested from the network.
-var requestedFiles = make(map[string]string)
+var requestedFiles = make(map[string]FileRequest)
 
 type PeerInfo struct {
 	PeerID string `json:"peerID"`
@@ -133,7 +135,7 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 	// Notify this peer when a new peer connects
 	node.Network().Notify(&network.NotifyBundle{
 		ConnectedF: func(n network.Network, conn network.Conn) {
-			fmt.Printf("Notification: New peer connected %s\n", conn.RemotePeer().String())
+			log.Printf("Notification: New peer connected %s\n", conn.RemotePeer().String())
 		},
 		DisconnectedF: func(n network.Network, conn network.Conn) {
 			log.Printf("Disconnected from: %s", conn.RemotePeer())
@@ -191,9 +193,6 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 		return err
 	}
 
-	// // Add the target node to the peerstore of the current node
-	// node.Peerstore().AddAddrs(relayedAddrInfo.ID, relayedAddrInfo.Addrs, peerstore.PermanentAddrTTL)
-
 	// Connect to the peer through the relay
 	err = node.Connect(context, *relayedAddrInfo)
 	if err != nil {
@@ -227,7 +226,7 @@ func handlePeerExhangeWithRelay(node host.Host) error {
 		peerAddress, err := buffer.ReadString('\n')
 		if err != nil {
 			if err != io.EOF {
-				fmt.Printf("EOF: Failed to read peer address\n")
+				log.Printf("EOF: Failed to read peer address\n")
 			}
 
 			// Ignore EOF
@@ -236,7 +235,7 @@ func handlePeerExhangeWithRelay(node host.Host) error {
 		var data map[string]interface{}
 		err = json.Unmarshal([]byte(peerAddress), &data)
 		if err != nil {
-			fmt.Printf("Failed to unmarshal during relay exhange")
+			log.Printf("Failed to unmarshal during relay exhange")
 		}
 		if knownPeers, ok := data["known_peers"].([]interface{}); ok {
 			for _, peer := range knownPeers {
@@ -441,11 +440,11 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) 
 				fmt.Printf("Failed to connect to peer: %v\n", err)
 			}
 
-			// // Request the file from the peer
-			// err = sendFileRequestToPeer(context, node, providerPeerID, fileHash)
-			// if err != nil {
-			// 	fmt.Printf("Failed to request file from peer: %v\n", err)
-			// }
+			// Request the file from the peer
+			err = sendFileRequestToPeer(node, providerPeerID, fileHash)
+			if err != nil {
+				fmt.Printf("Failed to request file from peer: %v\n", err)
+			}
 
 		case "GET_FILE_META":
 			if len(args) < 2 {
@@ -481,7 +480,7 @@ func main() {
 	// Start node
 	node, orcaDHT, err := createNode(dht.ModeServer)
 	if err != nil {
-		fmt.Printf("Error occured while creating node: %v", err)
+		log.Printf("Error occured while creating node: %v", err)
 		return
 	}
 
@@ -493,20 +492,20 @@ func main() {
 	// Connect to relay node and bootstrap node
 	err = connectToNode(node, RELAY_NODE_MULTIADDR)
 	if err != nil {
-		fmt.Printf("Error occured while connecting to relay node: %v", err)
+		log.Printf("Error occured while connecting to relay node: %v", err)
 		return
 	}
 
 	err = makeReservation(node)
 	if err != nil {
-		fmt.Printf("Error occured while making reservation: %v", err)
+		log.Printf("Error occured while making reservation: %v", err)
 		return
 	}
 	go refreshReservation(node, 5*time.Minute)
 
 	err = connectToNode(node, BOOTSTRAP_NODE_MULTIADDR)
 	if err != nil {
-		fmt.Printf("Error occured while connecting to bootstrap node: %v", err)
+		log.Printf("Error occured while connecting to bootstrap node: %v", err)
 		return
 	}
 
@@ -523,7 +522,8 @@ func main() {
 	// Handle incoming file requests
 	go receiveFileRequests(node)
 
-	// sendDataToNode(node, "....")
+	// Handle incoming file data
+	go receiveFileData(node)
 
 	defer node.Close()
 
