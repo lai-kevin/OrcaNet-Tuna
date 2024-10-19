@@ -20,19 +20,28 @@ import (
 )
 
 // File struct for file data
+// Send when a client is ready to make a transaction and download a file
 type FileDataHeader struct {
 	FileName     string
 	FileSize     int
 	Multiaddress string
 	PeerID       string
+	price        float32 // price of the file in coins
 }
 
 // FileRequest struct for file request data
+// Send when a client is rwants to make a transaction and download a file
 type FileRequest struct {
 	FileHash              string
 	RequesterID           string
 	RequesterMultiAddress string
 	timeSent              time.Time
+}
+
+// Error struct to handle errors
+type Error struct {
+	errorType    int
+	ErrorMessage string
 }
 
 // Create a stream to a target node
@@ -61,6 +70,8 @@ func createStream(node host.Host, targetNodeId string) (network.Stream, error) {
 	return stream, nil
 }
 
+///////////////////////////////// RECEIVER FUNCTIONS //////////////////////////////////////
+
 // Listens for incoming file requests from peers
 // node: the host node to listen for file requests on
 func receiveFileRequests(node host.Host) {
@@ -81,6 +92,112 @@ func receiveFileRequests(node host.Host) {
 		// Print the received data
 		log.Printf("Received data: %s", data)
 	})
+}
+
+///////////////////////////////// SENDER FUNCTIONS //////////////////////////////////////
+
+// Send a "file not found" message to a peer from a given node.
+// node: the node sending the file not found message
+// targetNodeId: the ID of the target peer
+func sendFileNotFoundToPeer(node host.Host, targetNodeId string) error {
+	stream, err := createStream(node, targetNodeId)
+	if err != nil {
+		return fmt.Errorf("sendFileNotFoundToPeer: %v", err)
+	}
+
+	errorStruct := Error{
+		errorType:    404,
+		ErrorMessage: "File not found",
+	}
+
+	errorBytes, err := json.Marshal(errorStruct)
+	if err != nil {
+		return fmt.Errorf("sendFileNotFoundToPeer: %v", err)
+	}
+
+	_, err = stream.Write(errorBytes)
+	if err != nil {
+		return fmt.Errorf("sendFileNotFoundToPeer: %v", err)
+	}
+	return nil
+}
+
+// Send an insufficient funds error message to a peer from a given node.
+// node: the node sending the insufficient funds message
+// targetNodeId: the ID of the target peer
+func sendInsufficientFundsToPeer(node host.Host, targetNodeId string) error {
+	stream, err := createStream(node, targetNodeId)
+	if err != nil {
+		return fmt.Errorf("sendInsufficientFundsToPeer: %v", err)
+	}
+
+	errorStruct := Error{
+		errorType:    404,
+		ErrorMessage: "Insufficient funds",
+	}
+
+	errorBytes, err := json.Marshal(errorStruct)
+	if err != nil {
+		return fmt.Errorf("sendInsufficientFundsToPeer: %v", err)
+	}
+
+	_, err = stream.Write(errorBytes)
+	if err != nil {
+		return fmt.Errorf("sendInsufficientFundsToPeer: %v", err)
+	}
+	return nil
+}
+
+// Send a node stopped providing file error message to a peer from a given node.
+// node: the node sending the user stopped providing file message
+// targetNodeId: the ID of the target peer
+func sendNodeStoppedProvidingFileToPeer(node host.Host, targetNodeId string) error {
+	stream, err := createStream(node, targetNodeId)
+	if err != nil {
+		return fmt.Errorf("sendUserStoppedProvidingFileToPeer: %v", err)
+	}
+
+	errorStruct := Error{
+		errorType:    404,
+		ErrorMessage: "Node stopped providing file",
+	}
+
+	errorBytes, err := json.Marshal(errorStruct)
+	if err != nil {
+		return fmt.Errorf("sendUserStoppedProvidingFileToPeer: %v", err)
+	}
+
+	_, err = stream.Write(errorBytes)
+	if err != nil {
+		return fmt.Errorf("sendUserStoppedProvidingFileToPeer: %v", err)
+	}
+	return nil
+}
+
+// Send a transaction error message to a peer from a given node.
+// node: the node sending the transaction error message
+// targetNodeId: the ID of the target peer
+func sendTransactionErrorToPeer(node host.Host, targetNodeId string) error {
+	stream, err := createStream(node, targetNodeId)
+	if err != nil {
+		return fmt.Errorf("sendTransactionErrorToPeer: %v", err)
+	}
+
+	errorStruct := Error{
+		errorType:    404,
+		ErrorMessage: "Transaction error",
+	}
+
+	errorBytes, err := json.Marshal(errorStruct)
+	if err != nil {
+		return fmt.Errorf("sendTransactionErrorToPeer: %v", err)
+	}
+
+	_, err = stream.Write(errorBytes)
+	if err != nil {
+		return fmt.Errorf("sendTransactionErrorToPeer: %v", err)
+	}
+	return nil
 }
 
 // Send a file request to a peer from a given node.
@@ -136,6 +253,7 @@ func sendFileToPeer(node host.Host, targetNodeId, filepath string) (err error) {
 		FileSize:     int(fileSize),
 		Multiaddress: node.Addrs()[0].String(),
 		PeerID:       node.ID().String(),
+		price:        0.0,
 	}
 
 	// Convert the file header to JSON
@@ -210,6 +328,7 @@ func sendFileMetaDataToPeer(node host.Host, targetNodeId, filepath string) (err 
 		FileSize:     int(fileSize),
 		Multiaddress: node.Addrs()[0].String(),
 		PeerID:       node.ID().String(),
+		price:        0.0,
 	}
 
 	// Convert metadata to JSON
