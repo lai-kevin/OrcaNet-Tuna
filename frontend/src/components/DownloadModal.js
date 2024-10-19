@@ -1,12 +1,14 @@
 import { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { LiaDownloadSolid } from "react-icons/lia";
+import { FaArrowDown } from "react-icons/fa";
 
 
 const DownloadModal = ({}) =>{
     const {fileToDownload, setDownloadOpen, setSearchResultsFound, setFileToDownload,downloads,setDownloads} = useContext(AppContext);
     const [activeStep, setActiveStep] = useState(0); //0 is choosing a provider, 1 is the confirm 
     const [selectedProvider, setSelectedProvider] = useState("--");
+    const [errorMsg,setErrorMsg] = useState("");
 
     const handleClose = () => {
         setFileToDownload(null);
@@ -14,11 +16,13 @@ const DownloadModal = ({}) =>{
         setActiveStep(0);
         setSearchResultsFound(false)
         setDownloadOpen(false)
+        setErrorMsg("");
       }
 
     const handleDownload = () => {
         let file = fileToDownload;
-        file.status = "downloading"
+        file.status = "downloading";
+        file.index = downloads.length;
         file.priority = downloads.length + 1; //set the priority. By default is the lowest possible priority of all the ongoing downloads
         setDownloads([...downloads,file]);
         setFileToDownload(null);
@@ -26,14 +30,17 @@ const DownloadModal = ({}) =>{
         setActiveStep(0);        
         setSearchResultsFound(false);
         setDownloadOpen(false);
+        setErrorMsg("");
       
     }
     const handleContinue = () =>{
       if(activeStep === 0 && selectedProvider !== "--"){
         setActiveStep(1);
+        setErrorMsg("");
       }
       else{
         //modify an error msg letting the user know they must select one before continuing
+        setErrorMsg("Please select a provider from the list to download from before continuing");
       }
     }
     const handleBack = () => {
@@ -58,6 +65,7 @@ const DownloadModal = ({}) =>{
           <td>{provider.id}</td>
           <td>{provider.price}</td>
           <td>{String(provider.timestamp)}</td>
+          <td>{provider.downloads}</td>
         </tr>
         );
       });
@@ -70,7 +78,7 @@ const DownloadModal = ({}) =>{
         return (
           <div className="modal">
             <div className="modal_content">
-              <p>We sucessfully found the following file: {fileToDownload.name}</p>
+              <p>We sucessfully found the following file: {fileToDownload.name + " " + fileToDownload.size}</p>
               <br/>
               <p>Select a provider from the following list of providers</p>
               <br/>
@@ -80,14 +88,17 @@ const DownloadModal = ({}) =>{
                     <tr>
                       <th>File Provider</th>
                       <th>Price (OrcaCoins)</th>
-                      <th>Timestamp</th>                    
+                      <th>Timestamp</th>
+                      <th>Downloads <FaArrowDown style={{color: 'red'}}/></th>                    
                     </tr>
                   </thead>
                   <tbody>
                     {generateListProviders()}
                   </tbody>
                 </table>
+                {(errorMsg!=="") && <p style={{color: "red", fontWeight: "800"}}>{errorMsg}</p>}
               </div>
+              
               <div style={{ display: "flex", gap: "10px" }}>
                 <button className="primary_button" onClick={handleContinue}>Continue</button>
                 <button className="primary_button" onClick={handleClose}>Close</button>
@@ -100,11 +111,11 @@ const DownloadModal = ({}) =>{
         return(
         <div className="modal">
           <div className="modal_content">
-            <p>Would you like to download the following file: {fileToDownload.name}</p>
+            <p>Would you like to download the following file: {fileToDownload.name + " " + fileToDownload.size}</p>
             <br/>
             <p>From: {selectedProvider.id}</p>
             <br/>
-            <p>For: {selectedProvider.price} OrcaCoins</p>
+            <p>Price: {selectedProvider.price} OrcaCoins</p>
             <br/>
             <div style={{ display: "flex", gap: "10px" }}>
               <button className="primary_button" onClick={handleDownload}>Download <LiaDownloadSolid /></button>

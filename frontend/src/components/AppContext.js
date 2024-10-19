@@ -21,8 +21,8 @@ export function AppContextProvider(props){
       }
 
     let dummyFiles = [
-        {type: "folder",name: "studio ghibli movies",hashId: "Zxczv123kcbxvh14boadab",size: "100 MB", providers: [{id: userhash1, price: 3, timestamp: randomTimestamp()},{id: userhash2 , price: 5, timestamp: randomTimestamp()},{id: userhash3, price: 3.5, timestamp: randomTimestamp()}]},
-        {type: "mp3",name: "Shook Ones PT II.mp3",hashId: "Asdasdxc5nksdhbvshba2315jhd",size: "124MB", providers: [{id: userhash2, price: 3, timestamp: randomTimestamp()},{id: userhash3, price: 7, timestamp: randomTimestamp()},{id: userhash4, price: 5, timestamp: randomTimestamp()}, {id: userhash5, price: 53, timestamp: randomTimestamp()}, {id: userhash6, price: 20, timestamp: randomTimestamp()}] },
+        {type: "folder",name: "studio ghibli movies",hashId: "Zxczv123kcbxvh14boadab",size: "100 MB", providers: [{id: userhash1, price: 3, timestamp: randomTimestamp(), downloads: 100},{id: userhash2 , price: 5, timestamp: randomTimestamp(), downloads: 200},{id: userhash3, price: 3.5, timestamp: randomTimestamp(), downloads: 300}]},
+        {type: "mp3",name: "Shook Ones PT II.mp3",hashId: "Asdasdxc5nksdhbvshba2315jhd",size: "124 MB", providers: [{id: userhash2, price: 3, timestamp: randomTimestamp(), downloads: 10},{id: userhash3, price: 7, timestamp: randomTimestamp(), downloads: 26},{id: userhash4, price: 5, timestamp: randomTimestamp(), downloads: 3}, {id: userhash5, price: 53, timestamp: randomTimestamp(), downloads: 22}, {id: userhash6, price: 20, timestamp: randomTimestamp(), downloads: 50}] },
     ]
     let peers = [
         { id: 0, location: "192.168.1.1", Port: 8080, Price: 3 },
@@ -58,11 +58,21 @@ export function AppContextProvider(props){
             received: "120 KB",
           }
     ]
+
+    let sampleUpload = {
+        type: "folder",
+        name: "simpleGamecontroller.ino",
+        hashId: "b86f8e8cd90e0eaa5942d5141a56614601857b65871f21789444746061017df9",
+        size: "20 MB",
+        price: 200,
+        downloaders: [userhash1,userhash2], //Just a list of users downloading to demo what the ui would look like if we want to remove an upload with people downloading
+
+    }
     const [searchResultsFound,setSearchResultsFound] = useState(false);
     const [fileToDownload,setFileToDownload] = useState("");
     const [fileToRemove,setFileToRemove] = useState(null);
     const [downloadOpen, setDownloadOpen] = useState(false);
-    const [uploadHistory, setUploadHistory] = useState([]); //currently storing apps "uploads" here in this global context for demo purposes as there is no real data
+    const [uploadHistory, setUploadHistory] = useState([sampleUpload]); //currently storing apps "uploads" here in this global context for demo purposes as there is no real data
     const [downloads, setDownloads] = useState([]);
     const [proxy, setProxy] = useState(true);
     const [server, setServer] = useState("--")

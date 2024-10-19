@@ -49,7 +49,8 @@ const Files = () => {
       type: "file",
       name: fileToUpload.name,
       hashId: privateKey,
-      size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB"
+      size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
+      price: fileToUpload.price
     } 
       setUploadHistory([...uploadHistory,newFile]);
       setFileToUpload(null);
@@ -120,7 +121,7 @@ const Files = () => {
   
 
   //update with a stop sharing button resume sharing
-  const FileCard = ({type,name,hashId,size}) => {
+  const FileCard = ({type,name,hashId,size,price, downloaders}) => {
     let FileIcon = LuFile; //image , folder, .pdf/.txt/everything else 
     if(type === "image"){ 
       FileIcon = LuFileImage;
@@ -130,13 +131,13 @@ const Files = () => {
     }
 
     const HandleRemoveUpload = () =>{
-      setFileToRemove({name,hashId});
+      setFileToRemove({name,hashId,price,downloaders});
     }
 
     if(activeTab === "Uploads"){
       return(
-        <div className = "fileCard" onClick={HandleRemoveUpload}>
-          <div style = {{display: 'flex', alignItems: "center"}}><FileIcon style={{ width: '40%', height: '40%' }}/> </div>
+        <div className = "fileCard" onClick={HandleRemoveUpload} style={{cursor: 'pointer'}}>
+          <div style = {{display: 'flex', alignItems: "center" }}><FileIcon style={{ width: '40%', height: '40%' }}/> </div>
           <div>
             <p>{name}</p>
             <p style = {{color: "#9b9b9b"}} >{hashId}</p>
@@ -161,7 +162,7 @@ const Files = () => {
   }
   
 
-  const FileCardDownload = ({type,name,hashId,size,status}) =>{
+  const FileCardDownload = ({type,name,hashId,size,status,index}) =>{
     //Variation of file cards meant for displaying files downloading
     //additional rendering for pause, resume, and cancel buttons based on status of download
     let FileIcon = LuFile; //image , folder, .pdf/.txt/everything else 
@@ -172,7 +173,7 @@ const Files = () => {
       setDownloads([...updatedDownloads]);
     }
     const handleResume = () => {
-      const updatedDownloads = downloads.map((download) => download.hashId === hashId ? {...download, status: "downloading"}: download);
+      const updatedDownloads = downloads.map((download) => download.hashId === index ? {...download, status: "downloading"}: {...download,status : "paused"});
       setDownloads([...updatedDownloads]);
     }
     const handleCancel = () => {
@@ -234,6 +235,8 @@ const Files = () => {
               name = {file.name}
               hashId = {file.hashId}
               size = {file.size}
+              price = {file.price}
+              downloaders={file.downloaders}
             />
           )
         });
