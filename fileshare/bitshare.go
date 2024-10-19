@@ -38,9 +38,14 @@ type FileRequest struct {
 	timeSent              time.Time
 }
 
+// MetaDataRequest struct for metadata request data
+// Send when a client wants to get metadata for a file
+type MetaDataRequest struct {
+	FileHash string
+}
+
 // Error struct to handle errors
 type Error struct {
-	errorType    int
 	ErrorMessage string
 }
 
@@ -80,17 +85,30 @@ func receiveFileRequests(node host.Host) {
 
 		buffer := bufio.NewReader(stream)
 
-		data, err := buffer.ReadBytes('\n') // Reads until a newline character
+		// Read the data from the stream
+		data, err := io.ReadAll(buffer)
+
+		// Read the JSON file request from the stream
+		var fileRequest FileRequest
+		err = json.Unmarshal(data, &fileRequest)
 		if err != nil {
-			if err == io.EOF {
-				log.Printf("Stream closed by peer: %s", stream.Conn().RemotePeer())
-			} else {
-				log.Printf("Error reading from stream: %v", err)
-			}
+			log.Printf("Error unmarshalling file request: %v", err)
 			return
 		}
+
 		// Print the received data
-		log.Printf("Received data: %s", data)
+		log.Printf("Received filerequest: %s", data)
+	})
+}
+
+// Listens for incoming file metadata requests from peers
+// node: the host node to listen for file metadata requests on
+func receiveFileMetaDataRequests(node host.Host) {
+	node.SetStreamHandler("/sendmetadata/p2p", func(stream network.Stream) {
+		defer stream.Close()
+
+		// Print the received data
+		log.Printf("Received metadata request: %s", data)
 	})
 }
 
