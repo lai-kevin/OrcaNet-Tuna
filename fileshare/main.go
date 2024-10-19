@@ -390,7 +390,7 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) 
 			// Provide the file on DHT
 			dhtKey := "/orcanet/" + fileHash
 
-			fmt.Println("Providing file with key: ", dhtKey)
+			fmt.Println("Updating DHT with file hash: ", dhtKey)
 
 			err = orcaDHT.PutValue(context, dhtKey, []byte(peerID))
 			if err != nil {
