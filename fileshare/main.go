@@ -414,6 +414,8 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) 
 			}
 			fileHash := args[1]
 			dhtKey := "/orcanet/" + fileHash
+
+			log.Println("Searching for file hash: ", dhtKey)
 			res, err := orcaDHT.GetValue(context, dhtKey)
 			if err != nil {
 				fmt.Printf("Failed to get record: %v\n", err)

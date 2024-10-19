@@ -124,10 +124,10 @@ func receiveFileMetaDataRequests(node host.Host) {
 // targetNodeId: the ID of the target peer
 func sendFileNotFoundToPeer(node host.Host, targetNodeId string) error {
 	stream, err := createStream(node, targetNodeId)
-	defer stream.Close()
 	if err != nil {
 		return fmt.Errorf("sendFileNotFoundToPeer: %v", err)
 	}
+	defer stream.Close()
 
 	errorStruct := Error{
 		ErrorMessage: "File not found",
@@ -150,6 +150,9 @@ func sendFileNotFoundToPeer(node host.Host, targetNodeId string) error {
 // targetNodeId: the ID of the target peer
 func sendInsufficientFundsToPeer(node host.Host, targetNodeId string) error {
 	stream, err := createStream(node, targetNodeId)
+	if err != nil {
+		return fmt.Errorf("sendInsufficientFundsToPeer: %v", err)
+	}
 	defer stream.Close()
 	if err != nil {
 		return fmt.Errorf("sendInsufficientFundsToPeer: %v", err)
@@ -176,6 +179,9 @@ func sendInsufficientFundsToPeer(node host.Host, targetNodeId string) error {
 // targetNodeId: the ID of the target peer
 func sendNodeStoppedProvidingFileToPeer(node host.Host, targetNodeId string) error {
 	stream, err := createStream(node, targetNodeId)
+	if err != nil {
+		return fmt.Errorf("sendNodeStoppedProvidingFileToPeer: %v", err)
+	}
 	defer stream.Close()
 	if err != nil {
 		return fmt.Errorf("sendUserStoppedProvidingFileToPeer: %v", err)
@@ -202,6 +208,9 @@ func sendNodeStoppedProvidingFileToPeer(node host.Host, targetNodeId string) err
 // targetNodeId: the ID of the target peer
 func sendTransactionErrorToPeer(node host.Host, targetNodeId string) error {
 	stream, err := createStream(node, targetNodeId)
+	if err != nil {
+		return fmt.Errorf("sendTransactionErrorToPeer: %v", err)
+	}
 	defer stream.Close()
 	if err != nil {
 		return fmt.Errorf("sendTransactionErrorToPeer: %v", err)
@@ -229,6 +238,9 @@ func sendTransactionErrorToPeer(node host.Host, targetNodeId string) error {
 // fileHash: the hash of the file to request
 func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string) error {
 	stream, err := createStream(node, targetNodeId)
+	if err != nil {
+		return fmt.Errorf("sendFileRequestToPeer: %v", err)
+	}
 	defer stream.Close()
 	if err != nil {
 		return fmt.Errorf("sendFileRequestToPeer: %v", err)
@@ -263,6 +275,9 @@ func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string)
 // filepath: the path to the file to send
 func sendFileToPeer(node host.Host, targetNodeId, filepath string) (err error) {
 	stream, err := createStream(node, targetNodeId)
+	if err != nil {
+		return fmt.Errorf("sendFileToPeer: %v", err)
+	}
 	defer stream.Close()
 
 	// Create fileDataHeader struct
@@ -335,6 +350,9 @@ func sendFileToPeer(node host.Host, targetNodeId, filepath string) (err error) {
 // filepath: the path to the file to send metadata for
 func sendFileMetaDataToPeer(node host.Host, targetNodeId, filepath string) (err error) {
 	stream, err := createStream(node, targetNodeId)
+	if err != nil {
+		return fmt.Errorf("sendFileMetaDataToPeer: %v", err)
+	}
 	defer stream.Close()
 
 	if err != nil {
