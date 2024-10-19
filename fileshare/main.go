@@ -463,56 +463,6 @@ func provideKey(ctx context.Context, dht *dht.IpfsDHT, key string) error {
 	return nil
 }
 
-// Listens for incoming file requests from peers
-func receiveFileRequests(node host.Host) {
-	node.SetStreamHandler("/senddata/p2p", func(stream network.Stream) {
-		defer stream.Close()
-
-		buffer := bufio.NewReader(stream)
-
-		data, err := buffer.ReadBytes('\n') // Reads until a newline character
-		if err != nil {
-			if err == io.EOF {
-				log.Printf("Stream closed by peer: %s", stream.Conn().RemotePeer())
-			} else {
-				log.Printf("Error reading from stream: %v", err)
-			}
-			return
-		}
-		// Print the received data
-		log.Printf("Received data: %s", data)
-	})
-}
-
-func sendFileRequestToPeer(node host.Host, targetNodeId string) {
-	var ctx = context.Background()
-	targetPeerID := strings.TrimSpace(targetNodeId)
-	relayAddr, err := ma.NewMultiaddr(RELAY_NODE_MULTIADDR)
-	if err != nil {
-		log.Printf("Failed to create relay multiaddr: %v", err)
-	}
-	peerMultiaddr := relayAddr.Encapsulate(ma.StringCast("/p2p-circuit/p2p/" + targetPeerID))
-
-	peerinfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
-	if err != nil {
-		log.Fatalf("Failed to parse peer address: %s", err)
-	}
-	if err := node.Connect(ctx, *peerinfo); err != nil {
-		log.Printf("Failed to connect to peer %s via relay: %v", peerinfo.ID, err)
-		return
-	}
-	s, err := node.NewStream(network.WithAllowLimitedConn(ctx, "/senddata/p2p"), peerinfo.ID, "/senddata/p2p")
-	if err != nil {
-		log.Printf("Failed to open stream to %s: %s", peerinfo.ID, err)
-		return
-	}
-	defer s.Close()
-	_, err = s.Write([]byte("sending hello to peer\n"))
-	if err != nil {
-		log.Fatalf("Failed to write to stream: %s", err)
-	}
-}
-
 func main() {
 	// Start node
 	node, orcaDHT, err := createNode(dht.ModeServer)

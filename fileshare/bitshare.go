@@ -1,16 +1,22 @@
 // Author: Kevin Lai
-// This file contains the functions for sending and receiving chunks and metadata between nodes.
+// Bitshare is a library for sending and receiving files.
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
+	ma "github.com/multiformats/go-multiaddr"
 )
 
 // File struct for file data
@@ -36,62 +42,71 @@ type MetaData struct {
 	PeerPublicKey string
 }
 
-// Send a file request to a peer from a given node. This function assumes peer is already connected. Use in conjunction with findPeerAndConnect.
-// context: the context for the operation
-// node: the source node
-// fileName: the name of the file to request
-// func sendFileRequestToPeer(
-// 	appContext context.Context,
-// 	node host.Host,
-// 	targetNodePeerID string,
-// 	fileHash string) (err error) {
+// Listens for incoming file requests from peers
+func receiveFileRequests(node host.Host) {
+	node.SetStreamHandler("/senddata/p2p", func(stream network.Stream) {
+		defer stream.Close()
 
-// 	// Create a new stream to the target peer
-// 	decodedPeerID, err := peer.Decode(targetNodePeerID)
-// 	if err != nil {
-// 		return fmt.Errorf("sendFileRequestToPeer: failed to decode peerID: %v", err)
-// 	}
+		buffer := bufio.NewReader(stream)
 
-// 	fmt.Printf("Sending file request to peer %s\n", targetNodePeerID)
+		data, err := buffer.ReadBytes('\n') // Reads until a newline character
+		if err != nil {
+			if err == io.EOF {
+				log.Printf("Stream closed by peer: %s", stream.Conn().RemotePeer())
+			} else {
+				log.Printf("Error reading from stream: %v", err)
+			}
+			return
+		}
+		// Print the received data
+		log.Printf("Received data: %s", data)
+	})
+}
 
-// 	stream, err := node.NewStream(context.Background(), decodedPeerID, "/fileshare/1.0.0")
-// 	if err != nil {
-// 		return fmt.Errorf("sendFileRequestToPeer: %v", err)
-// 	}
-// 	defer stream.Close()
+func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string) error {
+	var ctx = context.Background()
+	targetPeerID := strings.TrimSpace(targetNodeId)
+	relayAddr, err := ma.NewMultiaddr(RELAY_NODE_MULTIADDR)
+	if err != nil {
+		log.Printf("Failed to create relay multiaddr: %v", err)
+	}
+	peerMultiaddr := relayAddr.Encapsulate(ma.StringCast("/p2p-circuit/p2p/" + targetPeerID))
 
-// 	// Get the source node's multiaddress
-// 	sourceMultiAddress := node.Addrs()[0].String()
+	peerinfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
+	if err != nil {
+		return fmt.Errorf("failed to parse peer address: %s", err)
+	}
+	if err := node.Connect(ctx, *peerinfo); err != nil {
+		return fmt.Errorf("failed to connect to peer %s via relay: %v", peerinfo.ID, err)
+	}
+	stream, err := node.NewStream(network.WithAllowLimitedConn(ctx, "/senddata/p2p"), peerinfo.ID, "/senddata/p2p")
+	if err != nil {
+		return fmt.Errorf("failed to open stream to %s: %s", peerinfo.ID, err)
+	}
+	defer stream.Close()
 
-// 	// Get the source node's ID
-// 	sourceID := node.ID().String()
+	sourceID := node.ID().String()
+	sourceMultiAddress := node.Addrs()[0].String()
 
-// 	// Create file request struct
-// 	fileRequest := FileRequest{
-// 		FileHash:              fileHash,
-// 		RequesterID:           sourceID,
-// 		RequesterMultiAddress: sourceMultiAddress,
-// 		timeSent:              time.Now(),
-// 	}
+	// Create file request struct
+	fileRequest := FileRequest{
+		FileHash:              fileHash,
+		RequesterID:           sourceID,
+		RequesterMultiAddress: sourceMultiAddress,
+		timeSent:              time.Now(),
+	}
 
-// 	// Write the file request to the stream
-// 	fileRequestBytes, err := json.Marshal(fileRequest)
-// 	if err != nil {
-// 		return fmt.Errorf("sendFileRequestToPeer: failed to marshal file request to JSON: %v", err)
-// 	}
-// 	_, err = stream.Write(fileRequestBytes)
-// 	if err != nil {
-// 		return fmt.Errorf("sendFileRequestToPeer: failed to write file request to stream: %v", err)
-// 	}
-
-// 	// Close the stream
-// 	err = stream.Close()
-// 	if err != nil {
-// 		return fmt.Errorf("sendFileRequestToPeer: failed to close stream: %v", err)
-// 	}
-
-// 	return nil
-// }
+	// Write the file request to the stream
+	fileRequestBytes, err := json.Marshal(fileRequest)
+	if err != nil {
+		return fmt.Errorf("sendFileRequestToPeer: failed to marshal file request to JSON: %v", err)
+	}
+	_, err = stream.Write(fileRequestBytes)
+	if err != nil {
+		return fmt.Errorf("sendFileRequestToPeer: failed to write file request to stream: %v", err)
+	}
+	return nil
+}
 
 // Send a file to a peer from a given node. This function assumes peer is already connected. Use in conjunction with findPeerAndConnect.
 // context: the context for the operation
