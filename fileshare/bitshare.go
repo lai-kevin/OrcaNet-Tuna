@@ -83,6 +83,10 @@ func receiveFileRequests(node host.Host) {
 	})
 }
 
+// Send a file request to a peer from a given node.
+// node: the node sending the file request
+// targetNodeId: the ID of the target peer
+// fileHash: the hash of the file to request
 func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string) error {
 	stream, err := createStream(node, targetNodeId)
 	if err != nil {
