@@ -5,10 +5,16 @@ import { FaArrowDown } from "react-icons/fa";
 
 
 const DownloadModal = ({}) =>{
-    const {fileToDownload, setDownloadOpen, setSearchResultsFound, setFileToDownload,downloads,setDownloads} = useContext(AppContext);
+    const {fileToDownload, setDownloadOpen, setSearchResultsFound, setFileToDownload,downloads,setDownloads,setUploadHistory,uploadHistory,dummyFiles,setDummyFiles} = useContext(AppContext);
     const [activeStep, setActiveStep] = useState(0); //0 is choosing a provider, 1 is the confirm 
     const [selectedProvider, setSelectedProvider] = useState("--");
     const [errorMsg,setErrorMsg] = useState("");
+    const [becomeProvider, setBecomeProvider] = useState(false);
+    const [price, setPrice] = useState("");
+
+    const handlePriceInput = (event) =>{
+      setPrice(event.target.value);
+    }
 
     const handleClose = () => {
         setFileToDownload(null);
@@ -21,6 +27,30 @@ const DownloadModal = ({}) =>{
 
     const handleDownload = () => {
         let file = fileToDownload;
+        if(becomeProvider){
+          //add it to their uploads
+          let fileForUploads = {...file};
+          fileForUploads.price = Number(price);
+          const updatedDummyFiles = dummyFiles.map(file => {
+            if (file.hashId === fileForUploads.hashId) {
+              return {
+                ...file,
+                providers: [
+                  ...file.providers,
+                  {
+                    id: "user",
+                    price: Number(price),
+                    timestamp: new Date(),
+                    downloads: 0
+                  }
+                ]
+              };
+            }
+            return file;
+          }); //add ourselves to the list of providers of a file
+          setDummyFiles([...updatedDummyFiles]);
+          setUploadHistory([...uploadHistory,fileForUploads]);
+        }
         file.status = "downloading";
         file.index = downloads.length;
         file.priority = downloads.length + 1; //set the priority. By default is the lowest possible priority of all the ongoing downloads
@@ -31,7 +61,7 @@ const DownloadModal = ({}) =>{
         setSearchResultsFound(false);
         setDownloadOpen(false);
         setErrorMsg("");
-      
+        setPrice("")
     }
     const handleContinue = () =>{
       if(activeStep === 0 && selectedProvider !== "--"){
@@ -47,6 +77,10 @@ const DownloadModal = ({}) =>{
       if(activeStep === 1){
         setActiveStep(0);
       }
+    }
+
+    const handleBecomeProvider = () => {
+      setBecomeProvider(!becomeProvider);
     }
 
     //Generate the list items of providers for a given file
@@ -117,6 +151,25 @@ const DownloadModal = ({}) =>{
             <br/>
             <p>Price: {selectedProvider.price} OrcaCoins</p>
             <br/>
+
+            <input id="ch" type="checkbox" 
+              checked={becomeProvider} 
+              onChange={handleBecomeProvider} style={{marginBottom: "30px"}} ></input> <label style={{fontWeight: "bold"}}>Become a provider after downloading?</label>
+              {becomeProvider === true ? <div className="input-wrapper">
+        <label htmlFor="orcaCoinInput" className="label">Set Price For File:</label>
+        <div>
+          <input 
+            type="number" 
+            id="orcaCoinInput"
+            className="input"
+            placeholder="Enter price in Orca Coins"
+            min="0"
+            onChange={handlePriceInput}
+          />
+          <span className="currency-label">Orca Coins</span>
+        </div>
+      </div> : <></>}
+
             <div style={{ display: "flex", gap: "10px" }}>
               <button className="primary_button" onClick={handleDownload}>Download <LiaDownloadSolid /></button>
               <button className="primary_button" onClick={handleBack}>Back</button>
