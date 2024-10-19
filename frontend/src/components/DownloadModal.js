@@ -2,6 +2,7 @@ import { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { LiaDownloadSolid } from "react-icons/lia";
 import { FaArrowDown } from "react-icons/fa";
+import { FaCircle } from "react-icons/fa";
 
 
 const DownloadModal = ({}) =>{
@@ -41,7 +42,8 @@ const DownloadModal = ({}) =>{
                     id: "user",
                     price: Number(price),
                     timestamp: new Date(),
-                    downloads: 0
+                    downloads: 0,
+                    status: "online"
                   }
                 ]
               };
@@ -90,12 +92,15 @@ const DownloadModal = ({}) =>{
     const generateListProviders = () =>{
       return fileToDownload.providers.map((provider) =>{
         return(
-        <tr key = {provider.id} onClick={()=> {setSelectedProvider(provider)}} style={{
+        <tr key = {provider.id} onClick={()=> provider.status !== "offline" && setSelectedProvider(provider)} style={{
           backgroundColor: (selectedProvider.id === provider.id) ? '#d3d3d3' : 'white', 
-          cursor: 'pointer',
+          cursor: provider.status === "offline" ? 'not-allowed' : 'pointer',
+          opacity: provider.status === "offline" ? 0.5 : 1
+          
       }}
         className="provider-row"
       >
+          <td>{(provider.status === "online") ? <FaCircle style={{color: "green"}} /> : <FaCircle style={{color: "red"}}/>}</td>
           <td>{provider.id}</td>
           <td>{provider.price}</td>
           <td>{String(provider.timestamp)}</td>
@@ -120,6 +125,7 @@ const DownloadModal = ({}) =>{
                 <table id = "providers_table">
                   <thead>
                     <tr>
+                      <th>Status</th>
                       <th>File Provider</th>
                       <th>Price (OrcaCoins)</th>
                       <th>Timestamp</th>

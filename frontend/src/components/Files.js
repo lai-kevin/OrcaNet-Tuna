@@ -173,7 +173,7 @@ const Files = () => {
       setDownloads([...updatedDownloads]);
     }
     const handleResume = () => {
-      const updatedDownloads = downloads.map((download) => download.hashId === index ? {...download, status: "downloading"}: {...download,status : "paused"});
+      const updatedDownloads = downloads.map((download) => download.hashId === hashId ? {...download, status: "downloading"}: {...download,status : "paused"});
       setDownloads([...updatedDownloads]);
     }
     const handleCancel = () => {

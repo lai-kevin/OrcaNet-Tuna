@@ -21,8 +21,8 @@ export function AppContextProvider(props){
       }
 
     let sampleFiles = [
-        {type: "folder",name: "studio ghibli movies",hashId: "Zxczv123kcbxvh14boadab",size: "100 MB", providers: [{id: userhash1, price: 3, timestamp: randomTimestamp(), downloads: 100},{id: userhash2 , price: 5, timestamp: randomTimestamp(), downloads: 200},{id: userhash3, price: 3.5, timestamp: randomTimestamp(), downloads: 300}]},
-        {type: "mp3",name: "Shook Ones PT II.mp3",hashId: "Asdasdxc5nksdhbvshba2315jhd",size: "124 MB", providers: [{id: userhash2, price: 3, timestamp: randomTimestamp(), downloads: 10},{id: userhash3, price: 7, timestamp: randomTimestamp(), downloads: 26},{id: userhash4, price: 5, timestamp: randomTimestamp(), downloads: 3}, {id: userhash5, price: 53, timestamp: randomTimestamp(), downloads: 22}, {id: userhash6, price: 20, timestamp: randomTimestamp(), downloads: 50}] },
+        {type: "folder",name: "studio ghibli movies",hashId: "Zxczv123kcbxvh14boadab",size: "100 MB", providers: [{id: userhash1, price: 3, timestamp: randomTimestamp(), downloads: 100, status:"offline" },{id: userhash2 , price: 5, timestamp: randomTimestamp(), downloads: 200, status:"online"},{id: userhash3, price: 3.5, timestamp: randomTimestamp(), downloads: 300, status:"online"}]},
+        {type: "mp3",name: "Shook Ones PT II.mp3",hashId: "Asdasdxc5nksdhbvshba2315jhd",size: "124 MB", providers: [{id: userhash2, price: 3, timestamp: randomTimestamp(), downloads: 10, status:"offline"},{id: userhash3, price: 7, timestamp: randomTimestamp(), downloads: 26, status:"offline"},{id: userhash4, price: 5, timestamp: randomTimestamp(), downloads: 3, status:"online"}, {id: userhash5, price: 53, timestamp: randomTimestamp(), downloads: 22, status:"online"}, {id: userhash6, price: 20, timestamp: randomTimestamp(), downloads: 50, status:"offline"}] },
     ]
     let peers = [
         { id: 0, location: "192.168.1.1", Port: 8080, Price: 3 },
