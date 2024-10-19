@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p"
@@ -54,7 +55,7 @@ func generatePrivateKeyFromSeed(seed string) (crypto.PrivKey, error) {
 	return privateKey, nil
 }
 
-// Creates a new node in given mode. Use dht.ModeAuto to let the node decide the mode.
+// Creates a new node in given mode.
 func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 	context := context.Background()
 	privateKey, err := generatePrivateKeyFromSeed(SBU_ID)
@@ -80,20 +81,18 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 	node, err := libp2p.New(
 		libp2p.ListenAddrs(customAddress),
 		libp2p.Identity(privateKey),
-		libp2p.EnableNATService(),
 		libp2p.NATPortMap(),
+		libp2p.EnableNATService(),
 		libp2p.EnableAutoRelayWithStaticRelays([]peer.AddrInfo{*relayInfo}),
 		libp2p.EnableRelayService(),
 		libp2p.EnableHolePunching(),
-		libp2p.EnableRelay(),
 	)
 	if err != nil {
 		err := fmt.Errorf("error occured while creating node: %v", err)
 		return nil, nil, err
 	}
 
-	// Create relay.
-	// TODO: NOT SURE IF THIS IS NEEDED
+	// Create relay
 	_, err = relay.New(node)
 	if err != nil {
 		err := fmt.Errorf("error occured while creating relay: %v", err)
@@ -108,7 +107,6 @@ func createNode(mode dht.ModeOpt) (host.Host, *dht.IpfsDHT, error) {
 	}
 
 	// Validators for DHT
-	// TODO: Don't know what this does
 	namespacedValidator := record.NamespacedValidator{
 		"orcanet": &CustomValidator{}, // Add a custom validator for the "orcanet" namespace
 	}
@@ -188,13 +186,6 @@ func connectToNode(node host.Host, targetNodeAddress string) error {
 		return err
 	}
 
-	// Check peer reachability
-	if node.Network().Connectedness(targetNodeInfo.ID) != network.Connected {
-		log.Println("connectToNode: target peer is not connected")
-	} else {
-		log.Println("connectToNode: target peer is connected")
-	}
-
 	log.Println("Connected to: ", targetNodeInfo.ID)
 
 	return nil
@@ -220,9 +211,8 @@ func connectToNodeUsingRelay(node host.Host, targetPeerID string) error {
 		return err
 	}
 
-	relayedAddrInfo.Addrs = []ma.Multiaddr{peerMultiaddr}
-	// Add the target node to the peerstore of the current node
-	node.Peerstore().AddAddrs(relayedAddrInfo.ID, relayedAddrInfo.Addrs, peerstore.PermanentAddrTTL)
+	// // Add the target node to the peerstore of the current node
+	// node.Peerstore().AddAddrs(relayedAddrInfo.ID, relayedAddrInfo.Addrs, peerstore.PermanentAddrTTL)
 
 	// Connect to the peer through the relay
 	err = node.Connect(context, *relayedAddrInfo)
@@ -301,7 +291,28 @@ func makeReservation(node host.Host) error {
 	if err != nil {
 		return fmt.Errorf("failed to make reservation on relay: %v", err)
 	}
+
+	log.Println("Reservation made on relay node")
 	return nil
+}
+
+func refreshReservation(node host.Host, internal time.Duration) error {
+	ticker := time.NewTicker(internal)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			err := makeReservation(node)
+			if err != nil {
+				log.Fatalf("Failed to refresh reservation: %v", err)
+			}
+		case <-globalCtx.Done():
+			log.Println("Context cancelled. Stopping reservation refresh")
+			return nil
+		}
+	}
+
 }
 
 // Handle input from stdio
@@ -483,41 +494,54 @@ func provideKey(ctx context.Context, dht *dht.IpfsDHT, key string) error {
 }
 
 // Listens for incoming file requests from peers
-func listenForIncomingConnections(node host.Host) {
-	node.SetStreamHandler("/fileshare/1.0.0", func(stream network.Stream) {
+func receiveFileRequests(node host.Host) {
+	node.SetStreamHandler("/senddata/p2p", func(stream network.Stream) {
 		defer stream.Close()
-		log.Println("Received incoming file request from peer. Stream opened")
 
-		// Read the file request
 		buffer := bufio.NewReader(stream)
-		fileRequest, err := buffer.ReadString('\n')
+
+		data, err := buffer.ReadBytes('\n') // Reads until a newline character
 		if err != nil {
-			fmt.Println("Error reading file request: ", err)
+			if err == io.EOF {
+				log.Printf("Stream closed by peer: %s", stream.Conn().RemotePeer())
+			} else {
+				log.Printf("Error reading from stream: %v", err)
+			}
 			return
 		}
-
-		connection := stream.Conn()
-		log.Printf("Message from %s: %s\n", connection.RemotePeer().String(), fileRequest)
-
-		// Parse the file request
-		var data map[string]interface{}
-		err = json.Unmarshal([]byte(fileRequest), &data)
-		if err != nil {
-			fmt.Println("Error unmarshalling file request: ", err)
-			return
-		}
-
+		// Print the received data
+		log.Printf("Received data: %s", data)
 	})
 }
 
-// // Download a file from a peer
-// func listenForDataTransfer(node host.Host) {
-// 	node.SetStreamHandler("/orcanet/fileshare/sendFile", func(stream network.Stream) {
-// 		defer stream.Close()
-// 		fmt.Println("Received incoming connection from peer. File available for download")
-// 		// TODO: Send file
-// 	})
-// }
+func sendFileRequestToPeer(node host.Host, targetNodeId string) {
+	var ctx = context.Background()
+	targetPeerID := strings.TrimSpace(targetNodeId)
+	relayAddr, err := ma.NewMultiaddr(RELAY_NODE_MULTIADDR)
+	if err != nil {
+		log.Printf("Failed to create relay multiaddr: %v", err)
+	}
+	peerMultiaddr := relayAddr.Encapsulate(ma.StringCast("/p2p-circuit/p2p/" + targetPeerID))
+
+	peerinfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
+	if err != nil {
+		log.Fatalf("Failed to parse peer address: %s", err)
+	}
+	if err := node.Connect(ctx, *peerinfo); err != nil {
+		log.Printf("Failed to connect to peer %s via relay: %v", peerinfo.ID, err)
+		return
+	}
+	s, err := node.NewStream(network.WithAllowLimitedConn(ctx, "/senddata/p2p"), peerinfo.ID, "/senddata/p2p")
+	if err != nil {
+		log.Printf("Failed to open stream to %s: %s", peerinfo.ID, err)
+		return
+	}
+	defer s.Close()
+	_, err = s.Write([]byte("sending hello to peer\n"))
+	if err != nil {
+		log.Fatalf("Failed to write to stream: %s", err)
+	}
+}
 
 func main() {
 	// Start node
@@ -538,11 +562,14 @@ func main() {
 		fmt.Printf("Error occured while connecting to relay node: %v", err)
 		return
 	}
+
 	err = makeReservation(node)
 	if err != nil {
 		fmt.Printf("Error occured while making reservation: %v", err)
 		return
 	}
+	go refreshReservation(node, 5*time.Minute)
+
 	err = connectToNode(node, BOOTSTRAP_NODE_MULTIADDR)
 	if err != nil {
 		fmt.Printf("Error occured while connecting to bootstrap node: %v", err)
@@ -551,19 +578,16 @@ func main() {
 
 	// print the node's multiaddress
 	for _, addr := range node.Addrs() {
-		fmt.Printf("This node's multiaddress: %s/p2p/%s\n", addr, node.ID())
+		fmt.Printf("NEW NODE INITIALIZED: %s/p2p/%s\n", addr, node.ID())
 	}
-
-	go handlePeerExhangeWithRelay(node)
 
 	// Keep the node running until the user exits
 	go handleInput(contex, orcaDHT, node)
 
-	// Listen for file requests
-	go listenForIncomingConnections(node)
+	// Handle incoming file requests
+	go receiveFileRequests(node)
 
-	// Listen for file transfers
-	// go listenForDataTransfer(node)
+	// sendDataToNode(node, "....")
 
 	defer node.Close()
 
