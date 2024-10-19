@@ -108,7 +108,7 @@ func receiveFileMetaDataRequests(node host.Host) {
 		defer stream.Close()
 
 		// Print the received data
-		log.Printf("Received metadata request: %s", data)
+		//log.Printf("Received metadata request: %s", data)
 	})
 }
 
@@ -124,7 +124,6 @@ func sendFileNotFoundToPeer(node host.Host, targetNodeId string) error {
 	}
 
 	errorStruct := Error{
-		errorType:    404,
 		ErrorMessage: "File not found",
 	}
 
@@ -150,7 +149,6 @@ func sendInsufficientFundsToPeer(node host.Host, targetNodeId string) error {
 	}
 
 	errorStruct := Error{
-		errorType:    404,
 		ErrorMessage: "Insufficient funds",
 	}
 
@@ -176,7 +174,6 @@ func sendNodeStoppedProvidingFileToPeer(node host.Host, targetNodeId string) err
 	}
 
 	errorStruct := Error{
-		errorType:    404,
 		ErrorMessage: "Node stopped providing file",
 	}
 
@@ -202,7 +199,6 @@ func sendTransactionErrorToPeer(node host.Host, targetNodeId string) error {
 	}
 
 	errorStruct := Error{
-		errorType:    404,
 		ErrorMessage: "Transaction error",
 	}
 
