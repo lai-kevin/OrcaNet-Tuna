@@ -133,6 +133,8 @@ func receiveFileData(node host.Host) {
 	node.SetStreamHandler("/senddata/p2p", func(stream network.Stream) {
 		defer stream.Close()
 
+		log.Println("Received file data. Reading data...")
+
 		// Read the metadata
 		var fileMetaData FileDataHeader
 		decoder := gob.NewDecoder(stream)
@@ -142,7 +144,7 @@ func receiveFileData(node host.Host) {
 		}
 
 		// Create a file to write the data to
-		file, err := os.Create(fileMetaData.FileName)
+		file, err := os.Create(DOWNLOAD_DIRECTORY + "/" + fileMetaData.FileName)
 		if err != nil {
 			log.Printf("Error creating file: %v", err)
 			return
