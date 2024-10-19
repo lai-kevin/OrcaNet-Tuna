@@ -41,6 +41,16 @@ const SBU_ID = "111111110"
 // Global context for the application
 var globalCtx context.Context
 
+// File hash to file path mapping.
+// This is used when a node is providing a file.
+// The map is updated when a file is provided to the network or the file path is changed.
+var fileHashToPath = make(map[string]string)
+
+// File hash to file type mapping
+// This is used when a node is requesting a file and needs the file type for saving.
+// This map is updated when a file is requested from the network.
+var requestedFiles = make(map[string]string)
+
 type PeerInfo struct {
 	PeerID string `json:"peerID"`
 }
@@ -398,6 +408,8 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) 
 			}
 
 			provideKey(context, orcaDHT, fileHash)
+
+			fileHashToPath[fileHash] = filepath
 
 			fmt.Println("File provided successfully")
 		case "PROVIDE_FILE_META":
