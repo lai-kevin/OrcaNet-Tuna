@@ -158,7 +158,7 @@ const Files = ({user}) => {
         return 0;
       });
     }
-    if(curSort === "Oldest"){
+    if(curSort === "Earliest"){
       sortedList = sortedList.sort((a,b) => {
         const DateA = a.timestamp.getTime();
         const DateB = b.timestamp.getTime();
@@ -378,7 +378,7 @@ const Files = ({user}) => {
             <option value="A-Z">A-Z alphabetic</option>
             <option value="Z-A">Z-A reverse alphabetic</option>
             {activeTab !== "Current Downloads" && <option value="Newest">Newest</option>}
-            {activeTab !== "Current Downloads" && <option value="Oldest">Oldest</option>}
+            {activeTab !== "Current Downloads" && <option value="Earliest">Earliest</option>}
           </select>
           
         </div>
