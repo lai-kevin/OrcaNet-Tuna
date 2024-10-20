@@ -11,7 +11,8 @@ import { useMode } from './Mode';
 const ProxyContent=({user, setUser})=>{
   const [current, setCurrent] = useState('client');
   const [err, setErr] = useState(false)
-  const {server, setServer,proxy, proxyPrice, setProxyHistory,setTotal, stop} = useContext(AppContext);
+  const {mode} = useMode();
+  const {server, setServer,proxy, proxyPrice, proxyHistory, setProxyHistory,setTotal,setServerHistory, stop} = useContext(AppContext);
   const handleTabChange = (page) => {
     setCurrent(page);
   };
@@ -24,20 +25,21 @@ const ProxyContent=({user, setUser})=>{
         }, 3000); 
         return () => clearInterval(interval);
       }
-}, [proxy, stop]); 
+}, [proxy, stop, proxyHistory]); 
 useEffect(() => {
     if (server !== "--" && !err) {
         const interval = setInterval(() => {
-         if((parseFloat(user.balance) - parseFloat(server.Price)) < 1){
+         if((parseFloat(user.balance - server.Price)) < parseFloat(server.Price)){
             setErr(true)
-            return
+            return;
          }
           generateClient();
         }, 3000); 
         return () => clearInterval(interval);
       }
-}, [server, stop]); 
-  const handleUpdate =(result)=> setProxyHistory(prevHistory => [...prevHistory, result]);
+}, [server, proxyHistory, user]); 
+  const handleUpdate = (result)=> setProxyHistory(prevHistory => [...prevHistory, result]);
+  const handleUpdate1 = (result)=> setServerHistory(prevHistory => [...prevHistory, result]);
   const generateServer = ()=>{
     const ip = ["192.168.2.1", "11.1.0.1", "171.16.0.1", "131.0.2.1", "243.0.113.1", "189.51.100.1"];
     const wallet= {"192.168.2.1":"1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", 
@@ -101,6 +103,7 @@ useEffect(() => {
         return updated;
     });
     handleUpdate(result);
+    handleUpdate1(result);
 }
 const generateClient = ()=>{
     const u = ["www.google.com", "www.abc.com", "www.123.com", "www.example.com", "www.example12.com"];
@@ -122,8 +125,8 @@ const generateClient = ()=>{
     const price = randomStatus === "Success" ? ((parseFloat(sent) + parseFloat(received)) * server.Price).toFixed(2) : 0.00;
     const time = (Math.random() * (10 - 0.1) + 0.1).toFixed(2);
     const bandwidth = (size / time).toFixed(2)
-    const to = server.location;
-    const from = user.walletID;
+    const to = user.walletID;
+    const from = server.wallet;
     function idgenerator() {
         let id = '';
         for (let i = 0; i < 64; i++) {
@@ -138,6 +141,7 @@ const generateClient = ()=>{
         method: randomMethod,
         time: formatTime(),
         status: randomStatus,
+        size: size,
         sent: `${sent} MB`,
         received: `${received} MB`,
         Spent:` ${price}`,
@@ -146,9 +150,9 @@ const generateClient = ()=>{
         to: to,
         from:from
     }
-    if(((parseFloat(user.balance) - parseFloat(price)).toFixed(2)) < 0 ) {
+    if ((parseFloat((user.balance - price)).toFixed(2)) < 0) {
         setErr(true);
-        return
+        return;
     }
     setTotal(prev=> (parseFloat(prev) + parseFloat(price)).toFixed(2));
     setUser(prev => {
@@ -198,11 +202,11 @@ const generateClient = ()=>{
                 {current === "proxy" && (<History user={user}/>)}
             </div>
             {err && (
-                <div>
-                    <div>
-                        <h3>Your account balance is low. You be disconnected from the proxy server.</h3>
+                <div id="price_container">
+                    <div id="price_content">
+                        <h3 style={{ color: mode === "dark" ? "black" : "black" }}>Your account balance is low. You will be disconnected from the proxy server.</h3>
                         <div id="items">
-                            <button onClick={handleClick}>Ok</button>
+                            <button id="okay1" onClick={handleClick}>Ok</button>
                         </div>
                     </div>
                 </div>
@@ -214,6 +218,7 @@ const Delete = ({setNodes}) => {
     const [current, setCurrent] = useState([]);
     const [confirm, setConfirm] = useState(false);
     const [str, setStr] = useState("")
+    const {mode} = useMode();
     const{stop, proxyHistory,setStop} = useContext(AppContext)
     const list = proxyHistory.reduce((acc, item) => {
         if (item.client !== "None" && !stop.includes(item.client) && !acc.some(existingItem => existingItem.client === item.client)) {
@@ -258,7 +263,7 @@ const Delete = ({setNodes}) => {
         <div id="bandModal1">
           <button id="y" onClick={exit}><HiOutlineXMark size="20" /></button>
           <div id="t">
-            {!confirm &&(<h3 id="modal_title">List of Currently Served Nodes</h3>)}
+            {!confirm &&(<h3 id="modal_title" style={{ color: mode === "dark" ? "black" : "black" }}>List of Currently Served Nodes</h3>)}
         </div>
           <div id="band_inner1">
             {!confirm && (
@@ -279,7 +284,7 @@ const Delete = ({setNodes}) => {
             )}
             {confirm && (
               <div>
-                <h3>Are you sure you want to stop providing proxy service to {current.map(index => list[index].client).join(', ')}?</h3>
+                <h3 style={{ color: mode === "dark" ? "black" : "black" }}> Are you sure you want to stop providing proxy service to {current.map(index => list[index].client).join(', ')}?</h3>
                 <div id="items">
                     <button id="yes2" onClick={handleYes}> Yes </button>
                     <button id="No2" onClick={handleNo}> No </button>
@@ -327,25 +332,25 @@ const BandwidthTable =({setB})=>{
     return(
         <div id="band_container">
             <div id="bandModal">
-            <button id="y" onClick={exit}><HiOutlineXMark size="20"/></button>
+                <button id="y" onClick={exit}><HiOutlineXMark size="20"/></button>
                 <div id ="band_inner">
-                <table id={mode==="dark"? "proxy_table_dark":"proxy_table"}>
-                <thead>
-                    <tr>
-                    <th>Node Location </th>          
-                    <th>Average Bandwidth Usage MB/s</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {current.map((node) => (
-                    <tr>
-                        <td>{node.client}</td>
-                        <td>{node.avg}</td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
-            </div>
+                    <table id="proxy_table">
+                    <thead>
+                        <tr>
+                        <th style={{ color: mode === "dark" ? "black" : "black" }}>Node Location </th>          
+                        <th style={{ color: mode === "dark" ? "black" : "black" }}>Average Bandwidth Usage MB/s</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {current.map((node) => (
+                        <tr>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{node.client}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{node.avg}</td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+                </div>
        </div>
     </div>
     )
@@ -436,7 +441,6 @@ const History =()=>{
  )
 }
 const Client =({user, setUser})=>{
-    const {peers} = useContext(AppContext);
     const {server} = useContext(AppContext);
     const {mode} = useMode();
     const [click, setClick] = useState(false)
@@ -488,7 +492,7 @@ const ProxyConnected =({user, setUser})=>{
                 </div>
             <div id="bottom_client">
                 <h3 id="request_title">Proxy Requests History</h3>
-                <ProxyDisplayClient user={user} setUser={setUser}/>
+                <ProxyDisplayClient/>
             </div>
             {open && (<DisModal setOpen={setOpen}/>)}
         </div>
@@ -517,7 +521,7 @@ const DisModal =({setOpen})=>{
 }
 
 const Server = ({user,setUser}) =>{
-   const {proxy, setProxy, proxyPrice} = useContext(AppContext);
+   const {proxy} = useContext(AppContext);
    const [open, setOpen] = useState(false);
    const [pop,setPop] = useState(false)
    const [b, setB] = useState(false)
@@ -549,7 +553,7 @@ const Server = ({user,setUser}) =>{
                 <Stats setB={setB}setNodes={setNodes}/>
                 <div id="extra">
                      <h3 id="history">Proxy Service History</h3>
-                     <ProxyDisplayServer setUser={setUser}/>
+                     <ProxyDisplayServer/>
                 </div>
             </div>)}
         {pop && (<Confirmation setPop={setPop}/>)}
@@ -559,13 +563,13 @@ const Server = ({user,setUser}) =>{
    )
 }
 const Stats=({setB, setNodes})=>{
-    const {proxy, setProxy, proxyPrice, proxyHistory, stop} = useContext(AppContext);
+    const {proxyPrice, proxyHistory,serverHistory, stop} = useContext(AppContext);
     const [rev, setRev] = useState(0)
     const [conn, setConn] = useState(0)
     const [ban, setBan] = useState(0.00)
     const {mode} = useMode()
     const calculate =()=>{
-        let filteredList = proxyHistory.filter(item => item.client !== "None");
+        let filteredList = serverHistory.filter(item => item.client !== "None");
 
         let earnings = filteredList.reduce((total, item) => {
             return parseFloat(total) + parseFloat(item.Earned);
@@ -574,13 +578,13 @@ const Stats=({setB, setNodes})=>{
         setRev(earnings.toFixed(2));
     }
     const find=()=>{
-        const filtered = proxyHistory.filter(i => i.client !== "None");
+        const filtered = serverHistory.filter(i => i.client !== "None");
         const totalConnected = new Set(filtered.map(i => i.client)); 
         const s = stop.length
         setConn(totalConnected.size - s)
     }
     const band = ()=>{
-        const filtered = proxyHistory.filter(i => i.client !== "None" && !stop.includes(i.client));
+        const filtered = serverHistory.filter(i => i.client !== "None" && !stop.includes(i.client));
         let usage = filtered.reduce((total, item) => {
             const x= parseFloat(total) + parseFloat(item.bandwidth);
             console.log(x)
@@ -592,7 +596,7 @@ const Stats=({setB, setNodes})=>{
         calculate();
         find();
         band();
-    }, [proxyHistory, stop]);
+    }, [serverHistory, stop]);
  
     return(
         <div className = "dashboard">
@@ -621,11 +625,14 @@ const Stats=({setB, setNodes})=>{
     )
 }
 const Confirmation =({setPop})=>{
-    const {proxy, setProxy} = useContext(AppContext);
-    const [content, setContent] = useState("first")
+    const {setProxy, setStop, setServerHistory} = useContext(AppContext);
+    const [content, setContent] = useState("first");
+    const {mode} = useMode();
     const handleYes=()=>{
         setContent("second")
         setProxy(prev =>!prev);
+        setStop([])
+        setServerHistory([]);
     }
     const handleNo = ()=>{
         setPop(false);
@@ -637,16 +644,16 @@ const Confirmation =({setPop})=>{
     return(
         <div id="confirm_container">
             <div id="confirm_content">
-               {content==="first" &&( <><h3> Are you sure you want to end the proxy service?</h3>
+               {content==="first" &&( <><h3 style={{ color: mode === "dark" ? "black" : "black" }}> Are you sure you want to end the proxy service?</h3>
                 <button id="yes5" onClick={handleYes}> Yes </button>
                 <button id="No5" onClick={handleNo}> No </button></>)}
-                {content==="second" &&(<><h3>You have successfully disconnected and your client nodes are notified.</h3><button id="okay"onClick={exit}>OK</button></>)}
+                {content==="second" &&(<><h3 style={{ color: mode === "dark" ? "black" : "black" }}>You have successfully disconnected and your client nodes are notified.</h3><button id="okay"onClick={exit}>OK</button></>)}
              </div>
         </div>
     )
 }
 const PriceModal =({setOpen}) =>{
-    const {proxy, setProxy, setproxyPrice} = useContext(AppContext);
+    const { setProxy, setproxyPrice} = useContext(AppContext);
     const [term, setTerm] = useState("")
     const [err, setErr] = useState(false)
     const[mess, setMess] = useState("")
@@ -684,10 +691,13 @@ const PriceModal =({setOpen}) =>{
                 <h3 id={mode==="dark"? "price_dark":"price"}>Please set a price for proxy service</h3>
                 <div id="price_inner">
                     <input id="price_input" type="text" placeholder="Enter a price ..." value={term} onChange={handleChange} required ></input>
-                    <button id="conSub" type ="submit" onClick={handleConfirm}>Confirm</button>
+                    <span style={{color: "blue", size:"20px"}}>Oracoins</span>
+                </div>
+                {err && (<span style={{color:"red", marginLeft:"100px"}}>{mess}</span>)}
+                <div>
+                <button id="conSub" type ="submit" onClick={handleConfirm}>Confirm</button>
                 </div>
                 <div>
-                    {err && (<span>{mess}</span>)}
                 </div>
             </div>
            
@@ -707,8 +717,8 @@ const formatTime = () => {
     return `${y}-${m}-${d} ${hr}:${min}:${sec}`;
 };
 
-const ProxyDisplayClient = ({user, setUser})=>{
-    const {proxyHistory, setProxyHistory, server, total, setTotal} = useContext(AppContext);
+const ProxyDisplayClient = ()=>{
+    const {proxyHistory,total} = useContext(AppContext);
     const [sort, setSort] = useState("")
     const [currList, setCurrList] = useState(proxyHistory.filter(item => item.client === "None"));
     const {mode} = useMode();
@@ -790,14 +800,14 @@ const ProxyDisplayClient = ({user, setUser})=>{
         </div>
     )
 }
-const ProxyDisplayServer =({user, setUser})=>{
-    const {proxy, proxyHistory, setProxyHistory, proxyPrice} = useContext(AppContext);
-    const [currList, setCurrList] = useState(proxyHistory.filter(item => item.client !== "None"));
+const ProxyDisplayServer =()=>{
+    const {serverHistory} = useContext(AppContext);
+    const [currList, setCurrList] = useState(serverHistory);
     const [sort, setSort] = useState("")
     const {mode} = useMode();
     useEffect(() => {
         const updateCurrList = () => {
-          const filteredList = proxyHistory.filter(item => item.client !== "None");
+          const filteredList = serverHistory.filter(item => item.client !== "None");
           if (sort === "Latest") {
             filteredList.sort((a, b) => new Date(b.time) - new Date(a.time));
           } else if (sort === "Earliest") {
@@ -806,10 +816,10 @@ const ProxyDisplayServer =({user, setUser})=>{
           setCurrList(filteredList);
         };
         updateCurrList(); 
-      }, [proxyHistory, sort]); 
+      }, [serverHistory, sort]); 
     const handleSort = (event) => {
         let curSort = event.target.value;
-        let sortedList = proxyHistory.filter(item => item.client !== "None")
+        let sortedList = serverHistory.filter(item => item.client !== "None")
         if (curSort === "Latest") {
             sortedList = sortedList.sort((a, b) => {
               const one = new Date(a.time).getTime(); 

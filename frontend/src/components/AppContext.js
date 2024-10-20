@@ -60,7 +60,7 @@ export function AppContextProvider(props){
     const [proxyHistory, setProxyHistory] = useState([]);
     const [total, setTotal] = useState(0);
     const [proxyPrice, setproxyPrice] = useState(0)
-    const [clients, setClients] = useState([])
+    const [serverHistory, setServerHistory] = useState([])
     const [stop, setStop] = useState([])
     return(
         <AppContext.Provider value = {
@@ -76,7 +76,7 @@ export function AppContextProvider(props){
             proxyHistory, setProxyHistory,
             total, setTotal,
             proxyPrice, setproxyPrice,
-            clients, setClients,
+            serverHistory, setServerHistory,
             stop, setStop,
             dummyFiles, setDummyFiles,
             peers

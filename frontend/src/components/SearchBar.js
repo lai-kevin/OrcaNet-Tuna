@@ -3,6 +3,7 @@ import { CgProfile } from "react-icons/cg";
 import { useState, useRef, useEffect, useContext } from "react";
 import { NavLink, useLocation} from 'react-router-dom';
 import { AppContext } from "./AppContext";
+import { useMode } from './Mode';
 const SearchBar = ({user, setUser}) => {
     const { setSearchResultsFound, setFileToDownload, dummyFiles, setDownloadOpen } = useContext(AppContext);
     const [open, setOpen] = useState("close");
@@ -44,6 +45,8 @@ const SearchBar = ({user, setUser}) => {
 };
 export const DropMenu = ({handleDropDown, user, setUser})=>{
   const menu = useRef(null);
+  const {setServer, setProxy, setTotal, setStop, setproxyPrice} = useContext(AppContext);
+  const {mode, chooseLight} = useMode();
   const outside = (e)=>{
     if (menu.current && !menu.current.contains(e.target)) {
       handleDropDown(); 
@@ -52,15 +55,23 @@ export const DropMenu = ({handleDropDown, user, setUser})=>{
   useEffect(() => {
     document.addEventListener('mousedown', outside);
   });
+  const handleLogOut =()=>{
+    setServer("--")
+    setTotal(0)
+    setStop([])
+    setproxyPrice(0)
+    setProxy(false)
+    setUser(null)
+  }
     return(
       <div ref={menu} className="menu">
         <div className="wallet_info">
           <p id="wallet_label">Wallet ID:</p>
-          <p id ="actual_id">{user.walletID}</p>
+          <p id ="actual_id" style={{ color: mode === "dark" ? "black" : "black" }}>{user.walletID}</p>
           </div>
         <ul className= "menu_list">
         <NavLink to="/Settings"> View Profile</NavLink>
-        <NavLink to="/" id="log_out" onClick={()=>setUser(null)}>Log Out</NavLink>
+        <NavLink to="/" id="log_out" onClick={handleLogOut}>Log Out</NavLink>
         </ul>
       </div>
     )

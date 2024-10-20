@@ -46,16 +46,16 @@ const Profile = ({user, mode})=>{
                 <div className="profile_pic">
                     <img src={orca} alt="orca" style={{ width: '108%', height: '108%', background: 'white',  borderRadius: '80px', marginLeft:"-7px", marginTop:"-7px"}}/>
                 </div>
-                <h4 id ="wID">Wallet ID: </h4>
-                <span id="number">{user.walletID}</span>
+                <h4 id ="wID" >Wallet ID: </h4>
+                <span id="number" style={{ color: mode === "dark" ? "white" : "black" }}>{user.walletID}</span>
                 <button type="button" id = {mode ==="dark"? "copy_button_dark": "copy_button"} onClick={handleCopy}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button>
                 <button type="button" id = {mode ==="dark"? "copy_button_dark": "copy_button"} ref={profile} onClick={handleQr}><FaQrcode  style={{ width: '100%', height: '100%', background: 'transparent'}}/></button>
                 {qr === "open" && (<QRCode id="qr" value={user.walletID}></QRCode>)}
             </div>
             <div id="profile_bottom">
                 <h4 id ="wID">Balance: </h4>
-                <span id = "coins">{user.balance}</span>
-                <span id = "type">OrcaCoins</span>
+                <span id = "coins" style={{ color: mode === "dark" ? "white" : "black" }}>{user.balance}</span>
+                <span id = "type" style={{ color: mode === "dark" ? "white" : "black" }}>OrcaCoins</span>
             </div>
         </div>
     )
@@ -85,7 +85,7 @@ const TransactionTable=({user, mode, setClick, table})=> {
     const info =[{id:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"down", Spent:"0.25", Earned:0},
         {id:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"up", Spent: 0, Earned:"2.25"}
     ]
-    let current = [...user.transactions, ...info]
+    let current = [ ...info, ...user.transactions,]
     console.log(current);
     const [sort, setSort] = useState("")
     const [curr, setCurr] = useState(current);
@@ -129,9 +129,9 @@ const TransactionTable=({user, mode, setClick, table})=> {
             <div id ="bandModal3">
                 <div id = "top_layer">
                     <button id="y" onClick={exit}><HiOutlineXMark size="20" /></button>
-                    <h2 id="transaction_title">Transaction History</h2>
+                    <h2 id="transaction_title" style={{ color: mode === "dark" ? "black" : "black" }}>Transaction History</h2>
                     <div className= "sort-container1">
-                        <p className="sort-label1">Sort By: </p>
+                        <p className="sort-label1" style={{ color: mode === "dark" ? "black" : "black" }}>Sort By: </p>
                         <select className="sort-select" value={sort} onChange={handleSort}>
                             <option value="" disabled>Select an option</option>
                             <option value="Latest">Newest</option>
@@ -157,15 +157,15 @@ const TransactionTable=({user, mode, setClick, table})=> {
                 <tbody>
                     {curr.map((item, index) => (
                         <tr key={index}>
-                            <td>{item.id}</td>
-                            <td>{item.from}</td>
-                            <td>{item.to}</td>
-                            <td>{item.time}</td>
-                            <td>{item.status}</td>
-                            <td>{item.Type === "up" ? (<FaArrowUp style={{ color: 'green' }} />) : item.Type === "down" ? (<FaArrowDown style={{ color: 'red' }} />) : (<SiEnvoyproxy style={{ color: 'grey' }} />)}</td>
-                            <td>{item.size}</td>
-                            <td>{item.Earned === 0 ? "---": item.Earned}</td>
-                            <td>{item.Spent=== 0 ?"---" : item.Spent}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.id}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.from}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.to}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.time}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.status}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Type === "up" ? (<FaArrowUp style={{ color: 'green' }} />) : item.Type === "down" ? (<FaArrowDown style={{ color: 'red' }} />) : (<SiEnvoyproxy style={{ color: 'grey' }} />)}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.size}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Earned === 0 ? "---": item.Earned}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Spent=== 0 ?"---" : item.Spent}</td>
                         </tr>
                     ))}   
             </tbody>
