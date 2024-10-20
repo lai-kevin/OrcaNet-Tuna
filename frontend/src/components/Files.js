@@ -4,30 +4,43 @@ import { LuFileImage } from "react-icons/lu";
 import { LuPlay } from "react-icons/lu";
 import { MdOutlineCancel } from "react-icons/md";
 import { LuPause } from "react-icons/lu";
+import { FaSearch } from "react-icons/fa";
+import { NavLink, useLocation} from 'react-router-dom';
+import { GiInfo } from "react-icons/gi";
 
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useRef } from 'react';
 import FileModal from "./FileModal";
 import TabSelectHorizontal from "./Tabs";
 import { LuUpload } from "react-icons/lu";
 import { AppContext } from "./AppContext";
 import DownloadModal from "./DownloadModal";
 import CancelUploadModal from "./UploadModal";
+import SearchBar from "./SearchBar";
 const bip39 = require('bip39');
 const { HDKey } = require('ethereum-cryptography/hdkey');
 
+function randomTimestamp() {
+  const end = new Date();
+  const start = new Date(2023,0,1);
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
 
-const Files = () => {
-  let sampleData = [{type: "image",name: "Screenshot 2025-02-18 211342",hashId: "zxcasd2lajnf5aoiuanfna1kjzx",size: "1MB"},
-    {type: "image",name: "my_social_security_number.png",hashId: "as13dncx,jvkbvskh4sf",size: "1GB"},
-    {type: "pdf",name: "tuna_recipes.pdf",hashId: "hashId",size: "124KB"},
-    {type: "folder",name: "homework",hashId: "ascn123kcbxvh14boadab",size: "1TB"},
-    {type: "mp3",name: "Lo_Siento_BB:/.mp3",hashId: "zxc5nksdhbvshba2315jhd",size: "124MB"},
-    {type: "text",name: "lyrics_for_my_next_mixtape.txt",hashId: "as1dzxc1239zxczvsfsfsd",size: "1MB"},
-    {type: "folder",name: "node_modules",hashId: "12zxaweqr3zc25zca;/';45",size: "50GB"}
+
+const Files = ({user}) => {
+  let sampleData = [{type: "image",name: "Screenshot 2025-02-18 211342",hashId: "zxcasd2lajnf5aoiuanfna1kjzx",size: "1 MB",timestamp: randomTimestamp()},
+    {type: "image",name: "my_social_security_number.png",hashId: "as13dncx,jvkbvskh4sf",size: "1 MB", timestamp: randomTimestamp() },
+    {type: "pdf",name: "tuna_recipes.pdf",hashId: "ascn123kcadsxvh14boadab",size: "124 MB",timestamp: randomTimestamp() },
+    {type: "folder",name: "homework",hashId: "ascn123kcbxvh14boadab",size: "1MB",timestamp: randomTimestamp()},
+    {type: "mp3",name: "Lo_Siento_BB:/.mp3",hashId: "zxc5nksdhbvshba2315jhd",size: "124 MB",timestamp: randomTimestamp() },
+    {type: "text",name: "lyrics_for_my_next_mixtape.txt",hashId: "as1dzxc1239zxczvsfsfsd",size: "1 MB",timestamp: randomTimestamp()},
+    {type: "folder",name: "node_modules",hashId: "12zxaweqr3zc25zca;/';45",size: "50 MB", timestamp: randomTimestamp()}
   ];
 
-  const {searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads,setFileToRemove,fileToRemove} = useContext(AppContext);
+  const location = useLocation();
+
+
+  const {searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads,setFileToRemove,fileToRemove,  setSearchResultsFound, setFileToDownload, dummyFiles,setDummyFiles} = useContext(AppContext);
   const [downloadHistory, setDownloadHistory] = useState(sampleData);// move to a global app context in the future?
   // const [proxyHistory, setProxyHistory] = useState([]);this should probably somewhere else now that we know what it is
 
@@ -35,6 +48,8 @@ const Files = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [sort, setSort] = useState("");
   const [activeTab, setActiveTab] = useState("Downloads");
+  const [searchInput, setSearchInput] = useState("");
+  const [popUpOpen,setPopUpOpen] = useState(false);
 
   //UseEffect hook that currently deals with adding the "upload" to the list of uploads in the global context once a fileToUpload has been selected
   //uploads list is used by Files.js to render cards of uploads
@@ -49,13 +64,39 @@ const Files = () => {
       type: "file",
       name: fileToUpload.name,
       hashId: privateKey,
-      size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB"
+      size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
+      price: fileToUpload.price
     } 
+    let fileForDummyFiles = {
+      type: "file",
+      name: fileToUpload.name,
+      hashId: privateKey,
+      size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
+      providers: [{id: user.walletID, price: fileToUpload.price, timestamp: new Date(), downloads: 0 , status: "online"}]
+    }
       setUploadHistory([...uploadHistory,newFile]);
+      setDummyFiles([...dummyFiles, fileForDummyFiles]);
       setFileToUpload(null);
     }
 
   },[fileToUpload]);
+
+  const handlePopUp = () => {
+    setPopUpOpen(prevState => (prevState ===true ? false : true ))
+
+  }
+
+
+  const handleSearch = (event) => {
+      event.preventDefault(); // Prevent the default form submission behavior i hate forms ;-; 
+      let fullSearchText = searchInput;
+      let file = dummyFiles.find((file) => file.hashId === fullSearchText);
+      event.target.value = ""; // this should clear it after clicking
+      setSearchResultsFound(true);
+      if(file !== undefined){
+        setFileToDownload(file);
+      }
+  }
 
   const handleSort = (event) => {
     let curSort = event.target.value;
@@ -102,7 +143,34 @@ const Files = () => {
         return 0;
       }
     );
+    }
+    if(curSort === "Newest"){
+      sortedList = sortedList.sort((a,b) => {
+        const DateA = a.timestamp.getTime();
+        const DateB = b.timestamp.getTime();
 
+        if(DateA < DateB){
+          return 1;
+        }
+        if(DateA > DateB){
+          return -1;
+        }
+        return 0;
+      });
+    }
+    if(curSort === "Oldest"){
+      sortedList = sortedList.sort((a,b) => {
+        const DateA = a.timestamp.getTime();
+        const DateB = b.timestamp.getTime();
+
+        if(DateA < DateB){
+          return -1;
+        }
+        if(DateA > DateB){
+          return 1;
+        }
+        return 0;
+      });
     }
     setSort(event.target.value);
     if(activeTab === "Downloads"){
@@ -120,7 +188,7 @@ const Files = () => {
   
 
   //update with a stop sharing button resume sharing
-  const FileCard = ({type,name,hashId,size}) => {
+  const FileCard = ({type,name,hashId,size,price, downloaders,timestamp}) => {
     let FileIcon = LuFile; //image , folder, .pdf/.txt/everything else 
     if(type === "image"){ 
       FileIcon = LuFileImage;
@@ -130,18 +198,18 @@ const Files = () => {
     }
 
     const HandleRemoveUpload = () =>{
-      setFileToRemove({name,hashId});
+      setFileToRemove({name,hashId,price,downloaders});
     }
 
     if(activeTab === "Uploads"){
       return(
-        <div className = "fileCard" onClick={HandleRemoveUpload}>
-          <div style = {{display: 'flex', alignItems: "center"}}><FileIcon style={{ width: '40%', height: '40%' }}/> </div>
+        <div className = "fileCard" onClick={HandleRemoveUpload} style={{cursor: 'pointer'}}>
+          <div style = {{display: 'flex', alignItems: "center" }}><FileIcon style={{ width: '40%', height: '40%' }}/> </div>
           <div>
             <p>{name}</p>
             <p style = {{color: "#9b9b9b"}} >{hashId}</p>
           </div>
-          <div>{size}</div>
+          <div>{size}  <p style = {{color: "#9b9b9b"}}>{timestamp.toDateString()}</p></div>
         </div>
   
       );
@@ -153,7 +221,7 @@ const Files = () => {
           <p>{name}</p>
           <p style = {{color: "#9b9b9b"}} >{hashId}</p>
         </div>
-        <div>{size}</div>
+        <div> {size} <p style = {{color: "#9b9b9b"}}>{timestamp.toDateString()}</p></div>
       </div>
 
     );
@@ -161,7 +229,7 @@ const Files = () => {
   }
   
 
-  const FileCardDownload = ({type,name,hashId,size,status}) =>{
+  const FileCardDownload = ({type,name,hashId,size,status,index}) =>{
     //Variation of file cards meant for displaying files downloading
     //additional rendering for pause, resume, and cancel buttons based on status of download
     let FileIcon = LuFile; //image , folder, .pdf/.txt/everything else 
@@ -172,7 +240,7 @@ const Files = () => {
       setDownloads([...updatedDownloads]);
     }
     const handleResume = () => {
-      const updatedDownloads = downloads.map((download) => download.hashId === hashId ? {...download, status: "downloading"}: download);
+      const updatedDownloads = downloads.map((download) => download.hashId === hashId ? {...download, status: "downloading"}: {...download,status : "paused"});
       setDownloads([...updatedDownloads]);
     }
     const handleCancel = () => {
@@ -220,6 +288,7 @@ const Files = () => {
               name = {file.name}
               hashId = {file.hashId}
               size = {file.size}
+              timestamp={file.timestamp}
             />
           )
         });
@@ -234,6 +303,9 @@ const Files = () => {
               name = {file.name}
               hashId = {file.hashId}
               size = {file.size}
+              price = {file.price}
+              downloaders={file.downloaders}
+              timestamp={file.timestamp}
             />
           )
         });
@@ -260,6 +332,7 @@ const Files = () => {
               name = {file.name}
               hashId = {file.hashId}
               size = {file.size}
+              timestamp={file.timestamp}
             />
           )
         });
@@ -268,12 +341,34 @@ const Files = () => {
 
     return (
       <>
+        <div className="">
+        <div className="header">
+          <div id="searchContainer">
+          
+          <form id="search">
+          
+            <div id="searchWrapper">
+              <label htmlFor="searchInput">
+              <GiInfo style={{fontSize: "25px", color: "#548bca"}} onClick={handlePopUp}/>
+              
+              <input type="search" placeholder="Enter File Hash..." id="searchInput" onChange={(event)=>{setSearchInput(event.target.value)}} disabled = {location.pathname !== "/Files"}></input>
+              </label>
+              <button type="submit" id="findButton" onClick = {handleSearch} disabled = {location.pathname !== "/Files"}>
+                  <FaSearch />
+              </button>
+            </div>
+          </form>
+          </div>
+          </div>
+        </div>
+        {popUpOpen && <PopUp handlePopUp={handlePopUp}/>}
         <h1 className = "text">Files</h1>
+        
         {/* {searchResultsFound ? <FileCard key = {fileToDownload.hashId} type = {fileToDownload.type} name = {fileToDownload.name} hashId = {fileToDownload.hashId}size = {fileToDownload.size}/> : <p></p>} */}
         <TabSelectHorizontal  setActiveTab = {setActiveTab} activeTab={activeTab}/>
         
         {isOpen && <FileModal setIsOpen={setIsOpen} setFileToUpload={setFileToUpload}/>}
-        {searchResultsFound && <DownloadModal/>}
+        {searchResultsFound && <DownloadModal user={user}/>}
         {fileToRemove === null ? <></> : <CancelUploadModal/>}
         <button className="primary_button" onClick={() => setIsOpen(true)}>Share <LuUpload /></button>
         <div className= "sort-container">
@@ -282,6 +377,8 @@ const Files = () => {
             <option value="" disabled>Select an option</option>
             <option value="A-Z">A-Z alphabetic</option>
             <option value="Z-A">Z-A reverse alphabetic</option>
+            {activeTab !== "Current Downloads" && <option value="Newest">Newest</option>}
+            {activeTab !== "Current Downloads" && <option value="Oldest">Oldest</option>}
           </select>
           
         </div>
@@ -292,6 +389,24 @@ const Files = () => {
     );
   };
 
+  export const PopUp = ({handlePopUp})=>{
+    const menu = useRef(null);
+    const outside = (e)=>{
+      if (menu.current && !menu.current.contains(e.target)) {
+        handlePopUp(); 
+      }
+    }
+    useEffect(() => {
+      document.addEventListener('mousedown', outside);
+    });
+      return(
+        <div ref={menu} className="popUp">
+            <p> Enter into the search bar the Hash associated with a file to download from a provider. <br />Here are some file hashes you may use for demo purposes... <br /> <br />Hash 1: Zxczv123kcbxvh14boadab<br />Hash 2: Asdasdxc5nksdhbvshba2315jhd</p>
+          <ul className= "menu_list">
+          </ul>
+        </div>
+      )
+  }
 
         
   

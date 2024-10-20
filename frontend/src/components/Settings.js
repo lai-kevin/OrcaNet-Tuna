@@ -11,13 +11,13 @@ const Settings = ({user}) => {
   };
   return (
     <div className="settings">
-      <h1 className="text">Settings</h1>
+      <h1 className="text">Account</h1>
       <div className="tabs">
         <nav className="settings_bar">
           <ul>
             <li className={current === 'account' ? 'current' : ''}>
               <a onClick={() => handleTabChange('account')} className="tab">
-                Account
+                Wallet Info
               </a>
             </li>
             <li className={current === 'config' ? 'current' : ''}>

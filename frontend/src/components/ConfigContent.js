@@ -7,7 +7,6 @@ import { AppContext } from './AppContext';
 const ConfigContent = ({ mode, chooseLight, chooseDark }) => {
     const boxes = [
         { id: 1, content: <Theme mode = {mode} chooseLight = {chooseLight} chooseDark = {chooseDark}/>},
-        { id: 2, content: <Proxy/>}
       ];
     return(
         <div>

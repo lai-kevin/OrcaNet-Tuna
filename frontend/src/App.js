@@ -22,7 +22,7 @@ function App() {
 }, []);
   return (
     <AppContextProvider>
-    <ModeProvider>
+    <ModeProvider user={user} setUser={setUser}>
     <BrowserRouter>
     <Routes>
       <Route path="/" element={user ? <MainPage user={user} setUser={setUser}/> : <Entry user={user} setUser={setUser} />}>

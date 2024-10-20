@@ -3,6 +3,7 @@ import { CgProfile } from "react-icons/cg";
 import { useState, useRef, useEffect, useContext } from "react";
 import { NavLink, useLocation} from 'react-router-dom';
 import { AppContext } from "./AppContext";
+import { useMode } from './Mode';
 const SearchBar = ({user, setUser}) => {
     const { setSearchResultsFound, setFileToDownload, dummyFiles, setDownloadOpen } = useContext(AppContext);
     const [open, setOpen] = useState("close");
@@ -29,29 +30,23 @@ const SearchBar = ({user, setUser}) => {
     const handleDropDown = () =>{
         setOpen(prevState => (prevState ==="open" ? 'close' : 'open' ))
     }
+
+    //Styling kinda sus removing the searchbar might require some moving
     return(
       <div className="">
-      <div className="header">
-        <div id="searchContainer">
-        <form id="search">
-         <div id="searchWrapper">
-          <label htmlFor="searchInput">
-            <input type="search" placeholder="Browse..." id="searchInput" onChange={(event)=>{setSearchInput(event.target.value)}} disabled = {location.pathname !== "/Files"}></input>
-          </label>
-          <button type="submit" id="findButton" onClick = {handleSearch} disabled = {location.pathname !== "/Files"}>
-                <FaSearch />
-          </button>
+        <div className="header">
+          <div id="searchContainer">
           </div>
-        </form>
+          <button type="button" id="profile_button" onClick={handleDropDown}><CgProfile id="profile_pic"/></button>
+          {open === "open" && <DropMenu handleDropDown={handleDropDown} user={user} setUser={setUser}/>}
         </div>
-        <button type="button" id="profile_button" onClick={handleDropDown}><CgProfile id="profile_pic"/></button>
-        </div>
-        {open === "open" && <DropMenu handleDropDown={handleDropDown} user={user} setUser={setUser}/>}
-        </div>
+      </div>
         );
 };
 export const DropMenu = ({handleDropDown, user, setUser})=>{
   const menu = useRef(null);
+  const {setServer, setProxy, setTotal, setStop, setproxyPrice} = useContext(AppContext);
+  const {mode, chooseLight} = useMode();
   const outside = (e)=>{
     if (menu.current && !menu.current.contains(e.target)) {
       handleDropDown(); 
@@ -60,15 +55,23 @@ export const DropMenu = ({handleDropDown, user, setUser})=>{
   useEffect(() => {
     document.addEventListener('mousedown', outside);
   });
+  const handleLogOut =()=>{
+    setServer("--")
+    setTotal(0)
+    setStop([])
+    setproxyPrice(0)
+    setProxy(false)
+    setUser(null)
+  }
     return(
       <div ref={menu} className="menu">
         <div className="wallet_info">
           <p id="wallet_label">Wallet ID:</p>
-          <p id ="actual_id">{user.walletID}</p>
+          <p id ="actual_id" style={{ color: mode === "dark" ? "black" : "black" }}>{user.walletID}</p>
           </div>
         <ul className= "menu_list">
         <NavLink to="/Settings"> View Profile</NavLink>
-        <a href="/" id="log_out" onClick={()=>setUser(null)}>Log Out</a>
+        <NavLink to="/" id="log_out" onClick={handleLogOut}>Log Out</NavLink>
         </ul>
       </div>
     )
