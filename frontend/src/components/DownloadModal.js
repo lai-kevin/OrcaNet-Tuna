@@ -5,7 +5,7 @@ import { FaArrowDown } from "react-icons/fa";
 import { FaCircle } from "react-icons/fa";
 
 
-const DownloadModal = ({}) =>{
+const DownloadModal = ({user}) =>{
     const {fileToDownload, setDownloadOpen, setSearchResultsFound, setFileToDownload,downloads,setDownloads,setUploadHistory,uploadHistory,dummyFiles,setDummyFiles} = useContext(AppContext);
     const [activeStep, setActiveStep] = useState(0); //0 is choosing a provider, 1 is the confirm 
     const [selectedProvider, setSelectedProvider] = useState("--");
@@ -35,7 +35,7 @@ const DownloadModal = ({}) =>{
           let alreadyAdded = 0;
           const updatedDummyFiles = dummyFiles.map(file => {
             if (file.hashId === fileForUploads.hashId) {
-              const existingUserProviderIndex = file.providers.findIndex(provider => provider.id === "user");
+              const existingUserProviderIndex = file.providers.findIndex(provider => provider.id === user.walletID);
               
               if (existingUserProviderIndex !== -1) {
                 // Update existing provider 
@@ -60,7 +60,7 @@ const DownloadModal = ({}) =>{
                   providers: [
                     ...file.providers,
                     {
-                      id: "user",
+                      id: user.walletID,
                       price: Number(price),
                       timestamp: new Date(),
                       downloads: 0,

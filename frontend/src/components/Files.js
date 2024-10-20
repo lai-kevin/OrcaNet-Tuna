@@ -21,7 +21,7 @@ const bip39 = require('bip39');
 const { HDKey } = require('ethereum-cryptography/hdkey');
 
 
-const Files = () => {
+const Files = ({user}) => {
   let sampleData = [{type: "image",name: "Screenshot 2025-02-18 211342",hashId: "zxcasd2lajnf5aoiuanfna1kjzx",size: "1 MB"},
     {type: "image",name: "my_social_security_number.png",hashId: "as13dncx,jvkbvskh4sf",size: "1 MB"},
     {type: "pdf",name: "tuna_recipes.pdf",hashId: "ascn123kcadsxvh14boadab",size: "124 MB"},
@@ -66,7 +66,7 @@ const Files = () => {
       name: fileToUpload.name,
       hashId: privateKey,
       size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
-      providers: [{id: "user", price: fileToUpload.price, timestamp: new Date(), downloads: 0 , status: "online"}]
+      providers: [{id: user.walletID, price: fileToUpload.price, timestamp: new Date(), downloads: 0 , status: "online"}]
     }
       setUploadHistory([...uploadHistory,newFile]);
       setDummyFiles([...dummyFiles, fileForDummyFiles]);
@@ -332,7 +332,7 @@ const Files = () => {
         <TabSelectHorizontal  setActiveTab = {setActiveTab} activeTab={activeTab}/>
         
         {isOpen && <FileModal setIsOpen={setIsOpen} setFileToUpload={setFileToUpload}/>}
-        {searchResultsFound && <DownloadModal/>}
+        {searchResultsFound && <DownloadModal user={user}/>}
         {fileToRemove === null ? <></> : <CancelUploadModal/>}
         <button className="primary_button" onClick={() => setIsOpen(true)}>Share <LuUpload /></button>
         <div className= "sort-container">
