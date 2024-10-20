@@ -20,45 +20,11 @@ export function AppContextProvider(props){
         return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
       }
 
-    let sampleFiles = [
+      let sampleFiles = [
         {type: "folder",name: "studio ghibli movies",hashId: "Zxczv123kcbxvh14boadab",size: "100 MB", providers: [{id: userhash1, price: 3, timestamp: randomTimestamp(), downloads: 100, status:"offline" },{id: userhash2 , price: 5, timestamp: randomTimestamp(), downloads: 200, status:"online"},{id: userhash3, price: 3.5, timestamp: randomTimestamp(), downloads: 300, status:"online"}]},
         {type: "mp3",name: "Shook Ones PT II.mp3",hashId: "Asdasdxc5nksdhbvshba2315jhd",size: "124 MB", providers: [{id: userhash2, price: 3, timestamp: randomTimestamp(), downloads: 10, status:"offline"},{id: userhash3, price: 7, timestamp: randomTimestamp(), downloads: 26, status:"offline"},{id: userhash4, price: 5, timestamp: randomTimestamp(), downloads: 3, status:"online"}, {id: userhash5, price: 53, timestamp: randomTimestamp(), downloads: 22, status:"online"}, {id: userhash6, price: 20, timestamp: randomTimestamp(), downloads: 50, status:"offline"}] },
     ]
-    let peers = [
-        { id: 0, location: "192.168.1.1", Port: 8080, Price: 3 },
-        { id: 1, location: "10.0.0.1", Port: 8081, Price: 5 },
-        { id: 2, location: "172.16.0.1", Port: 8082, Price: 8 },
-        { id: 3, location: "192.0.2.1", Port: 8083, Price: 2 },
-        { id: 4, location: "203.0.113.1", Port: 8084, Price: 7 },
-        { id: 5, location: "198.51.100.1", Port: 8085, Price: 5 },
-        { id: 6, location: "192.168.1.100", Port: 8086, Price: 5 },
-        { id: 7, location: "10.0.1.1", Port: 8087, Price: 9 },
-        { id: 8, location: "172.16.1.1", Port: 8088, Price: 10 },
-        { id: 9, location: "192.168.2.1", Port: 8089, Price: 6 },
-    ];
-    let proxyData = [
-        {
-            client: "192.168.1.10",
-            Url: "www.google.com",
-            method: "GET",
-            time: "2024-10-16 12:00:00",
-            status: "Success",
-            size: "1.2 MB",
-            sent: "0 KB",
-            received: "1.2 MB",
-        },
-        {
-            client: "192.168.1.12",
-            Url: "www.forms.com/posts",
-            method: "POST",
-            time: "2024-10-16 12:10:00",
-            status: "Success",
-            size: "120 KB",
-            sent: "80 KB",
-            received: "120 KB",
-          }
-    ]
-
+    
     let sampleUpload = {
         type: "folder",
         name: "simpleGamecontroller.ino",
@@ -69,6 +35,19 @@ export function AppContextProvider(props){
 
     }
 
+    let peers = [
+        { id: 0, location: "142.168.1.1", Price: 1, wallet:"1FfmbHfnpaZjKFvyi1okTjJJusN455paPH" },
+        { id: 1, location: "15.0.0.1", Price: 2 , wallet:"1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v"},
+        { id: 2, location: "122.16.0.1", Price: 1 , wallet:"1BoatSLRHtKNngkdXEeobR76b53LETtpyT"},
+        { id: 3, location: "102.0.2.1", Price: 3 , wallet:"1Ez69SnzzmePmZX3WpEzMKTrcBF2gpNQ55"},
+        { id: 4, location: "203.0.113.1", Price: 0.5 , wallet:"1PzP1eP5QGefi2DMPTfTL5SLmv7DivfNa"},
+        { id: 5, location: "198.51.100.1", Price: 0.5, wallet:"1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp" },
+        { id: 6, location: "191.168.1.100",  Price: 4, wallet:"1A8JiWcwvpY7tAopUkSnGuEYHmzGYfZPiq" },
+        { id: 7, location: "14.0.1.1",  Price: 2, wallet:"1dice97ECuByXAvqXpaYzSaQuPVvrtmz6" },
+        { id: 8, location: "182.16.1.1",  Price: 3 , wallet:"1G5RHZgLA9ppp8SEpGG58CRvzYHsYuTfAy"},
+        { id: 9, location: "162.168.2.1", Price: 1, wallet:"1LuckyR1fFHEsXYyx5QK4UFzv3PEAepPMK"},
+    ];
+
     const [dummyFiles,setDummyFiles] = useState(sampleFiles);
     const [searchResultsFound,setSearchResultsFound] = useState(false);
     const [fileToDownload,setFileToDownload] = useState("");
@@ -76,9 +55,13 @@ export function AppContextProvider(props){
     const [downloadOpen, setDownloadOpen] = useState(false);
     const [uploadHistory, setUploadHistory] = useState([sampleUpload]); //currently storing apps "uploads" here in this global context for demo purposes as there is no real data
     const [downloads, setDownloads] = useState([]);
-    const [proxy, setProxy] = useState(true);
+    const [proxy, setProxy] = useState(false);
     const [server, setServer] = useState("--")
-    const [proxyHistory, setProxyHistory] = useState(proxyData);
+    const [proxyHistory, setProxyHistory] = useState([]);
+    const [total, setTotal] = useState(0);
+    const [proxyPrice, setproxyPrice] = useState(0)
+    const [clients, setClients] = useState([])
+    const [stop, setStop] = useState([])
     return(
         <AppContext.Provider value = {
             {
@@ -91,6 +74,10 @@ export function AppContextProvider(props){
             proxy, setProxy,
             server, setServer,
             proxyHistory, setProxyHistory,
+            total, setTotal,
+            proxyPrice, setproxyPrice,
+            clients, setClients,
+            stop, setStop,
             dummyFiles, setDummyFiles,
             peers
             }}

@@ -13,6 +13,7 @@ import { LuUpload } from "react-icons/lu";
 import { AppContext } from "./AppContext";
 import DownloadModal from "./DownloadModal";
 import CancelUploadModal from "./UploadModal";
+import SearchBar from "./SearchBar";
 const bip39 = require('bip39');
 const { HDKey } = require('ethereum-cryptography/hdkey');
 

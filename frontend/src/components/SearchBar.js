@@ -68,7 +68,7 @@ export const DropMenu = ({handleDropDown, user, setUser})=>{
           </div>
         <ul className= "menu_list">
         <NavLink to="/Settings"> View Profile</NavLink>
-        <a href="/" id="log_out" onClick={()=>setUser(null)}>Log Out</a>
+        <NavLink to="/" id="log_out" onClick={()=>setUser(null)}>Log Out</NavLink>
         </ul>
       </div>
     )

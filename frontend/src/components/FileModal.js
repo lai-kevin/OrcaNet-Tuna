@@ -22,6 +22,9 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
     }
     else{
       setErrorMsg("")
+      if(file === null){
+          return
+      }
       let submittedFile = new File([file], file.name, { type: file.type }) //necessary as I cant spread a file
       submittedFile.price = Number(price);
       setFileToUpload(submittedFile);
