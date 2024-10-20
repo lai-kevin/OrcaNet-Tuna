@@ -16,6 +16,7 @@ import { LuUpload } from "react-icons/lu";
 import { AppContext } from "./AppContext";
 import DownloadModal from "./DownloadModal";
 import CancelUploadModal from "./UploadModal";
+import DownloadFinishedPopUp from "./PopUp";
 import SearchBar from "./SearchBar";
 const bip39 = require('bip39');
 const { HDKey } = require('ethereum-cryptography/hdkey');
@@ -50,6 +51,7 @@ const Files = ({user}) => {
   const [activeTab, setActiveTab] = useState("Downloads");
   const [searchInput, setSearchInput] = useState("");
   const [popUpOpen,setPopUpOpen] = useState(false);
+  const [downloadFinished, setDownloadFinished] = useState(false); //set to true for demo purposes
 
   //UseEffect hook that currently deals with adding the "upload" to the list of uploads in the global context once a fileToUpload has been selected
   //uploads list is used by Files.js to render cards of uploads
@@ -87,6 +89,17 @@ const Files = ({user}) => {
 
   }
 
+  const handleUpvote = () =>{
+    setDownloadFinished(false);
+    //Add Backend Functionality to increment a persons upvote count and factor into reputation
+  }
+  const handleDownvote = () => {
+    setDownloadFinished(false)
+    //Add Backend Functionality to decrement a persons upvote count and factor into reputation
+  }
+  const handleDismissPopUp = () => {
+    setDownloadFinished(false); // just dismiss/abstain from rating
+  }
 
   const handleSearch = (event) => {
       event.preventDefault(); // Prevent the default form submission behavior i hate forms ;-; 
@@ -342,6 +355,16 @@ const Files = ({user}) => {
 
     return (
       <>
+        <DownloadFinishedPopUp
+          isOpen = {downloadFinished}
+          message = {<>
+            The file: tuna_recipes.pdf has completed downloading.<br />
+            Would you like to rate this transaction?
+          </>}
+          onClose = {handleDismissPopUp}
+          onButton1Click = {handleUpvote}
+          onButton2Click = {handleDownvote}
+        />
         <div className="">
         <div className="header">
           <div id="searchContainer">
@@ -362,7 +385,7 @@ const Files = ({user}) => {
           </div>
           </div>
         </div>
-        {popUpOpen && <PopUp handlePopUp={handlePopUp}/>}
+        {popUpOpen && <InfoPopUp handlePopUp={handlePopUp}/>}
         <h1 className = "text">Files</h1>
         
         {/* {searchResultsFound ? <FileCard key = {fileToDownload.hashId} type = {fileToDownload.type} name = {fileToDownload.name} hashId = {fileToDownload.hashId}size = {fileToDownload.size}/> : <p></p>} */}
@@ -390,7 +413,7 @@ const Files = ({user}) => {
     );
   };
 
-  export const PopUp = ({handlePopUp})=>{
+  export const InfoPopUp = ({handlePopUp})=>{
     const menu = useRef(null);
     const outside = (e)=>{
       if (menu.current && !menu.current.contains(e.target)) {
