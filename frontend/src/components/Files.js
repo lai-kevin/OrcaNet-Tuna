@@ -65,7 +65,8 @@ const Files = ({user}) => {
       name: fileToUpload.name,
       hashId: privateKey,
       size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
-      price: fileToUpload.price
+      price: fileToUpload.price,
+      timestamp: fileToUpload.timestamp
     } 
     let fileForDummyFiles = {
       type: "file",
