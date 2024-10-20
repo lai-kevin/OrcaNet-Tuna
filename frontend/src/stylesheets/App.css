@@ -77,20 +77,20 @@
   padding-top: 5px;
 }
 
-.sidebar-light a {
+.sidebar-light a, .sidebar-light span{
   text-decoration: none; 
   color: #333; 
   font-size: 18px;
 }
-.sidebar-dark a{
+.sidebar-dark a, .sidebar-dark span{
   text-decoration: none; 
   color: #e7e7e7; 
   font-size: 18px;
 }
-.sidebar-light a:hover{
+.sidebar-light a:hover, span:hover {
   color: #007BFF; 
 }
-.sidebar-dark a:hover {
+.sidebar-dark a:hover, span:hover  {
   color: #96c4f5; 
 }
 .heading{
@@ -120,10 +120,13 @@
   background-color: lightcyan; 
   border-radius: 12px;
 }
-.sidebar-dark .active{
+.sidebar-dark .active {
   background-color: rgb(224, 255, 255); 
   color:black;
   border-radius: 12px;
+}
+.sidebar-dark .active span{
+  color:black;
 }
 #searchContainer{
   margin-left: 730px;
@@ -514,29 +517,7 @@
 .statistics span{
   color: gray;
 }
-.modal, #proxy_container, #price_container, #proxy_options, #dis_container, #confirm_container{
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.modal_dark, #proxy_container_dark, #price_container_dark, #proxy_options_dark, #dis_container_dark, #confirm_container_dark{
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.modal_dark, #proxy_container_dark, #price_container_dark, #proxy_options_dark, #dis_container_dark, #confirm_container_dark{
+.modal, #proxy_container, #price_container, #proxy_options, #dis_container, #confirm_container, #band_container{
   position: fixed;
   top: 0;
   left: 0;
@@ -548,17 +529,6 @@
   align-items: center;
 }
 
-#band_container{
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 #band_container1{
   position: fixed;
   top: 0;
@@ -571,17 +541,6 @@
   align-items: center;
 }
 #band_container3{
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-#bandModal{
   position: fixed;
   top: 0;
   left: 0;
@@ -636,45 +595,8 @@
   max-height: 500px;
   overflow-y:auto;
 }
-.modal_content, #proxyModal, #err_content, #disModal, #price_content,#confirm_content{
+.modal_content, #proxyModal, #err_content, #disModal, #price_content,#confirm_content, #bandModal{
   background-color: white;
-  padding: 35px;
-  justify-content: space-between;
-  border-radius: 5px;
-}
-.modal_content_dark, #proxyModal_dark, #err_content_dark, #disModal_dark, #price_content_dark,#confirm_content_dark{
-  background-color: #2C2C2C;
-  padding: 35px;
-  justify-content: space-between;
-  border-radius: 5px;
-}
-
-#t{
-  text-align: center;
-}
-#bandModal1{
-  background-color: white;
-  padding: 35px;
-  justify-content: space-between;
-  border-radius: 5px;
-  max-height: 500px;
-}
-#bandModal3{
-  background-color: white;
-  padding: 35px;
-  justify-content: space-between;
-  border-radius: 5px;
-  max-height: 500px;
-  overflow-y:auto;
-}
-.modal_content, #proxyModal, #err_content, #disModal, #price_content,#confirm_content{
-  background-color: white;
-  padding: 35px;
-  justify-content: space-between;
-  border-radius: 5px;
-}
-.modal_content_dark, #proxyModal_dark, #err_content_dark, #disModal_dark, #price_content_dark,#confirm_content_dark{
-  background-color: #2C2C2C;
   padding: 35px;
   justify-content: space-between;
   border-radius: 5px;
@@ -766,6 +688,7 @@
   border:transparent;
   z-index: 10;
   margin-top:-4px;
+  margin-left:360px;
 }
 #profile_pic{
   width: 50px;
@@ -780,7 +703,7 @@
   border-radius: 20px;
   position: absolute;
   margin-left: 850px;
-  margin-top: 40px;
+  margin-top: 60px;
   background-color: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); 
 }
@@ -892,20 +815,6 @@
   align-items: center;
 
 }
-#proxy_table_dark{
-  border-collapse: collapse;
-  width: 700px;
-  align-items: center;
-
-  align-items: center;
-
-}
-#proxy_table_dark{
-  border-collapse: collapse;
-  width: 700px;
-  align-items: center;
-
-}
 #proxy_data{
   border-collapse: collapse;
   width: 1150px;
@@ -932,19 +841,6 @@
   background-color: #277fddb8;
 }
 
-#proxy_data_dark{
-  border-collapse: collapse;
-  width: 1150px;
-}
-#proxy_data_dark th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-}
-#proxy_data_dark th {
-  background-color: #277fddb8;
-}
-
 #proxy_table th, td {
   border: 1px solid #ddd;
   padding: 8px;
@@ -952,31 +848,6 @@
 }
 
 #proxy_table th {
-  background-color: #277fddb8;
-  width: 50%;
-}
-
-#proxy_table_dark th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-
-}
-
-#proxy_table_dark th {
-  background-color: #277fddb8;
-  width: 50%;
-  width: 50%;
-}
-
-#proxy_table_dark th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-
-}
-
-#proxy_table_dark th {
   background-color: #277fddb8;
   width: 50%;
 }
@@ -1380,16 +1251,6 @@
 }
 .top_dark h3{
   color:black;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  margin-bottom: 10px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 20px;
-  overflow-x: scroll;
 }
 .top_info_dark{
   display:flex;
@@ -1566,6 +1427,8 @@
 }
 #sbutton{
   height: 35px;
+  background-color: #007bffa9;
+  border: 1px solid grey;
 }
 #conn{
   margin-left:500px;
@@ -1647,24 +1510,28 @@
   height:35px;
   width:100px;
   border-radius:5px;
+  margin-left: 150px;
+  margin-top:30px;
 
 }
 #price_inner{
   justify-content: center;
   padding:10px;
+  text-align: center;
 
 }
 #price{
-  margin-left:80px;
+  margin-left:60px;
+  margin-right:50px;
 }
 #price_dark{
-  margin-left:80px;
+  margin-left:60px;
   color:black;
 }
 #price_input{
-  margin-left:30px;
+  margin-left:50px;
   height:30px;
-  width:300px;
+  width:200px;
   margin-right:5px;
 }
 .button{
@@ -1787,7 +1654,7 @@ input:checked + .sl:before {
   height:35px;
   width:100px;
   border-radius:5px;
-  margin-left: 130px;
+  margin-left: 250px;
 
 }
 #okay{
@@ -1796,6 +1663,13 @@ input:checked + .sl:before {
   width:100px;
   border-radius:5px;
   margin-left: 250px;
+}
+#okay1{
+  background-color: #007bffa9;
+  height:35px;
+  width:100px;
+  border-radius:5px;
+  margin-left: 60px;
 }
 #items{
   justify-content: center;

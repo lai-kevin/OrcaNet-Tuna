@@ -8,8 +8,8 @@ const Dashboard=()=>{
     <div className= "homepage">
       <div id="connection"> 
         <IoCheckmarkCircleOutline color="green" size="24"/>
-        <span id= "connect_text">Connected to OrcaNet </span>
-        <span id = "app_version">Application Version: 1.0</span>
+        <span id= "connect_text" style={{ color: mode === "dark" ? "white" : "black" }}>Connected to OrcaNet </span>
+        <span id = "app_version" style={{ color: mode === "dark" ? "white" : "black" }}>Application Version: 1.0</span>
       </div>
       <div className="dashboard">
         <Box stat="300 GB" info = "Files" c="#ADD8E6" mode = {mode}/>

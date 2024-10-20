@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Rings } from 'react-loader-spinner';
 import bs58check from 'bs58check'
 import { FaRegCopy } from 'react-icons/fa';
+import { useMode } from './Mode';
 const bip39 = require('bip39');
 const { HDKey } = require('ethereum-cryptography/hdkey');
 const hash = require('hash.js')
@@ -10,6 +11,7 @@ const hash = require('hash.js')
 const Entry = ({user, setUser}) =>{
     const [page, setPage] = useState('login')
     const[effect, setEffect] = useState(false);
+    const {mode} = useMode();
     const handleLoginPage=()=>{
         setEffect(true)
         setTimeout(() => {
@@ -28,12 +30,12 @@ const Entry = ({user, setUser}) =>{
         <div className="login">
             <div id="title_container">
                 <GiWhaleTail style={{fontSize: '120px', color:"blue", marginLeft: '500px'}}/>
-                <h1 id ="title">OrcaNet</h1>
+                <h1 id ="title" style={{ color: mode === "dark" ? "black" : "black" }}>OrcaNet</h1>
             </div>
             {page ==="recover" && <Recover setPage ={setPage}/>}
             {(page === "login" || page ==="register") && <>
             <div className="inner_container">
-                <h2 id="head">{page === "login" ? "Login" : "Register"}</h2>
+                <h2 id="head" style={{ color: mode === "dark" ? "black" : "black" }}>{page === "login" ? "Login" : "Register"}</h2>
                 <div className="options">
                     <div className="highlight" style={{ left: page === 'login' ? '0%' : '50%' }} />
                     <a id="inner_button1" onClick={handleLoginPage}>Login</a>
@@ -56,6 +58,7 @@ const Recover = ({setPage})=>{
     const[curr, setCurr] = useState("recover")
     const[phrase, setPhrase] = useState("")
     const[key,setKey] = useState("")
+    const {mode} = useMode();
     const [err, setErr] = useState({message: "", present:false})
     const verify=(e)=>{
         e.preventDefault();
@@ -95,13 +98,13 @@ const Recover = ({setPage})=>{
     };
     return(
         <div id = "recover_page">
-        <h2 id="head">Recover</h2>
+        <h2 id="head" style={{ color: mode === "dark" ? "black" : "black" }}>Recover</h2>
         {curr ==="recover" && (<>
             <form onSubmit={verify}>
             <input type="text" id="phrase" value={phrase} onChange={handleInput} placeholder='Enter 12-word phrase'></input><br></br>
             {err.present && (<p id="err1">{err.message}</p>)}
             </form>
-            <button type="submit" id="button" onClick={verify}> Recover</button>
+            <button type="submit" id="button" onClick={verify} > Recover</button>
             <div id="bottom_buttons">
                 <button type="submit" id="button3" onClick={()=>setPage("login")}> Login</button>
                 <button type="submit" id="button4" onClick={()=>setPage("register")}> Register</button>
@@ -120,6 +123,7 @@ const Recover = ({setPage})=>{
 }
 const Login=({handleRegPage, user, setUser, setPage})=>{
     const [input, setInput] = useState("")
+    const {mode} = useMode();
     const [err, setErr] = useState({message: "", present:false})
     const handleInput=(e)=>{
         setInput(e.target.value);
@@ -151,7 +155,7 @@ const Login=({handleRegPage, user, setUser, setPage})=>{
             <a onClick={()=>setPage('recover')}id="recover">Forgot key?</a>
          </form>
          <button type="submit" id="log_button" onClick={check}> Login</button>
-         <p className ="redirect">Don't have an account? <a id="signup" onClick={handleRegPage}>Signup</a></p>
+         <p className ="redirect" style={{ color: mode === "dark" ? "black" : "black" }}>Don't have an account? <a id="signup" onClick={handleRegPage}>Signup</a></p>
         </div>
 
     )
@@ -159,6 +163,7 @@ const Login=({handleRegPage, user, setUser, setPage})=>{
 const Register=({handleLoginPage, user, setPage})=>{
     const[current, setCurrent] = useState("first")
     const[data, setData] = useState(null)
+    const {mode} = useMode();
     const handleSwitch = (p)=>{
         setCurrent(p);
         setTimeout(() => {
@@ -196,7 +201,8 @@ const Register=({handleLoginPage, user, setPage})=>{
                 walletID: id,
                 balance: 100, // for demo purposes
                 transactions:[],
-                fileHistory:[]
+                fileHistory:[],
+                mode: "light"
             };
             setData(userData);
             localStorage.setItem(privateKey, JSON.stringify(userData));
@@ -206,14 +212,14 @@ const Register=({handleLoginPage, user, setPage})=>{
         <div>
             {current === "first" &&
             (<div className = "register_page">
-                <h3 className="welcome">Let's Set Up Your Crypto Wallet!</h3>
+                <h3 className="welcome" style={{ color: mode === "dark" ? "black" : "black" }}>Let's Set Up Your Crypto Wallet!</h3>
                 <button id="log_button" onClick={() => handleSwitch("second")}> Continue</button>
-                <p className ="redirect1">Have an account? <a id="signup" onClick={handleLoginPage}>Login</a></p>
+                <p className ="redirect1" style={{ color: mode === "dark" ? "black" : "black" }}>Have an account? <a id="signup" onClick={handleLoginPage}>Login</a></p>
                 </div>
             )}
             {current === "second" &&
             (<div className = "register_page">
-                <h3 className="welcome2">Generating your 12-word phrase...</h3>
+                <h3 className="welcome2" style={{ color: mode === "dark" ? "black" : "black" }}>Generating your 12-word phrase...</h3>
                 <div className='loading_container'>
                      <Rings id="loading"/>
                 </div>
@@ -221,7 +227,7 @@ const Register=({handleLoginPage, user, setPage})=>{
             )}
             {current === "third" &&
             (<div className= "register_page">
-                <h3 className="welcome3">Generating your private and public key...</h3>
+                <h3 className="welcome3" style={{ color: mode === "dark" ? "black" : "black" }}>Generating your private and public key...</h3>
                 <div className='loading_container'>
                      <Rings id="loading" />
                 </div>
@@ -229,15 +235,15 @@ const Register=({handleLoginPage, user, setPage})=>{
             )}
             {current === "fourth" && (
                 <div className = "register_page">
-                <h3 id="welcome1">Please save these info:</h3>
+                <h3 id="welcome1" style={{ color: mode === "dark" ? "black" : "black" }}>Please save these info:</h3>
                 <div className='info_container'>
                     <ul className='info_list'>
-                        <li><span id="phrase_title">Recovery phrase:</span> <button type="button" id="copy" onClick={()=>handleCopy(data.phrase)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button> <br></br><span className="recover_phrase">{data.phrase.split(" ").slice(0, 6).join(" ")}</span><br></br>
+                        <li><span id="phrase_title" style={{ color: mode === "dark" ? "black" : "black" }}>Recovery phrase:</span> <button type="button" id="copy" onClick={()=>handleCopy(data.phrase)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button> <br></br><span className="recover_phrase">{data.phrase.split(" ").slice(0, 6).join(" ")}</span><br></br>
                         <span className="recover_phrase">{data.phrase.split(" ").slice(5, 12).join(" ")}</span>
                         </li>
-                        <li>Private key:  <button type="button" id="copy" onClick={()=>handleCopy(data.privateKey)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br> <span id="private_key">{data.privateKey}</span></li>
-                        <li>Public key:  <button type="button" id="copy" onClick={()=>handleCopy(data.publicKey)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br><span id="public_key">{data.publicKey}</span></li>
-                        <li>Wallet ID:  <button type="button" id="copy" onClick={()=>handleCopy(data.walletID)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br><span id="w">{data.walletID}</span></li>
+                        <li style={{ color: mode === "dark" ? "black" : "black" }}>Private key:  <button type="button" id="copy" onClick={()=>handleCopy(data.privateKey)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br> <span id="private_key">{data.privateKey}</span></li>
+                        <li style={{ color: mode === "dark" ? "black" : "black" }}>Public key:  <button type="button" id="copy" onClick={()=>handleCopy(data.publicKey)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br><span id="public_key">{data.publicKey}</span></li>
+                        <li style={{ color: mode === "dark" ? "black" : "black" }}>Wallet ID:  <button type="button" id="copy" onClick={()=>handleCopy(data.walletID)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br><span id="w">{data.walletID}</span></li>
                     </ul>
                 </div>
             </div>
