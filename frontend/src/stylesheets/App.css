@@ -785,6 +785,18 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); 
 }
 
+.popUp{
+  width: 320px;
+  height: 180px;
+  border: 2px solid rgba(59, 59, 139, 0.799);
+  border-radius: 20px;
+  position: absolute;
+  margin-left: 750px;
+  margin-top: 40px;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); 
+}
+
 .wallet_info{
   border-bottom: 1px solid #a6a6a6ab;
 }

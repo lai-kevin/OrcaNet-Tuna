@@ -6,9 +6,10 @@ import { MdOutlineCancel } from "react-icons/md";
 import { LuPause } from "react-icons/lu";
 import { FaSearch } from "react-icons/fa";
 import { NavLink, useLocation} from 'react-router-dom';
+import { GiInfo } from "react-icons/gi";
 
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useRef } from 'react';
 import FileModal from "./FileModal";
 import TabSelectHorizontal from "./Tabs";
 import { LuUpload } from "react-icons/lu";
@@ -21,13 +22,13 @@ const { HDKey } = require('ethereum-cryptography/hdkey');
 
 
 const Files = () => {
-  let sampleData = [{type: "image",name: "Screenshot 2025-02-18 211342",hashId: "zxcasd2lajnf5aoiuanfna1kjzx",size: "1MB"},
-    {type: "image",name: "my_social_security_number.png",hashId: "as13dncx,jvkbvskh4sf",size: "1GB"},
-    {type: "pdf",name: "tuna_recipes.pdf",hashId: "hashId",size: "124KB"},
-    {type: "folder",name: "homework",hashId: "ascn123kcbxvh14boadab",size: "1TB"},
-    {type: "mp3",name: "Lo_Siento_BB:/.mp3",hashId: "zxc5nksdhbvshba2315jhd",size: "124MB"},
-    {type: "text",name: "lyrics_for_my_next_mixtape.txt",hashId: "as1dzxc1239zxczvsfsfsd",size: "1MB"},
-    {type: "folder",name: "node_modules",hashId: "12zxaweqr3zc25zca;/';45",size: "50GB"}
+  let sampleData = [{type: "image",name: "Screenshot 2025-02-18 211342",hashId: "zxcasd2lajnf5aoiuanfna1kjzx",size: "1 MB"},
+    {type: "image",name: "my_social_security_number.png",hashId: "as13dncx,jvkbvskh4sf",size: "1 MB"},
+    {type: "pdf",name: "tuna_recipes.pdf",hashId: "ascn123kcadsxvh14boadab",size: "124 MB"},
+    {type: "folder",name: "homework",hashId: "ascn123kcbxvh14boadab",size: "1MB"},
+    {type: "mp3",name: "Lo_Siento_BB:/.mp3",hashId: "zxc5nksdhbvshba2315jhd",size: "124 MB"},
+    {type: "text",name: "lyrics_for_my_next_mixtape.txt",hashId: "as1dzxc1239zxczvsfsfsd",size: "1 MB"},
+    {type: "folder",name: "node_modules",hashId: "12zxaweqr3zc25zca;/';45",size: "50 MB"}
   ];
 
   const location = useLocation();
@@ -42,6 +43,7 @@ const Files = () => {
   const [sort, setSort] = useState("");
   const [activeTab, setActiveTab] = useState("Downloads");
   const [searchInput, setSearchInput] = useState("");
+  const [popUpOpen,setPopUpOpen] = useState(false);
 
   //UseEffect hook that currently deals with adding the "upload" to the list of uploads in the global context once a fileToUpload has been selected
   //uploads list is used by Files.js to render cards of uploads
@@ -73,21 +75,21 @@ const Files = () => {
 
   },[fileToUpload]);
 
+  const handlePopUp = () => {
+    setPopUpOpen(prevState => (prevState ===true ? false : true ))
+
+  }
+
 
   const handleSearch = (event) => {
-    // if (event.key === "Enter") {
-      // console.log(event.target.value); //can still extract info like this
       event.preventDefault(); // Prevent the default form submission behavior i hate forms ;-; 
       let fullSearchText = searchInput;
       let file = dummyFiles.find((file) => file.hashId === fullSearchText);
       event.target.value = ""; // this should clear it after clicking
-      // setSearchInput("");
       setSearchResultsFound(true);
       if(file !== undefined){
         setFileToDownload(file);
-        // setDownloadOpen(true);
       }
-    // }
   }
 
   const handleSort = (event) => {
@@ -306,9 +308,13 @@ const Files = () => {
         <div className="">
         <div className="header">
           <div id="searchContainer">
+          
           <form id="search">
+          
             <div id="searchWrapper">
               <label htmlFor="searchInput">
+              <GiInfo style={{fontSize: "25px", color: "#548bca"}} onClick={handlePopUp}/>
+              
               <input type="search" placeholder="Enter File Hash..." id="searchInput" onChange={(event)=>{setSearchInput(event.target.value)}} disabled = {location.pathname !== "/Files"}></input>
               </label>
               <button type="submit" id="findButton" onClick = {handleSearch} disabled = {location.pathname !== "/Files"}>
@@ -319,6 +325,7 @@ const Files = () => {
           </div>
           </div>
         </div>
+        {popUpOpen && <PopUp handlePopUp={handlePopUp}/>}
         <h1 className = "text">Files</h1>
         
         {/* {searchResultsFound ? <FileCard key = {fileToDownload.hashId} type = {fileToDownload.type} name = {fileToDownload.name} hashId = {fileToDownload.hashId}size = {fileToDownload.size}/> : <p></p>} */}
@@ -344,6 +351,24 @@ const Files = () => {
     );
   };
 
+  export const PopUp = ({handlePopUp})=>{
+    const menu = useRef(null);
+    const outside = (e)=>{
+      if (menu.current && !menu.current.contains(e.target)) {
+        handlePopUp(); 
+      }
+    }
+    useEffect(() => {
+      document.addEventListener('mousedown', outside);
+    });
+      return(
+        <div ref={menu} className="popUp">
+            <p> Enter into the search bar the Hash associated with a file to download from a provider. <br />Here are some file hashes you may use for demo purposes... <br /> <br />Hash 1: Zxczv123kcbxvh14boadab<br />Hash 2: Asdasdxc5nksdhbvshba2315jhd</p>
+          <ul className= "menu_list">
+          </ul>
+        </div>
+      )
+  }
 
         
   

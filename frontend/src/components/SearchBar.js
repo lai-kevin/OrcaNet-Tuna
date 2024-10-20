@@ -35,16 +35,6 @@ const SearchBar = ({user, setUser}) => {
       <div className="">
         <div className="header">
           <div id="searchContainer">
-          {/* <form id="search">
-            <div id="searchWrapper">
-              <label htmlFor="searchInput">
-              <input type="search" placeholder="Browse..." id="searchInput" onChange={(event)=>{setSearchInput(event.target.value)}} disabled = {location.pathname !== "/Files"}></input>
-              </label>
-              <button type="submit" id="findButton" onClick = {handleSearch} disabled = {location.pathname !== "/Files"}>
-                  <FaSearch />
-              </button>
-            </div>
-          </form> */}
           </div>
           <button type="button" id="profile_button" onClick={handleDropDown}><CgProfile id="profile_pic"/></button>
           {open === "open" && <DropMenu handleDropDown={handleDropDown} user={user} setUser={setUser}/>}
