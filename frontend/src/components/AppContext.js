@@ -32,7 +32,7 @@ export function AppContextProvider(props){
         size: "20 MB",
         price: 200,
         downloaders: [userhash1,userhash2], //Just a list of users downloading to demo what the ui would look like if we want to remove an upload with people downloading
-
+        timestamp: randomTimestamp()
     }
 
     let peers = [

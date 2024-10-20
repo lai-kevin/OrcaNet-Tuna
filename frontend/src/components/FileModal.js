@@ -27,6 +27,7 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
       }
       let submittedFile = new File([file], file.name, { type: file.type }) //necessary as I cant spread a file
       submittedFile.price = Number(price);
+      submittedFile.timestamp = new Date();
       setFileToUpload(submittedFile);
       setFile(null);
       setIsOpen(false);

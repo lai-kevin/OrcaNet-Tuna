@@ -20,15 +20,21 @@ import SearchBar from "./SearchBar";
 const bip39 = require('bip39');
 const { HDKey } = require('ethereum-cryptography/hdkey');
 
+function randomTimestamp() {
+  const end = new Date();
+  const start = new Date(2023,0,1);
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
+
 
 const Files = ({user}) => {
-  let sampleData = [{type: "image",name: "Screenshot 2025-02-18 211342",hashId: "zxcasd2lajnf5aoiuanfna1kjzx",size: "1 MB"},
-    {type: "image",name: "my_social_security_number.png",hashId: "as13dncx,jvkbvskh4sf",size: "1 MB"},
-    {type: "pdf",name: "tuna_recipes.pdf",hashId: "ascn123kcadsxvh14boadab",size: "124 MB"},
-    {type: "folder",name: "homework",hashId: "ascn123kcbxvh14boadab",size: "1MB"},
-    {type: "mp3",name: "Lo_Siento_BB:/.mp3",hashId: "zxc5nksdhbvshba2315jhd",size: "124 MB"},
-    {type: "text",name: "lyrics_for_my_next_mixtape.txt",hashId: "as1dzxc1239zxczvsfsfsd",size: "1 MB"},
-    {type: "folder",name: "node_modules",hashId: "12zxaweqr3zc25zca;/';45",size: "50 MB"}
+  let sampleData = [{type: "image",name: "Screenshot 2025-02-18 211342",hashId: "zxcasd2lajnf5aoiuanfna1kjzx",size: "1 MB",timestamp: randomTimestamp()},
+    {type: "image",name: "my_social_security_number.png",hashId: "as13dncx,jvkbvskh4sf",size: "1 MB", timestamp: randomTimestamp() },
+    {type: "pdf",name: "tuna_recipes.pdf",hashId: "ascn123kcadsxvh14boadab",size: "124 MB",timestamp: randomTimestamp() },
+    {type: "folder",name: "homework",hashId: "ascn123kcbxvh14boadab",size: "1MB",timestamp: randomTimestamp()},
+    {type: "mp3",name: "Lo_Siento_BB:/.mp3",hashId: "zxc5nksdhbvshba2315jhd",size: "124 MB",timestamp: randomTimestamp() },
+    {type: "text",name: "lyrics_for_my_next_mixtape.txt",hashId: "as1dzxc1239zxczvsfsfsd",size: "1 MB",timestamp: randomTimestamp()},
+    {type: "folder",name: "node_modules",hashId: "12zxaweqr3zc25zca;/';45",size: "50 MB", timestamp: randomTimestamp()}
   ];
 
   const location = useLocation();
@@ -137,7 +143,34 @@ const Files = ({user}) => {
         return 0;
       }
     );
+    }
+    if(curSort === "Newest"){
+      sortedList = sortedList.sort((a,b) => {
+        const DateA = a.timestamp.getTime();
+        const DateB = b.timestamp.getTime();
 
+        if(DateA < DateB){
+          return 1;
+        }
+        if(DateA > DateB){
+          return -1;
+        }
+        return 0;
+      });
+    }
+    if(curSort === "Oldest"){
+      sortedList = sortedList.sort((a,b) => {
+        const DateA = a.timestamp.getTime();
+        const DateB = b.timestamp.getTime();
+
+        if(DateA < DateB){
+          return -1;
+        }
+        if(DateA > DateB){
+          return 1;
+        }
+        return 0;
+      });
     }
     setSort(event.target.value);
     if(activeTab === "Downloads"){
@@ -155,7 +188,7 @@ const Files = ({user}) => {
   
 
   //update with a stop sharing button resume sharing
-  const FileCard = ({type,name,hashId,size,price, downloaders}) => {
+  const FileCard = ({type,name,hashId,size,price, downloaders,timestamp}) => {
     let FileIcon = LuFile; //image , folder, .pdf/.txt/everything else 
     if(type === "image"){ 
       FileIcon = LuFileImage;
@@ -176,7 +209,7 @@ const Files = ({user}) => {
             <p>{name}</p>
             <p style = {{color: "#9b9b9b"}} >{hashId}</p>
           </div>
-          <div>{size}</div>
+          <div>{size}  <p style = {{color: "#9b9b9b"}}>{timestamp.toDateString()}</p></div>
         </div>
   
       );
@@ -188,7 +221,7 @@ const Files = ({user}) => {
           <p>{name}</p>
           <p style = {{color: "#9b9b9b"}} >{hashId}</p>
         </div>
-        <div>{size}</div>
+        <div> {size} <p style = {{color: "#9b9b9b"}}>{timestamp.toDateString()}</p></div>
       </div>
 
     );
@@ -255,6 +288,7 @@ const Files = ({user}) => {
               name = {file.name}
               hashId = {file.hashId}
               size = {file.size}
+              timestamp={file.timestamp}
             />
           )
         });
@@ -271,6 +305,7 @@ const Files = ({user}) => {
               size = {file.size}
               price = {file.price}
               downloaders={file.downloaders}
+              timestamp={file.timestamp}
             />
           )
         });
@@ -297,6 +332,7 @@ const Files = ({user}) => {
               name = {file.name}
               hashId = {file.hashId}
               size = {file.size}
+              timestamp={file.timestamp}
             />
           )
         });
@@ -341,6 +377,8 @@ const Files = ({user}) => {
             <option value="" disabled>Select an option</option>
             <option value="A-Z">A-Z alphabetic</option>
             <option value="Z-A">Z-A reverse alphabetic</option>
+            {activeTab !== "Current Downloads" && <option value="Newest">Newest</option>}
+            {activeTab !== "Current Downloads" && <option value="Oldest">Oldest</option>}
           </select>
           
         </div>
