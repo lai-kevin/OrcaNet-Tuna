@@ -29,25 +29,27 @@ const SearchBar = ({user, setUser}) => {
     const handleDropDown = () =>{
         setOpen(prevState => (prevState ==="open" ? 'close' : 'open' ))
     }
+
+    //Styling kinda sus removing the searchbar might require some moving
     return(
       <div className="">
-      <div className="header">
-        <div id="searchContainer">
-        <form id="search">
-         <div id="searchWrapper">
-          <label htmlFor="searchInput">
-            <input type="search" placeholder="Browse..." id="searchInput" onChange={(event)=>{setSearchInput(event.target.value)}} disabled = {location.pathname !== "/Files"}></input>
-          </label>
-          <button type="submit" id="findButton" onClick = {handleSearch} disabled = {location.pathname !== "/Files"}>
-                <FaSearch />
-          </button>
+        <div className="header">
+          <div id="searchContainer">
+          {/* <form id="search">
+            <div id="searchWrapper">
+              <label htmlFor="searchInput">
+              <input type="search" placeholder="Browse..." id="searchInput" onChange={(event)=>{setSearchInput(event.target.value)}} disabled = {location.pathname !== "/Files"}></input>
+              </label>
+              <button type="submit" id="findButton" onClick = {handleSearch} disabled = {location.pathname !== "/Files"}>
+                  <FaSearch />
+              </button>
+            </div>
+          </form> */}
           </div>
-        </form>
+          <button type="button" id="profile_button" onClick={handleDropDown}><CgProfile id="profile_pic"/></button>
+          {open === "open" && <DropMenu handleDropDown={handleDropDown} user={user} setUser={setUser}/>}
         </div>
-        <button type="button" id="profile_button" onClick={handleDropDown}><CgProfile id="profile_pic"/></button>
-        </div>
-        {open === "open" && <DropMenu handleDropDown={handleDropDown} user={user} setUser={setUser}/>}
-        </div>
+      </div>
         );
 };
 export const DropMenu = ({handleDropDown, user, setUser})=>{

@@ -4,6 +4,8 @@ import { LuFileImage } from "react-icons/lu";
 import { LuPlay } from "react-icons/lu";
 import { MdOutlineCancel } from "react-icons/md";
 import { LuPause } from "react-icons/lu";
+import { FaSearch } from "react-icons/fa";
+import { NavLink, useLocation} from 'react-router-dom';
 
 
 import { useContext, useEffect, useState } from 'react';
@@ -28,7 +30,10 @@ const Files = () => {
     {type: "folder",name: "node_modules",hashId: "12zxaweqr3zc25zca;/';45",size: "50GB"}
   ];
 
-  const {searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads,setFileToRemove,fileToRemove} = useContext(AppContext);
+  const location = useLocation();
+
+
+  const {searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads,setFileToRemove,fileToRemove,  setSearchResultsFound, setFileToDownload, dummyFiles,setDummyFiles} = useContext(AppContext);
   const [downloadHistory, setDownloadHistory] = useState(sampleData);// move to a global app context in the future?
   // const [proxyHistory, setProxyHistory] = useState([]);this should probably somewhere else now that we know what it is
 
@@ -36,6 +41,7 @@ const Files = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [sort, setSort] = useState("");
   const [activeTab, setActiveTab] = useState("Downloads");
+  const [searchInput, setSearchInput] = useState("");
 
   //UseEffect hook that currently deals with adding the "upload" to the list of uploads in the global context once a fileToUpload has been selected
   //uploads list is used by Files.js to render cards of uploads
@@ -53,11 +59,36 @@ const Files = () => {
       size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
       price: fileToUpload.price
     } 
+    let fileForDummyFiles = {
+      type: "file",
+      name: fileToUpload.name,
+      hashId: privateKey,
+      size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
+      providers: [{id: "user", price: fileToUpload.price, timestamp: new Date(), downloads: 0 , status: "online"}]
+    }
       setUploadHistory([...uploadHistory,newFile]);
+      setDummyFiles([...dummyFiles, fileForDummyFiles]);
       setFileToUpload(null);
     }
 
   },[fileToUpload]);
+
+
+  const handleSearch = (event) => {
+    // if (event.key === "Enter") {
+      // console.log(event.target.value); //can still extract info like this
+      event.preventDefault(); // Prevent the default form submission behavior i hate forms ;-; 
+      let fullSearchText = searchInput;
+      let file = dummyFiles.find((file) => file.hashId === fullSearchText);
+      event.target.value = ""; // this should clear it after clicking
+      // setSearchInput("");
+      setSearchResultsFound(true);
+      if(file !== undefined){
+        setFileToDownload(file);
+        // setDownloadOpen(true);
+      }
+    // }
+  }
 
   const handleSort = (event) => {
     let curSort = event.target.value;
@@ -272,7 +303,24 @@ const Files = () => {
 
     return (
       <>
+        <div className="">
+        <div className="header">
+          <div id="searchContainer">
+          <form id="search">
+            <div id="searchWrapper">
+              <label htmlFor="searchInput">
+              <input type="search" placeholder="Enter File Hash..." id="searchInput" onChange={(event)=>{setSearchInput(event.target.value)}} disabled = {location.pathname !== "/Files"}></input>
+              </label>
+              <button type="submit" id="findButton" onClick = {handleSearch} disabled = {location.pathname !== "/Files"}>
+                  <FaSearch />
+              </button>
+            </div>
+          </form>
+          </div>
+          </div>
+        </div>
         <h1 className = "text">Files</h1>
+        
         {/* {searchResultsFound ? <FileCard key = {fileToDownload.hashId} type = {fileToDownload.type} name = {fileToDownload.name} hashId = {fileToDownload.hashId}size = {fileToDownload.size}/> : <p></p>} */}
         <TabSelectHorizontal  setActiveTab = {setActiveTab} activeTab={activeTab}/>
         

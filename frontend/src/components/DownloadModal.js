@@ -32,26 +32,53 @@ const DownloadModal = ({}) =>{
           //add it to their uploads
           let fileForUploads = {...file};
           fileForUploads.price = Number(price);
+          let alreadyAdded = 0;
           const updatedDummyFiles = dummyFiles.map(file => {
             if (file.hashId === fileForUploads.hashId) {
-              return {
-                ...file,
-                providers: [
-                  ...file.providers,
-                  {
-                    id: "user",
-                    price: Number(price),
-                    timestamp: new Date(),
-                    downloads: 0,
-                    status: "online"
-                  }
-                ]
-              };
+              const existingUserProviderIndex = file.providers.findIndex(provider => provider.id === "user");
+              
+              if (existingUserProviderIndex !== -1) {
+                // Update existing provider 
+                alreadyAdded = 1;
+                const updatedProviders = [...file.providers];
+                updatedProviders[existingUserProviderIndex] = {
+                  ...updatedProviders[existingUserProviderIndex],
+                  price: Number(price),
+                  timestamp: new Date(),
+                  status: "online"
+                  // Not going to reset the download count we will count it as a reregister
+                };
+                
+                return {
+                  ...file,
+                  providers: updatedProviders
+                };
+              } else {
+                // Add new provider // the current user
+                return {
+                  ...file,
+                  providers: [
+                    ...file.providers,
+                    {
+                      id: "user",
+                      price: Number(price),
+                      timestamp: new Date(),
+                      downloads: 0,
+                      status: "online"
+                    }
+                  ]
+                };
+              }
             }
             return file;
-          }); //add ourselves to the list of providers of a file
+          });
           setDummyFiles([...updatedDummyFiles]);
-          setUploadHistory([...uploadHistory,fileForUploads]);
+          if(alreadyAdded == 1){
+            setUploadHistory([...uploadHistory]);
+          }
+          else{
+            setUploadHistory([...uploadHistory,fileForUploads]);
+          }
         }
         file.status = "downloading";
         file.index = downloads.length;
