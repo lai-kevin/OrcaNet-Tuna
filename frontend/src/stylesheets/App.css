@@ -1780,3 +1780,17 @@ input:checked + .sl:before {
   padding: 5px 10px;
   cursor: pointer;
 }
+
+.progress-bar-container {
+  width: 100%;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.progress-bar {
+  height: 10px;
+  /* background-color: #4CAF50; */
+  border-radius: 4px;
+  transition: width 0.5s ease-in-out;
+}
