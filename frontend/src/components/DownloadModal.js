@@ -82,6 +82,7 @@ const DownloadModal = ({user}) =>{
         }
         file.status = "downloading";
         file.index = downloads.length;
+        file.progress = Math.random() * (100 - 10) + 10;
         file.priority = downloads.length + 1; //set the priority. By default is the lowest possible priority of all the ongoing downloads
         setDownloads([...downloads,file]);
         setFileToDownload(null);

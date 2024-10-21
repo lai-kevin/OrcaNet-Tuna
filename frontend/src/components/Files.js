@@ -243,7 +243,7 @@ const Files = ({user}) => {
   }
   
 
-  const FileCardDownload = ({type,name,hashId,size,status,index}) =>{
+  const FileCardDownload = ({type,name,hashId,size,status,index,progress}) =>{
     //Variation of file cards meant for displaying files downloading
     //additional rendering for pause, resume, and cancel buttons based on status of download
     let FileIcon = LuFile; //image , folder, .pdf/.txt/everything else 
@@ -277,14 +277,22 @@ const Files = ({user}) => {
       buttons = <div> <button className="primary_button" onClick={handleCancel}><MdOutlineCancel/></button> <button className="primary_button" onClick={handleResume}><LuPlay/></button> </div>
     }
     //Might need to take into account possible key confliction when rendering if lets say a person queues the same file for download again
+    let progressBarColor = status === "paused" ? "#9b9b9b" : "#4CAF50";
     return(
       <div className = "fileCard">
         <div style = {{display: 'flex', alignItems: "center"}}><FileIcon style={{ width: '40%', height: '40%' }}/> </div>
         <div>
           <p>{name}</p>
           <p style = {{color: "#9b9b9b"}} >{hashId}</p>
+          <div className="progress-bar-container">
+          <div 
+            className="progress-bar" 
+            style={{width: `${progress}%`, backgroundColor: progressBarColor }}
+          ></div>
+        </div>
         </div>
         <div>{size} <> {buttons}</></div>
+        
       </div>
 
     );
@@ -334,6 +342,7 @@ const Files = ({user}) => {
               hashId = {file.hashId}
               size = {file.size}
               status = {file.status}
+              progress={file.progress}
             />
           )
         });
