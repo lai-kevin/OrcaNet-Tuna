@@ -8,3 +8,11 @@ Instructions for running:
 4. The above step should open an Electron app and our OrcaNet interface
 5. To begin, click on Register and copy the private key
 6. Using the copied private key, login! 
+
+To access some of the features as described in the design doc we have provided a few sample hashes that can be used with the search bar in the **Files** Tab to preview the workflow for downloading a file.
+```
+Hash 1: Zxczv123kcbxvh14boadab
+
+Hash 2: Asdasdxc5nksdhbvshba2315jhd
+```
+You can also add your own files to the uploads and use the hash generated as well.
