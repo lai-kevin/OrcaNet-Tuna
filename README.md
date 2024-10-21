@@ -16,3 +16,5 @@ Hash 1: Zxczv123kcbxvh14boadab
 Hash 2: Asdasdxc5nksdhbvshba2315jhd
 ```
 You can also add your own files to the uploads and use the hash generated as well.
+
+For the proxy function, sample incoming/outgoing proxy requests are generated. Please wait a few seconds on the page to see the generated data.
