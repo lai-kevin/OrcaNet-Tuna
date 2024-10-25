@@ -46,7 +46,7 @@ const Navbar = () => {
           <NavLink to="/Settings" >
             <div className="section">
               <IoIosSettings className="icon" />
-              <span className="link">Settings</span>
+              <span className="link">Account</span>
             </div>
           </NavLink>
         </li>
