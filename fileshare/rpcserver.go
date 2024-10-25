@@ -33,7 +33,6 @@ type GetFileMetaDataArgs struct {
 type ProvideFileArgs struct {
 	FilePath string  `json:"file_path"`
 	Price    float64 `json:"price"`
-	PeerID   string  `json:"peer_id"`
 }
 
 type ProvideFileReply struct {
@@ -79,7 +78,7 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 	log.Printf("Received ProvideFile request for file %s with price %f\n", args.FilePath, args.Price)
 
 	filepath := args.FilePath
-	peerID := args.PeerID
+	peerID := globalNode.ID().String()
 
 	fileHash := generateFileHash(filepath)
 
@@ -105,6 +104,4 @@ func startRPCServer(orcaDHT *dht.IpfsDHT) {
 
 	fmt.Println("Starting JSON-RPC server on port 1234")
 	http.ListenAndServe(":1234", r)
-
-	select {}
 }

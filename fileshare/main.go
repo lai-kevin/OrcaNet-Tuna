@@ -513,6 +513,8 @@ func main() {
 		fmt.Printf("NEW NODE INITIALIZED: %s/p2p/%s\n", addr, node.ID())
 	}
 
+	go startRPCServer(orcaDHT)
+
 	go handlePeerExhangeWithRelay(node)
 
 	// Keep the node running until the user exits
@@ -525,6 +527,5 @@ func main() {
 	go receiveFileData(node)
 
 	defer node.Close()
-
 	select {}
 }
