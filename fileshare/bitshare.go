@@ -89,7 +89,7 @@ func receiveFileRequests(node host.Host) {
 	node.SetStreamHandler("/sendmessage/p2p", func(stream network.Stream) {
 		defer stream.Close()
 
-		fmt.Println("Received file request. Now reading data...")
+		fmt.Println("Received file request. Now reading request data...")
 
 		buffer := bufio.NewReader(stream)
 
@@ -116,7 +116,7 @@ func receiveFileRequests(node host.Host) {
 			if err != nil {
 				log.Printf("Error sending file not found message: %v", err)
 			} else {
-				log.Printf("Sent file not found message")
+				log.Printf("Sent file not found message: %v", fileRequest.FileHash)
 			}
 		} else {
 			// Send the file to the requester
