@@ -56,8 +56,21 @@ func StartOrcaNet() error {
         return fmt.Errorf("OrcaNet binary not found at %s", orcaNetPath)
     }
 
+    rpcUser := "user"         
+    rpcPass := "password"     
+    miningAddr := "1885q3h76A4kK3yceXMVFRTjCaWzeZNPTj"
+
+    // Arguments to start btcd with custom configurations
+    args := []string{
+        "--rpcuser=" + rpcUser,
+        "--rpcpass=" + rpcPass,
+        "--notls",                   // Disable TLS (for local testing only; secure in production)
+        "--miningaddr=" + miningAddr, // Address to receive mining rewards
+    }
+
+
     // Start the OrcaNet process with the correct binary path
-    orcaNetCmd := exec.Command(orcaNetPath)
+    orcaNetCmd := exec.Command(orcaNetPath, args...)
 
     // Get stdout and stderr pipes to capture the output of the process
     stdout, err := orcaNetCmd.StdoutPipe()
@@ -112,21 +125,44 @@ func StopOrcaNet() error {
 
 // Start the wallet service
 func StartWallet() error {
-	exePath, err := getExePath()
+	rootPath, err := getExePath()
 	if err != nil {
 		return err
 	}
-	walletPath := filepath.Join(filepath.Dir(exePath), "btcwallet", "btcwallet")
+	walletPath := filepath.Join(rootPath, "btcwallet", "btcwallet")
 
 	_, err = os.Stat(walletPath)
 	if os.IsNotExist(err) {
 		return fmt.Errorf("Wallet binary not found at %s", walletPath)
 	}
 
-	walletCmd = exec.Command(walletPath)
+    // Note to self:
+    // Create a wallet if you do not have one
+    btcdUser := "user"
+    btcdPass := "password"
+
+    args := []string{
+        "--btcdusername=" + btcdUser,
+        "--btcdpassword=" + btcdPass,
+    }
+
+	walletCmd = exec.Command(walletPath, args...)
+    
+    stdout, err := walletCmd.StdoutPipe()
+    if err != nil {
+        return fmt.Errorf("failed to create stdout pipe: %v", err)
+    }
+    stderr, err := walletCmd.StderrPipe()
+    if err != nil {
+        return fmt.Errorf("failed to create stderr pipe: %v", err)
+    }
+    
 	if err := walletCmd.Start(); err != nil {
 		return fmt.Errorf("failed to start wallet: %v", err)
 	}
+
+    go streamOutput(stdout, "btcwallet")
+    go streamOutput(stderr, "btcwallet error")
 
 	fmt.Println("Wallet started successfully.")
 	return nil

@@ -33,12 +33,18 @@ func main() {
 		log.Fatalf("Failed to start OrcaNet: %v", err)
 	}
 
+	// Start the btcwallet service
+	if err := manager.StartWallet(); err != nil {
+        log.Fatalf("Failed to start btcwallet: %v", err)
+    }
+
 	// Handle graceful shutdown for the OrcaNet service
 	handleGracefulShutdown()
 
 	// Start the HTTP server
 	const serverAddr = ":8080"
 	log.Printf("Server starting on %s...\n", serverAddr)
+
 	if err := http.ListenAndServe(serverAddr, nil); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
@@ -59,18 +65,22 @@ func setupRoutes() {
 }
 
 // handleGracefulShutdown listens for termination signals and shuts down services gracefully
-func handleGracefulShutdown() {
-	stopChan := make(chan os.Signal, 1)
-	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
+// Ctrl+C or SIGTERM
+func handleGracefulShutdown() {	 
+	stopChan := make(chan os.Signal, 1) // Creates a channel to listen for OS signals
+	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM) // Notify the chanel when Interrupt or SIGTERM signals are recieved
 
+	// Uses go routine to wait for the termination signal in the background
 	go func() {
 		<-stopChan // Wait for a termination signal
-
 		fmt.Println("Shutdown signal received. Stopping services...")
 
-		// Stop the OrcaNet service
 		if err := manager.StopOrcaNet(); err != nil {
 			log.Fatalf("Failed to stop OrcaNet: %v", err)
+		}
+
+		if err := manager.StopWallet(); err != nil {
+			log.Fatalf("Failed to stop btcwallet: %v", err)
 		}
 
 		// Exit the program
