@@ -1,21 +1,28 @@
 //Maybe merge a few of the file modals into one file and do some conditional rendering
 //To minimize the number of new files in directory, prop drilling, global context references
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { LiaDownloadSolid } from "react-icons/lia";
 
 
 const CancelUploadModal = () =>{
     const {uploadHistory,setUploadHistory,setFileToRemove, fileToRemove} = useContext(AppContext);
+    const [errMsg, setErrorMsg] = useState("");
     const handleClose = () => {
         setFileToRemove(null);
+        setErrorMsg("");
     }
 
     const handleRemove = () => {
+      if(!fileToRemove.downloaders){
         const updatedDownloads = uploadHistory.filter((upload) => upload.hashId !== fileToRemove.hashId);
         setUploadHistory([...updatedDownloads]);
         setFileToRemove(null);
+      }
+      else{
+        setErrorMsg("The file you wish to stop serving is currently being downloaded by " + fileToRemove.downloaders.length + " users.")
+      }
     }
     return (
       <div className="modal">
@@ -23,6 +30,9 @@ const CancelUploadModal = () =>{
           <p>Would you like to stop serving the following file?</p>
           <br/>
           <p>{fileToRemove.name}</p>
+          <p>{"hash ID: " + fileToRemove.hashId}</p>
+          <p>{"Price: " + fileToRemove.price + " OrcaCoin"}</p>
+          {errMsg &&  <div style={{color: "red", fontWeight: "800"}}><p>{errMsg}</p> <p>All transactions related to the above file must be complete prior to removal.</p></div>}
           <br/>
           <div style={{ display: "flex", gap: "10px" }}>
             <button className="primary_button" onClick={handleRemove}>Stop Sharing</button>
