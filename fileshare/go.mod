@@ -3,6 +3,8 @@ module fileshare
 go 1.23.1
 
 require (
+	github.com/gorilla/mux v1.8.1
+	github.com/gorilla/rpc v1.2.1
 	github.com/libp2p/go-libp2p v0.36.5
 	github.com/libp2p/go-libp2p-core v0.20.1
 	github.com/libp2p/go-libp2p-kad-dht v0.27.0
