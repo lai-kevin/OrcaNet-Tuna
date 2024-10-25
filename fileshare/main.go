@@ -43,10 +43,7 @@ var DOWNLOAD_DIRECTORY = "downloads"
 // Global context for the application
 var globalCtx context.Context
 
-// File hash to file path mapping.
-// This is used when a node is providing a file.
-// The map is updated when a file is provided to the network or the file path is changed.
-var fileHashToPath = make(map[string]string)
+var globalNode host.Host
 
 // File hash to file type mapping
 // This is used when a node is requesting a file and needs the file type for saving.
@@ -483,6 +480,8 @@ func main() {
 		log.Printf("Error occured while creating node: %v", err)
 		return
 	}
+
+	globalNode = node
 
 	// Create context for the application
 	contex, cancel := context.WithCancel(context.Background())

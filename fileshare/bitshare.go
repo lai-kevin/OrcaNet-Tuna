@@ -22,6 +22,9 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 )
 
+var fileHashToPath = make(map[string]string)
+var isFileHashProvided = make(map[string]bool)
+
 // File struct for file data
 // Send when a client is ready to make a transaction and download a file
 type FileDataHeader struct {
