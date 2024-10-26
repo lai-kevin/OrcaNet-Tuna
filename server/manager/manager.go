@@ -140,10 +140,14 @@ func StartWallet() error {
     // Create a wallet if you do not have one
     btcdUser := "user"
     btcdPass := "password"
+    rpcConnect := "127.0.0.1:8334" // Don't know if I need this
+    rpcListen := "127.0.0.1:8332" // Don't know if I need this 
 
     args := []string{
         "--btcdusername=" + btcdUser,
         "--btcdpassword=" + btcdPass,
+        "--rpcconnect=" + rpcConnect,
+        "--rpclisten="+ rpcListen,
     }
 
 	walletCmd = exec.Command(walletPath, args...)
@@ -197,54 +201,80 @@ func handleGracefulShutdown() {
 	os.Exit(0)
 }
 
-// Read RPC info from btcd.conf
-func readRPCInfo(confPath string) ([]string, error) {
-	body, err := os.ReadFile(confPath)
-	if err != nil {
-		return nil, fmt.Errorf("error reading btcd.conf file: %v", err)
-	}
+// // ReadRPCInfo reads the rpcuser and rpcpass values from btcd.conf located in the user's home directory
+// func readRPCInfo() ([]string, error) {
+//     // Get the user's home directory
+//     homeDir, err := os.UserHomeDir()
+//     if err != nil {
+//         return nil, fmt.Errorf("unable to determine home directory: %v", err)
+//     }
 
-	var rpcInfo []string
-	lines := strings.Split(string(body), "\n")
-	for _, line := range lines {
-		if strings.HasPrefix(line, "rpcuser") || strings.HasPrefix(line, "rpcpass") {
-			parts := strings.Split(line, "=")
-			if len(parts) == 2 {
-				rpcInfo = append(rpcInfo, strings.TrimSpace(parts[1]))
-			}
-		}
-	}
+//     // Construct the path to ~/.btcd/btcd.conf
+//     confPath := filepath.Join(homeDir, ".btcd", "btcd.conf")
 
-	if len(rpcInfo) < 2 {
-		return nil, fmt.Errorf("incomplete rpc information in btcd.conf")
-	}
-	return rpcInfo, nil
-}
+//     // Read the content of the configuration file
+//     body, err := os.ReadFile(confPath)
+//     if err != nil {
+//         return nil, fmt.Errorf("error reading btcd.conf file at %s: %v", confPath, err)
+//     }
 
-// CallBtcctlCmd calls a btcctl command and returns the result
+//     var rpcInfo []string
+//     lines := strings.Split(string(body), "\n")
+//     for _, line := range lines {
+//         // Check if the line has either "rpcuser" or "rpcpass"
+//         if strings.HasPrefix(line, "rpcuser") || strings.HasPrefix(line, "rpcpass") {
+//             parts := strings.Split(line, "=")
+//             if len(parts) == 2 {
+//                 rpcInfo = append(rpcInfo, strings.TrimSpace(parts[1]))
+//             }
+//         }
+//     }
+
+//     // Ensure both rpcuser and rpcpass were found
+//     if len(rpcInfo) < 2 {
+//         return nil, fmt.Errorf("incomplete RPC information in btcd.conf: missing rpcuser or rpcpass")
+//     }
+//     return rpcInfo, nil
+// }
+
+// CallBtcctlCmd executes a btcctl command with the necessary RPC credentials and returns the output
 func CallBtcctlCmd(cmdStr string) (string, error) {
-	// Get the rpc values from btcd.conf
-	rpcInfo, err := readRPCInfo(filepath.Join(filepath.Dir(os.Getenv("HOME")), ".btcd", "btcd.conf"))
-	if err != nil {
-		return "", fmt.Errorf("failed to read RPC info: %v", err)
-	}
+    // Hardcoded RPC credentials and connection details
+    rpcUser := "user"      // Replace with your actual RPC user
+    rpcPass := "password"  // Replace with your actual RPC password
+    rpcServer := "127.0.0.1:8334" // Replace with your actual RPC connection (default port for btcd is 8334)
 
-	exePath, err := getExePath()
-	if err != nil {
-		return "", fmt.Errorf("failed to get executable path: %v", err)
-	}
+    // Determine the project root path using getExePath
+    rootPath, err := getExePath()
+    if err != nil {
+        return "", fmt.Errorf("failed to get executable path: %v", err)
+    }
 
-	btcctlPath := filepath.Join(filepath.Dir(exePath), "btcctl")
+    // Construct the full path to btcctl binary within btcd/cmd/btcctl
+    btcctlPath := filepath.Join(rootPath, "btcd", "cmd", "btcctl", "btcctl")
+    fmt.Printf("Executing btcctl at path: %s\n", btcctlPath) // Debugging statement to verify path
 
-	// Add rpcuser and rpcpass to btcctl command
-	params := strings.Split(cmdStr, " ")
-	params = append(params, "--rpcuser="+rpcInfo[0], "--rpcpass="+rpcInfo[1])
+    // Check if the btcctl binary exists
+    if _, err := os.Stat(btcctlPath); os.IsNotExist(err) {
+        return "", fmt.Errorf("btcctl binary not found at %s", btcctlPath)
+    }
 
-	cmd := exec.Command(btcctlPath, params...)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("failed to execute btcctl command: %s, error: %v", cmdStr, err)
-	}
+    // Split command string into arguments and add hardcoded RPC credentials and connection flags
+    params := strings.Split(cmdStr, " ")
+    params = append(params,
+        "--wallet",
+        "--rpcuser="+rpcUser,
+        "--rpcpass="+rpcPass,
+        "--rpcserver="+rpcServer,
+        "--notls", // Optional, only use in development if TLS is disabled
+    )
 
-	return string(output), nil
+    // Execute the btcctl command with the constructed parameters
+    cmd := exec.Command(btcctlPath, params...)
+    output, err := cmd.CombinedOutput() // CombinedOutput captures both stdout and stderr
+    if err != nil {
+        return "", fmt.Errorf("failed to execute btcctl command: %v, output: %s", err, string(output))
+    }
+
+    return strings.TrimSpace(string(output)), nil
 }

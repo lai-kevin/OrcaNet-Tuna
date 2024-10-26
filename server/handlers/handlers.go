@@ -4,19 +4,43 @@ import (
 	"fmt"
 	"net/http"
 	"encoding/json"
+    "github.com/lai-kevin/OrcaNet-Tuna/server/manager"
+    "time"
 )
 
-// Root handler
+// GetRoot returns a welcome message and blockchain info
 func GetRoot(w http.ResponseWriter, r *http.Request) {
-	response := map[string]string{"message": "Welcome to OrcaNet API from testcrypto!"}
-	json.NewEncoder(w).Encode(response)
+    // Retrieve blockchain information using getblockchaininfo command
+    info, err := manager.CallBtcctlCmd("getblockchaininfo")
+    if err != nil {
+        http.Error(w, "Failed to retrieve blockchain info: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    // Construct JSON response with dynamic info
+    response := map[string]string{
+        "message": "Welcome to OrcaNet API from testcrypto!",
+        "info":    info,
+    }
+
+    // Send JSON response
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(response)
 }
 
-// Example handler for "/hello" route
+// GetHello provides a simple hello message with a timestamp
 func GetHello(w http.ResponseWriter, r *http.Request) {
-	response := map[string]string{"message": "Hello World!"}
-	json.NewEncoder(w).Encode(response)
+    // Prepare response with current timestamp
+    response := map[string]string{
+        "message":   "Hello World!",
+        "timestamp": time.Now().Format(time.RFC3339),
+    }
+
+    // Send JSON response
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(response)
 }
+
 
 // Handler to get blockchain info
 func GetBlockchainInfo(w http.ResponseWriter, r *http.Request) {
@@ -25,11 +49,24 @@ func GetBlockchainInfo(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// Handler to get a new address
+// GetNewAddress generates and returns a new wallet address
 func GetNewAddress(w http.ResponseWriter, r *http.Request) {
-	// Generate and return a new address
-	response := map[string]string{"newAddress": "[Address]"}
-	json.NewEncoder(w).Encode(response)
+    // Call getnewaddress command
+    newAddress, err := manager.CallBtcctlCmd("getnewaddress")
+    if err != nil {
+        // Return an error message to the client if address generation fails
+        http.Error(w, "Failed to generate new address: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    // Prepare JSON response with the new address
+    response := map[string]string{
+        "newAddress": newAddress,
+    }
+
+    // Send the JSON response
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(response)
 }
 
 // Handler to get balance
