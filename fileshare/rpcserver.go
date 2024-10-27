@@ -11,17 +11,9 @@ import (
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 )
 
-// DHT instance for the node
 var globalOrcaDHT *dht.IpfsDHT
 
-type Args struct {
-	A, B int
-}
-
-type Result struct {
-	Sum int
-}
-
+// REQUEST STRUCTS
 type GetFileArgs struct {
 	FileHash string `json:"file_hash"`
 }
@@ -30,11 +22,15 @@ type GetFileMetaDataArgs struct {
 	FileHash string `json:"file_hash"`
 }
 
+type GetHistoryArgs struct {
+}
+
 type ProvideFileArgs struct {
 	FilePath string  `json:"file_path"`
 	Price    float64 `json:"price"`
 }
 
+// REPLY STRUCTS
 type ProvideFileReply struct {
 	Success bool `json:"success"`
 }
@@ -47,10 +43,17 @@ type GetFileMetaDataReply struct {
 	Success bool `json:"success"`
 }
 
+type GetHistoryReply struct {
+	Success bool              `json:"success"`
+	History []FileTransaction `json:"history"`
+}
+
 type FileShareService struct{}
 
 func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *ProvideFileReply) error {
 	log.Printf("Received GetFile request for file hash %s\n", args.FileHash)
+
+	// TODO: send file meta data request and store in history as file transaction
 
 	err := connectAndRequestFileFromPeer(args.FileHash)
 	if err != nil {
@@ -64,7 +67,7 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Pr
 	return nil
 }
 
-func (s *FileShareService) getFileMetaData(r *http.Request, args *GetFileMetaDataArgs, reply *GetFileMetaDataReply) error {
+func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDataArgs, reply *GetFileMetaDataReply) error {
 	log.Printf("Received GetFileMetaData request for file hash %s\n", args.FileHash)
 
 	//TODO: connect and request file metadata
@@ -72,6 +75,10 @@ func (s *FileShareService) getFileMetaData(r *http.Request, args *GetFileMetaDat
 	*reply = GetFileMetaDataReply{Success: true}
 
 	return nil
+}
+
+func (s *FileShareService) GetHistory(r *http.Request, args *GetHistoryArgs, reply *GetHistoryReply) error {
+	log.Printf("Received GetHistory request")
 }
 
 func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, reply *ProvideFileReply) error {
