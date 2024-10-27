@@ -32,11 +32,11 @@ import (
 )
 
 // Hard coded values to connect to TA provided relay node and bootstrap node
-// CHANGE AS NEEDED
 const BOOTSTRAP_NODE_MULTIADDR = "/ip4/130.245.173.222/tcp/61000/p2p/12D3KooWQd1K1k8XA9xVEzSAu7HUCodC7LJB6uW5Kw4VwkRdstPE"
 const RELAY_NODE_MULTIADDR = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
 const DESKTOP_NODE_MULTIADDR = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN/p2p-circuit/p2p/12D3KooWS9VBsbpZPzpxsK6by9LzFUsW62fHHk3owJGHRKWy4KnX"
-const SBU_ID = "111111110"
+
+var SBU_ID string
 
 var DOWNLOAD_DIRECTORY = "downloads"
 
@@ -413,7 +413,6 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) 
 				fmt.Println("Expected file path")
 				continue
 			}
-			// TODO: Implement
 			continue
 		case "GET_FILE":
 			if len(args) < 2 {
@@ -474,6 +473,12 @@ func provideKey(ctx context.Context, dht *dht.IpfsDHT, key string) error {
 }
 
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Println("Expected SBU ID")
+		return
+	}
+	SBU_ID = os.Args[1]
+
 	// Start node
 	node, orcaDHT, err := createNode(dht.ModeServer)
 	if err != nil {
