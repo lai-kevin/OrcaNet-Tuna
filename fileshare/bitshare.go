@@ -27,7 +27,7 @@ var fileHashToPath = make(map[string]string)
 var isFileHashProvided = make(map[string]bool)
 
 type FileTransaction struct {
-	FileRequest  FileRequest
+	FileHash     string
 	FileMetaData FileDataHeader
 }
 

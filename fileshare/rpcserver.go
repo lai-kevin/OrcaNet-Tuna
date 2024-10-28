@@ -56,12 +56,23 @@ type GetHistoryReply struct {
 type FileShareService struct{}
 
 var metadataResponse = make(map[string]FileDataHeader)
-var history []FileTransaction
+var history = []FileTransaction{}
 
 func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *GetFileReply) error {
 	log.Printf("Received GetFile request for file hash %s\n", args.FileHash)
 
-	// TODO: send file meta data request and store in history as file transaction
+	metadata, ok := metadataResponse[args.FileHash]
+	if !ok {
+		log.Printf("File metadata not cached %s\n", args.FileHash)
+		*reply = GetFileReply{Success: true}
+		history = append(history, FileTransaction{
+			FileHash:     args.FileHash,
+			FileMetaData: FileDataHeader{FileName: "Unknown", FileSize: 0}}) // TODO: Fetch metadata from DHT
+	} else {
+		history = append(history, FileTransaction{
+			FileHash:     args.FileHash,
+			FileMetaData: metadata})
+	}
 
 	err := connectAndRequestFileFromPeer(args.FileHash)
 	if err != nil {
@@ -110,6 +121,7 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 
 func (s *FileShareService) GetHistory(r *http.Request, args *GetHistoryArgs, reply *GetHistoryReply) error {
 	log.Printf("Received GetHistory request")
+	*reply = GetHistoryReply{Success: true, History: history}
 	return nil
 }
 
