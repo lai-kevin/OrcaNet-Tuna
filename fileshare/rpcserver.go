@@ -11,7 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/rpc"
-	"github.com/gorilla/rpc/json"
+	rpcjson "github.com/gorilla/rpc/json"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 )
 
@@ -44,8 +44,8 @@ type GetFileReply struct {
 }
 
 type GetFileMetaDataReply struct {
-	Success      bool    `json:"success"`
-	FileMetaData []bytes `json:"file_meta_data"`
+	Success      bool   `json:"success"`
+	FileMetaData []byte `json:"file_meta_data"`
 }
 
 type GetHistoryReply struct {
@@ -141,7 +141,7 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 func startRPCServer(orcaDHT *dht.IpfsDHT) {
 	globalOrcaDHT = orcaDHT
 	s := rpc.NewServer()
-	s.RegisterCodec(json.NewCodec(), "application/json")
+	s.RegisterCodec(rpcjson.NewCodec(), "application/json")
 	s.RegisterService(new(FileShareService), "")
 
 	r := mux.NewRouter()
