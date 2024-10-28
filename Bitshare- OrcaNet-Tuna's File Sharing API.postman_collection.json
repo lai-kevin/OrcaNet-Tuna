@@ -1,0 +1,186 @@
+{
+	"info": {
+		"_postman_id": "b8ab3027-6a15-40cb-9312-d5f589322dcd",
+		"name": "Bitshare: OrcaNet-Tuna's File Sharing API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30898740"
+	},
+	"item": [
+		{
+			"name": "PROVIDE_FILE",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.ProvideFile\",\r\n    \"params\": [\r\n        {\r\n            \"file_path\": \"examples/test.txt\",\r\n            \"price\": 5\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:1234/rpc",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1234",
+					"path": [
+						"rpc"
+					]
+				},
+				"description": "Make a file available for download at set price"
+			},
+			"response": [
+				{
+					"name": "http://localhost:1234/rpc",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.ProvideFile\",\r\n    \"params\": [\r\n        {\r\n            \"file_path\": \"examples/test.txt\",\r\n            \"price\": 5\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:1234/rpc",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "1234",
+							"path": [
+								"rpc"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "plain",
+					"header": [
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 25 Oct 2024 03:27:54 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "0"
+						}
+					],
+					"cookie": [],
+					"body": null
+				}
+			]
+		},
+		{
+			"name": "GET_FILE",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.GetFile\",\r\n    \"params\": [\r\n        {\r\n            \"file_hash\": \"8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891\"\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:1234/rpc",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1234",
+					"path": [
+						"rpc"
+					]
+				},
+				"description": "Download a file from OrcaNet by a file hash. Sending this request is also confirms the user wants to proceed with the payment."
+			},
+			"response": [
+				{
+					"name": "GET_FILE",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.GetFile\",\r\n    \"params\": [\r\n        {\r\n            \"file_hash\": \"8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:1234/rpc",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "1234",
+							"path": [
+								"rpc"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "plain",
+					"header": [
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 25 Oct 2024 03:30:36 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "0"
+						}
+					],
+					"cookie": [],
+					"body": null
+				}
+			]
+		}
+	]
+}
