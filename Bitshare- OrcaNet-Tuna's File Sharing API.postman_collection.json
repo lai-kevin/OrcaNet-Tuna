@@ -7,6 +7,130 @@
 	},
 	"item": [
 		{
+			"name": "IN PROGRESS",
+			"item": [
+				{
+					"name": "PAUSE_DOWNLOAD",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.PauseDownload\",\r\n    \"params\": [\r\n        {\r\n            \"file_hash\": \"8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:1234/rpc",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "1234",
+							"path": [
+								"rpc"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET_NODE_INFO",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.GetNodeInfo\",\r\n    \"params\": [\r\n        {\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:1234/rpc",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "1234",
+							"path": [
+								"rpc"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CONNECT_WALLET (TODO)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.ConnectWallet\",\r\n    \"params\": [\r\n        {\r\n            \"walletID\" : \"12345\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RESUME_DOWNLOAD",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.ResumeDownload\",\r\n    \"params\": [\r\n        {\r\n            \"file_hash\": \"8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:1234/rpc",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "1234",
+							"path": [
+								"rpc"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "PROVIDE_FILE",
 			"request": {
 				"method": "POST",
@@ -179,6 +303,188 @@
 					],
 					"cookie": [],
 					"body": null
+				}
+			]
+		},
+		{
+			"name": "GET_FILE_META_DATA",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.GetFileMetaData\",\r\n    \"params\": [\r\n        {\r\n            \"file_hash\": \"8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891\"\r\n        }\r\n    ],\r\n    \"id\": 1\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:1234/rpc",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1234",
+					"path": [
+						"rpc"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "GET_FILE_META_DATA",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.GetFileMetaData\",\r\n    \"params\": [\r\n        {\r\n            \"file_hash\": \"8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891\"\r\n        }\r\n    ],\r\n    \"id\": 1\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:1234/rpc",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "1234",
+							"path": [
+								"rpc"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Date",
+							"value": "Mon, 28 Oct 2024 03:39:46 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "310"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"result\": {\n        \"success\": true,\n        \"file_meta_data\": {\n            \"FileName\": \"test.txt\",\n            \"FileSize\": 29,\n            \"FileHash\": \"8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891\",\n            \"FileExtension\": \".txt\",\n            \"Multiaddress\": \"/ip4/127.0.0.1/tcp/50935\",\n            \"PeerID\": \"12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa\"\n        }\n    },\n    \"error\": null,\n    \"id\": 1\n}"
+				}
+			]
+		},
+		{
+			"name": "GET_HISTORY",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.GetHistory\",\r\n    \"params\": [],\r\n    \"id\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:1234/rpc",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1234",
+					"path": [
+						"rpc"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "GET_HISTORY",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.GetHistory\",\r\n    \"params\": [],\r\n    \"id\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:1234/rpc",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "1234",
+							"path": [
+								"rpc"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Date",
+							"value": "Mon, 28 Oct 2024 05:45:10 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "788"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"result\": {\n        \"success\": true,\n        \"history\": [\n            {\n                \"FileHash\": \"8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891\",\n                \"FileMetaData\": {\n                    \"FileName\": \"Unknown\",\n                    \"FileSize\": 0,\n                    \"FileHash\": \"\",\n                    \"FileExtension\": \"\",\n                    \"Multiaddress\": \"\",\n                    \"PeerID\": \"\"\n                }\n            },\n            {\n                \"FileHash\": \"8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891\",\n                \"FileMetaData\": {\n                    \"FileName\": \"Unknown\",\n                    \"FileSize\": 0,\n                    \"FileHash\": \"\",\n                    \"FileExtension\": \"\",\n                    \"Multiaddress\": \"\",\n                    \"PeerID\": \"\"\n                }\n            },\n            {\n                \"FileHash\": \"8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891\",\n                \"FileMetaData\": {\n                    \"FileName\": \"test.txt\",\n                    \"FileSize\": 29,\n                    \"FileHash\": \"8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891\",\n                    \"FileExtension\": \".txt\",\n                    \"Multiaddress\": \"/ip4/127.0.0.1/tcp/55358\",\n                    \"PeerID\": \"12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa\"\n                }\n            }\n        ]\n    },\n    \"error\": null,\n    \"id\": 1\n}"
 				}
 			]
 		}
