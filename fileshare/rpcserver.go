@@ -1,8 +1,9 @@
 // Author: Kevin Lai
-// This file handles the RPC server to provide file sharing services to the client
+// This file handles the RPC server to provide file sharing services to the client.
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -43,8 +44,8 @@ type GetFileReply struct {
 }
 
 type GetFileMetaDataReply struct {
-	Success      bool           `json:"success"`
-	FileMetaData FileDataHeader `json:"file_meta_data"`
+	Success      bool    `json:"success"`
+	FileMetaData []bytes `json:"file_meta_data"`
 }
 
 type GetHistoryReply struct {
@@ -94,10 +95,21 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 			*reply = GetFileMetaDataReply{Success: false}
 			return fmt.Errorf("timeout while waiting for file meta data")
 		case <-tick:
-			if metaData, exists := metadataResponse[args.FileHash]; exists {
-				*reply = GetFileMetaDataReply{Success: true, FileMetaData: metaData}
-				return nil
+			metaData, ok := metadataResponse[args.FileHash]
+			if !ok {
+				log.Printf("File metadata does not exist. Failed to marshal %s\n", args.FileHash)
+				*reply = GetFileMetaDataReply{Success: false}
+				return err
 			}
+			metaDataBytes, err := json.Marshal(metaData)
+			if err != nil {
+				log.Printf("Failed to marshal meta data: %v\n", err)
+				*reply = GetFileMetaDataReply{Success: false}
+				return err
+			}
+
+			*reply = GetFileMetaDataReply{Success: true, FileMetaData: metaDataBytes}
+			return nil
 		}
 	}
 }
