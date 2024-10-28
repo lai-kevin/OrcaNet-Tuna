@@ -207,7 +207,7 @@ func receiveFileMetaDataRequests(node host.Host) {
 		var fileRequest FileRequest
 		err = json.Unmarshal(data, &fileRequest)
 		if err != nil {
-			log.Printf("Error unmarshalling file request: %v", err)
+			log.Printf("Error unmarshalling file metadata request: %v", err)
 			return
 		}
 
@@ -224,9 +224,9 @@ func receiveFileMetaDataRequests(node host.Host) {
 			// Send the file to the requester
 			err = sendFileMetaDataToPeer(node, fileRequest.RequesterID, filePath, fileRequest.FileHash)
 			if err != nil {
-				log.Printf("Error sending file: %v", err)
+				log.Printf("Error sending file metadata: %v", err)
 			} else {
-				log.Printf("File sent")
+				log.Printf("File metadata sent")
 			}
 		}
 
