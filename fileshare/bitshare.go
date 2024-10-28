@@ -1,5 +1,6 @@
 // Author: Kevin Lai
 // Bitshare is a library for sending and receiving files.
+// This file handles the peer to peer communication for file sharing.
 package main
 
 import (
@@ -24,7 +25,6 @@ import (
 
 var fileHashToPath = make(map[string]string)
 var isFileHashProvided = make(map[string]bool)
-var history []FileTransaction
 
 type FileTransaction struct {
 	FileRequest  FileRequest

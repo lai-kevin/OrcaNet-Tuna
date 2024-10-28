@@ -66,3 +66,29 @@ func connectAndRequestFileFromPeer(fileHash string) error {
 
 	return nil
 }
+
+func connectAndRequestFileMetaDataFromPeer(fileHash string) error {
+	dhtKey := "/orcanet/" + fileHash
+
+	log.Println("Searching for file hash: ", dhtKey)
+	res, err := globalOrcaDHT.GetValue(globalCtx, dhtKey)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("File found at peerID: %s\n", res)
+
+	// Connect to the peer
+	providerPeerID := string(res)
+	err = connectToNodeUsingRelay(globalNode, providerPeerID)
+	if err != nil {
+		return err
+	}
+
+	// Request the file metadata from the peer
+	err = sendFileMetaDataRequestToPeer(globalNode, providerPeerID, fileHash)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

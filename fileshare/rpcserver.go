@@ -1,9 +1,12 @@
+// Author: Kevin Lai
+// This file handles the RPC server to provide file sharing services to the client
 package main
 
 import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/rpc"
@@ -40,7 +43,8 @@ type GetFileReply struct {
 }
 
 type GetFileMetaDataReply struct {
-	Success bool `json:"success"`
+	Success      bool           `json:"success"`
+	FileMetaData FileDataHeader `json:"file_meta_data"`
 }
 
 type GetHistoryReply struct {
@@ -49,6 +53,9 @@ type GetHistoryReply struct {
 }
 
 type FileShareService struct{}
+
+var metadataResponse = make(map[string]FileDataHeader)
+var history []FileTransaction
 
 func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *ProvideFileReply) error {
 	log.Printf("Received GetFile request for file hash %s\n", args.FileHash)
@@ -70,15 +77,34 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Pr
 func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDataArgs, reply *GetFileMetaDataReply) error {
 	log.Printf("Received GetFileMetaData request for file hash %s\n", args.FileHash)
 
-	//TODO: connect and request file metadata
+	err := connectAndRequestFileMetaDataFromPeer(args.FileHash)
+	if err != nil {
+		log.Printf("Failed to get file meta data: %v\n", err)
+		*reply = GetFileMetaDataReply{Success: false}
+		return err
+	}
 
-	*reply = GetFileMetaDataReply{Success: true}
+	timeout := time.After(10 * time.Second)
+	tick := time.Tick(500 * time.Millisecond)
 
-	return nil
+	for {
+		select {
+		case <-timeout:
+			log.Printf("Timeout while waiting for file meta data for file hash %s\n", args.FileHash)
+			*reply = GetFileMetaDataReply{Success: false}
+			return fmt.Errorf("timeout while waiting for file meta data")
+		case <-tick:
+			if metaData, exists := metadataResponse[args.FileHash]; exists {
+				*reply = GetFileMetaDataReply{Success: true, FileMetaData: metaData}
+				return nil
+			}
+		}
+	}
 }
 
 func (s *FileShareService) GetHistory(r *http.Request, args *GetHistoryArgs, reply *GetHistoryReply) error {
 	log.Printf("Received GetHistory request")
+	return nil
 }
 
 func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, reply *ProvideFileReply) error {
