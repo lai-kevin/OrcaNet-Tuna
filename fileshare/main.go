@@ -446,7 +446,6 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) 
 			if len(args) < 2 {
 				fmt.Println("Expected file hash")
 			}
-			// TODO: Implement
 
 		default:
 			fmt.Println("Expected GET, GET_PROVIDERS, PUT, PUT_PROVIDER, PROVIDE_FILE, PROVIDE_FILE_META, DOWNLOAD_FILE, DOWNLOAD_FILE_META")
@@ -464,7 +463,6 @@ func provideKey(ctx context.Context, dht *dht.IpfsDHT, key string) error {
 	}
 	c := cid.NewCidV1(cid.Raw, mh)
 
-	// Start providing the key
 	err = dht.Provide(ctx, c, true)
 	if err != nil {
 		return fmt.Errorf("failed to start providing key: %v", err)
@@ -479,7 +477,6 @@ func main() {
 	}
 	SBU_ID = os.Args[1]
 
-	// Start node
 	node, orcaDHT, err := createNode(dht.ModeServer)
 	if err != nil {
 		log.Printf("Error occured while creating node: %v", err)
@@ -488,7 +485,6 @@ func main() {
 
 	globalNode = node
 
-	// Create context for the application
 	contex, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	globalCtx = contex
@@ -513,7 +509,6 @@ func main() {
 		return
 	}
 
-	// print the node's multiaddress
 	for _, addr := range node.Addrs() {
 		fmt.Printf("NEW NODE INITIALIZED: %s/p2p/%s\n", addr, node.ID())
 	}
@@ -522,14 +517,13 @@ func main() {
 
 	go handlePeerExhangeWithRelay(node)
 
-	// Keep the node running until the user exits
 	go handleInput(contex, orcaDHT, node)
 
-	// Handle incoming file requests
 	go receiveFileRequests(node)
 
-	// Handle incoming file data
 	go receiveFileData(node)
+
+	go receiveFileMetaDataRequests(node)
 
 	defer node.Close()
 	select {}
