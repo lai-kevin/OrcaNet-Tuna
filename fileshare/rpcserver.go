@@ -3,7 +3,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -45,8 +44,8 @@ type GetFileReply struct {
 }
 
 type GetFileMetaDataReply struct {
-	Success      bool   `json:"success"`
-	FileMetaData []byte `json:"file_meta_data"`
+	Success      bool             `json:"success"`
+	FileMetaData []FileDataHeader `json:"file_meta_data"`
 }
 
 type GetHistoryReply struct {
@@ -102,16 +101,8 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 				*reply = GetFileMetaDataReply{Success: false}
 				return err
 			}
-			metaDataBytes, err := json.Marshal(metaData)
-			if err != nil {
-				log.Printf("Failed to marshal meta data: %v\n", err)
-				*reply = GetFileMetaDataReply{Success: false}
-				return err
-			}
-			time.Sleep(100 * time.Millisecond)
-			log.Printf("Sending meta data in response: %v\n", metaDataBytes)
-			reply.Success = true
-			reply.FileMetaData = metaDataBytes
+
+			*reply = GetFileMetaDataReply{Success: true, FileMetaData: metaData}
 			return nil
 		}
 	}
