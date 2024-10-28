@@ -44,8 +44,8 @@ type GetFileReply struct {
 }
 
 type GetFileMetaDataReply struct {
-	Success      bool             `json:"success"`
-	FileMetaData []FileDataHeader `json:"file_meta_data"`
+	Success      bool           `json:"success"`
+	FileMetaData FileDataHeader `json:"file_meta_data"`
 }
 
 type GetHistoryReply struct {
