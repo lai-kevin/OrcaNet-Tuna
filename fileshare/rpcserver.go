@@ -110,7 +110,8 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 			}
 			time.Sleep(100 * time.Millisecond)
 			log.Printf("Sending meta data in response: %v\n", metaDataBytes)
-			*reply = GetFileMetaDataReply{Success: true, FileMetaData: metaDataBytes}
+			reply.Success = true
+			reply.FileMetaData = metaDataBytes
 			return nil
 		}
 	}
