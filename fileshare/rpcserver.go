@@ -40,7 +40,8 @@ type ProvideFileReply struct {
 }
 
 type GetFileReply struct {
-	Success bool `json:"success"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }
 
 type GetFileMetaDataReply struct {
@@ -58,7 +59,7 @@ type FileShareService struct{}
 var metadataResponse = make(map[string]FileDataHeader)
 var history []FileTransaction
 
-func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *ProvideFileReply) error {
+func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *GetFileReply) error {
 	log.Printf("Received GetFile request for file hash %s\n", args.FileHash)
 
 	// TODO: send file meta data request and store in history as file transaction
@@ -66,11 +67,11 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Pr
 	err := connectAndRequestFileFromPeer(args.FileHash)
 	if err != nil {
 		log.Printf("Failed to get file: %v\n", err)
-		*reply = ProvideFileReply{Success: false}
+		*reply = GetFileReply{Success: false}
 		return err
 	}
 
-	*reply = ProvideFileReply{Success: true}
+	*reply = GetFileReply{Success: true, Message: "File received"}
 
 	return nil
 }
