@@ -525,6 +525,8 @@ func main() {
 
 	go receiveFileMetaDataRequests(node)
 
+	go receiveFileMetaData(node)
+
 	defer node.Close()
 	select {}
 }

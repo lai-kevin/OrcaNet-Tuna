@@ -36,6 +36,7 @@ type FileTransaction struct {
 type FileDataHeader struct {
 	FileName      string
 	FileSize      int64
+	FileHash      string
 	FileExtension string
 	Multiaddress  string
 	PeerID        string
@@ -129,7 +130,7 @@ func receiveFileRequests(node host.Host) {
 			}
 		} else {
 			// Send the file to the requester
-			err = sendFileToPeer(node, fileRequest.RequesterID, filePath)
+			err = sendFileToPeer(node, fileRequest.RequesterID, filePath, fileRequest.FileHash)
 			if err != nil {
 				log.Printf("Error sending file: %v", err)
 			} else {
@@ -221,13 +222,33 @@ func receiveFileMetaDataRequests(node host.Host) {
 			}
 		} else {
 			// Send the file to the requester
-			err = sendFileMetaDataToPeer(node, fileRequest.RequesterID, filePath)
+			err = sendFileMetaDataToPeer(node, fileRequest.RequesterID, filePath, fileRequest.FileHash)
 			if err != nil {
 				log.Printf("Error sending file: %v", err)
 			} else {
 				log.Printf("File sent")
 			}
 		}
+
+	})
+}
+
+func receiveFileMetaData(node host.Host) {
+	node.SetStreamHandler("/sendmetadata/p2p", func(stream network.Stream) {
+		defer stream.Close()
+
+		log.Println("Received file metadata. Reading metadata...")
+
+		// Read the metadata
+		var fileMetaData FileDataHeader
+		decoder := gob.NewDecoder(stream)
+		if err := decoder.Decode(&fileMetaData); err != nil {
+			log.Printf("Error decoding file metadata in file data receiver: %v", err)
+			return
+		}
+
+		metadataResponse[fileMetaData.FileHash] = fileMetaData
+		log.Printf("Metadata received: %v", fileMetaData)
 
 	})
 }
@@ -391,7 +412,7 @@ func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string)
 // node: the host node sending the file
 // targetNodeId: the ID of the target peer
 // filepath: the path to the file to send
-func sendFileToPeer(node host.Host, targetNodeId, filepath string) (err error) {
+func sendFileToPeer(node host.Host, targetNodeId, filepath string, filehash string) (err error) {
 	stream, err := createStream(node, targetNodeId, "/senddata/p2p")
 	if err != nil {
 		return fmt.Errorf("sendFileToPeer: %v", err)
@@ -416,6 +437,7 @@ func sendFileToPeer(node host.Host, targetNodeId, filepath string) (err error) {
 	fileMetaData := FileDataHeader{
 		FileName:      fileInfo.Name(),
 		FileSize:      fileInfo.Size(),
+		FileHash:      filehash,
 		FileExtension: fileExt,
 		Multiaddress:  node.Addrs()[0].String(),
 		PeerID:        node.ID().String(),
@@ -461,7 +483,7 @@ func sendFileToPeer(node host.Host, targetNodeId, filepath string) (err error) {
 // node: the host node sending the file
 // targetNodeId: the ID of the target peer
 // filepath: the path to the file to send metadata for
-func sendFileMetaDataToPeer(node host.Host, targetNodeId, filepath string) (err error) {
+func sendFileMetaDataToPeer(node host.Host, targetNodeId, filepath string, filehash string) (err error) {
 	stream, err := createStream(node, targetNodeId, "/sendmetadata/p2p")
 	if err != nil {
 		return fmt.Errorf("sendFileMetaDataToPeer: %v", err)
@@ -484,6 +506,7 @@ func sendFileMetaDataToPeer(node host.Host, targetNodeId, filepath string) (err 
 	fileMetaData := FileDataHeader{
 		FileName:      fileName,
 		FileSize:      fileSize,
+		FileHash:      filehash,
 		FileExtension: fileExt,
 		Multiaddress:  node.Addrs()[0].String(),
 		PeerID:        node.ID().String(),
