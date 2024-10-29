@@ -32,6 +32,7 @@ const DownloadModal = ({user}) =>{
           //add it to their uploads
           let fileForUploads = {...file};
           fileForUploads.price = Number(price);
+          fileForUploads.timestamp = new Date();
           let alreadyAdded = 0;
           const updatedDummyFiles = dummyFiles.map(file => {
             if (file.hashId === fileForUploads.hashId) {
