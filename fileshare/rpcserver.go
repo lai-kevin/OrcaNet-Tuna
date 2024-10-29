@@ -38,6 +38,10 @@ type ProvideFileArgs struct {
 type GetNodeInfoArgs struct {
 }
 
+type StopProvidingFileArgs struct {
+	FileHash string `json:"file_hash"`
+}
+
 // REPLY STRUCTS
 type ProvideFileReply struct {
 	Success bool   `json:"success"`
@@ -67,6 +71,11 @@ type GetNodeInfoReply struct {
 	Status    string           `json:"status"`
 	WalletID  string           `json:"wallet_id"`
 	Providing []FileDataHeader `json:"providing"`
+}
+
+type StopProvidingFileReply struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }
 
 type FileShareService struct{}
@@ -190,6 +199,22 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 	*reply = ProvideFileReply{Success: true, Message: "File is now available on OrcaNet"}
 	log.Printf("Provided file %s on DHT\n", filepath)
 
+	return nil
+}
+
+func (s *FileShareService) StopProvidingFile(r *http.Request, args *StopProvidingFileArgs, reply *StopProvidingFileReply) error {
+	isFileHashProvided[args.FileHash] = false
+	log.Printf("Stopped providing file %s on DHT\n", fileHashToPath[args.FileHash])
+	// TODO: Remove file from DHT
+	*reply = StopProvidingFileReply{Success: true, Message: "File is no longer available on OrcaNet"}
+	return nil
+}
+
+func (s *FileShareService) ResumeProvidingFile(r *http.Request, args *StopProvidingFileArgs, reply *StopProvidingFileReply) error {
+	isFileHashProvided[args.FileHash] = true
+	log.Printf("Resumed providing file %s on DHT\n", fileHashToPath[args.FileHash])
+	// TODO: Add file to DHT
+	*reply = StopProvidingFileReply{Success: true, Message: "File is now available on OrcaNet"}
 	return nil
 }
 
