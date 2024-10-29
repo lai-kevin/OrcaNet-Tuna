@@ -156,6 +156,10 @@ func receiveFileData(node host.Host) {
 			return
 		}
 
+		history = append(history, FileTransaction{
+			FileHash:     fileMetaData.FileHash,
+			FileMetaData: fileMetaData})
+
 		// Create a file to write the data to
 		file, err := os.Create(DOWNLOAD_DIRECTORY + "/" + fileMetaData.FileName)
 		if err != nil {
