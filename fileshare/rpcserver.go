@@ -49,30 +49,26 @@ type GetFileMetaDataReply struct {
 }
 
 type GetHistoryReply struct {
-	Success bool              `json:"success"`
-	History []FileTransaction `json:"history"`
+	Success        bool              `json:"success"`
+	RequestedFiles []FileRequest     `json:"requested_files"`
+	History        []FileTransaction `json:"history"`
 }
 
 type FileShareService struct{}
 
 var metadataResponse = make(map[string]FileDataHeader)
 var history = []FileTransaction{}
+var fileRequests = []FileRequest{}
 
 func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *GetFileReply) error {
 	log.Printf("Received GetFile request for file hash %s\n", args.FileHash)
 
-	metadata, ok := metadataResponse[args.FileHash]
-	if !ok {
-		log.Printf("File metadata not cached %s\n", args.FileHash)
-		*reply = GetFileReply{Success: true}
-		history = append(history, FileTransaction{
-			FileHash:     args.FileHash,
-			FileMetaData: FileDataHeader{FileName: "Unknown", FileSize: 0}}) // TODO: Fetch metadata from DHT
-	} else {
-		history = append(history, FileTransaction{
-			FileHash:     args.FileHash,
-			FileMetaData: metadata})
-	}
+	fileRequests = append(fileRequests, FileRequest{
+		FileHash:              args.FileHash,
+		RequesterID:           globalNode.ID().String(),
+		RequesterMultiAddress: globalOrcaDHT.Host().Addrs()[0].String(),
+		TimeSent:              time.Now(),
+	})
 
 	err := connectAndRequestFileFromPeer(args.FileHash)
 	if err != nil {
@@ -121,7 +117,7 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 
 func (s *FileShareService) GetHistory(r *http.Request, args *GetHistoryArgs, reply *GetHistoryReply) error {
 	log.Printf("Received GetHistory request")
-	*reply = GetHistoryReply{Success: true, History: history}
+	*reply = GetHistoryReply{Success: true, RequestedFiles: fileRequests, History: history}
 	return nil
 }
 

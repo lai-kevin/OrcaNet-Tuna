@@ -49,7 +49,7 @@ type FileRequest struct {
 	FileHash              string
 	RequesterID           string
 	RequesterMultiAddress string
-	timeSent              time.Time
+	TimeSent              time.Time
 }
 
 // MetaDataRequest struct for metadata request data
@@ -58,7 +58,7 @@ type MetaDataRequest struct {
 	FileHash              string
 	RequesterID           string
 	RequesterMultiAddress string
-	timeSent              time.Time
+	TimeSent              time.Time
 }
 
 // Error struct to handle errors
@@ -148,7 +148,6 @@ func receiveFileData(node host.Host) {
 
 		log.Println("Received file data. Reading data...")
 
-		// Read the metadata
 		var fileMetaData FileDataHeader
 		decoder := gob.NewDecoder(stream)
 		if err := decoder.Decode(&fileMetaData); err != nil {
@@ -160,7 +159,6 @@ func receiveFileData(node host.Host) {
 			FileHash:     fileMetaData.FileHash,
 			FileMetaData: fileMetaData})
 
-		// Create a file to write the data to
 		file, err := os.Create(DOWNLOAD_DIRECTORY + "/" + fileMetaData.FileName)
 		if err != nil {
 			log.Printf("Error creating file: %v", err)
@@ -168,7 +166,6 @@ func receiveFileData(node host.Host) {
 		}
 		defer file.Close()
 
-		// Read the file data from the stream and write it to the file
 		for {
 			buffer := make([]byte, 1024)
 			bytesRead, err := stream.Read(buffer)
@@ -392,7 +389,7 @@ func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string)
 		FileHash:              fileHash,
 		RequesterID:           sourceID,
 		RequesterMultiAddress: sourceMultiAddress,
-		timeSent:              time.Now(),
+		TimeSent:              time.Now(),
 	}
 
 	// Update the file request map
@@ -546,7 +543,7 @@ func sendFileMetaDataRequestToPeer(node host.Host, targetNodeId string, fileHash
 		FileHash:              fileHash,
 		RequesterID:           sourceID,
 		RequesterMultiAddress: sourceMultiAddress,
-		timeSent:              time.Now(),
+		TimeSent:              time.Now(),
 	}
 
 	// Write the file metadata request to the stream
