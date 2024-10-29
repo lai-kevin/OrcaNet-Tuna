@@ -155,7 +155,7 @@ func receiveFileData(node host.Host) {
 			return
 		}
 
-		history = append(history, FileTransaction{
+		downloadHistory = append(downloadHistory, FileTransaction{
 			FileHash:     fileMetaData.FileHash,
 			FileMetaData: fileMetaData})
 
