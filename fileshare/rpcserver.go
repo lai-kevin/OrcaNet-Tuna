@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	fp "path/filepath"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -59,11 +61,12 @@ type GetHistoryReply struct {
 }
 
 type GetNodeInfoReply struct {
-	Success   bool   `json:"success"`
-	PeerID    string `json:"peer_id"`
-	MultiAddr string `json:"multi_addr"`
-	Status    string `json:"status"`
-	WalletID  string `json:"wallet_id"`
+	Success   bool             `json:"success"`
+	PeerID    string           `json:"peer_id"`
+	MultiAddr string           `json:"multi_addr"`
+	Status    string           `json:"status"`
+	WalletID  string           `json:"wallet_id"`
+	Providing []FileDataHeader `json:"providing"`
 }
 
 type FileShareService struct{}
@@ -71,6 +74,7 @@ type FileShareService struct{}
 var metadataResponse = make(map[string]FileDataHeader)
 var downloadHistory = []FileTransaction{}
 var fileRequests = []FileRequest{}
+var providedFiles = []FileDataHeader{}
 
 func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *GetFileReply) error {
 	log.Printf("Received GetFile request for file hash %s\n", args.FileHash)
@@ -140,7 +144,7 @@ func (s *FileShareService) GetNodeInfo(r *http.Request, args *GetNodeInfoArgs, r
 		PeerID:    globalNode.ID().String(),
 		MultiAddr: globalOrcaDHT.Host().Addrs()[0].String(),
 		Status:    "Online",
-		WalletID:  globalNode.ID().String(),
+		WalletID:  "462dfsg46hlgsdjgpo3i5nhdfgsdfg2354",
 	}
 	return nil
 }
@@ -157,6 +161,31 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 
 	fileHashToPath[fileHash] = filepath
 	isFileHashProvided[fileHash] = true
+
+	file, err := os.Open(filepath)
+	if err != nil {
+		return fmt.Errorf("sendFileToPeer: %v", err)
+	}
+	defer file.Close()
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return fmt.Errorf("sendFileToPeer: %v", err)
+	}
+
+	fileExt := fp.Ext(filepath)
+
+	fileMetaData := FileDataHeader{
+		FileName:      fileInfo.Name(),
+		FileSize:      fileInfo.Size(),
+		FileHash:      fileHash,
+		FileExtension: fileExt,
+		Multiaddress:  globalNode.Addrs()[0].String(),
+		PeerID:        globalNode.ID().String(),
+		price:         0.0,
+	}
+
+	providedFiles = append(providedFiles, fileMetaData)
 
 	*reply = ProvideFileReply{Success: true, Message: "File is now available on OrcaNet"}
 	log.Printf("Provided file %s on DHT\n", filepath)
