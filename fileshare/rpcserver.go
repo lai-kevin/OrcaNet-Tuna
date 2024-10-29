@@ -33,6 +33,9 @@ type ProvideFileArgs struct {
 	Price    float64 `json:"price"`
 }
 
+type GetNodeInfoArgs struct {
+}
+
 // REPLY STRUCTS
 type ProvideFileReply struct {
 	Success bool   `json:"success"`
@@ -53,6 +56,14 @@ type GetHistoryReply struct {
 	Success         bool              `json:"success"`
 	RequestedFiles  []FileRequest     `json:"requested_files"`
 	DownloadHistory []FileTransaction `json:"history"`
+}
+
+type GetNodeInfoReply struct {
+	Success   bool   `json:"success"`
+	PeerID    string `json:"peer_id"`
+	MultiAddr string `json:"multi_addr"`
+	Status    string `json:"status"`
+	WalletID  string `json:"wallet_id"`
 }
 
 type FileShareService struct{}
@@ -119,6 +130,18 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 func (s *FileShareService) GetHistory(r *http.Request, args *GetHistoryArgs, reply *GetHistoryReply) error {
 	log.Printf("Received GetHistory request")
 	*reply = GetHistoryReply{Success: true, RequestedFiles: fileRequests, DownloadHistory: downloadHistory}
+	return nil
+}
+
+func (s *FileShareService) GetNodeInfo(r *http.Request, args *GetNodeInfoArgs, reply *GetNodeInfoReply) error {
+	log.Printf("Received GetNodeInfo request")
+	*reply = GetNodeInfoReply{
+		Success:   true,
+		PeerID:    globalNode.ID().String(),
+		MultiAddr: globalOrcaDHT.Host().Addrs()[0].String(),
+		Status:    "Online",
+		WalletID:  globalNode.ID().String(),
+	}
 	return nil
 }
 
