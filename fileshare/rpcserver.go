@@ -35,7 +35,8 @@ type ProvideFileArgs struct {
 
 // REPLY STRUCTS
 type ProvideFileReply struct {
-	Success bool `json:"success"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }
 
 type GetFileReply struct {
@@ -49,15 +50,15 @@ type GetFileMetaDataReply struct {
 }
 
 type GetHistoryReply struct {
-	Success        bool              `json:"success"`
-	RequestedFiles []FileRequest     `json:"requested_files"`
-	History        []FileTransaction `json:"history"`
+	Success         bool              `json:"success"`
+	RequestedFiles  []FileRequest     `json:"requested_files"`
+	DownloadHistory []FileTransaction `json:"history"`
 }
 
 type FileShareService struct{}
 
 var metadataResponse = make(map[string]FileDataHeader)
-var history = []FileTransaction{}
+var downloadHistory = []FileTransaction{}
 var fileRequests = []FileRequest{}
 
 func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *GetFileReply) error {
@@ -77,7 +78,7 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 		return err
 	}
 
-	*reply = GetFileReply{Success: true, Message: "File received"}
+	*reply = GetFileReply{Success: true, Message: "File dowloaded successfully"}
 
 	return nil
 }
@@ -117,7 +118,7 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 
 func (s *FileShareService) GetHistory(r *http.Request, args *GetHistoryArgs, reply *GetHistoryReply) error {
 	log.Printf("Received GetHistory request")
-	*reply = GetHistoryReply{Success: true, RequestedFiles: fileRequests, History: history}
+	*reply = GetHistoryReply{Success: true, RequestedFiles: fileRequests, DownloadHistory: downloadHistory}
 	return nil
 }
 
@@ -134,7 +135,7 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 	fileHashToPath[fileHash] = filepath
 	isFileHashProvided[fileHash] = true
 
-	*reply = ProvideFileReply{Success: true}
+	*reply = ProvideFileReply{Success: true, Message: "File is now available on OrcaNet"}
 	log.Printf("Provided file %s on DHT\n", filepath)
 
 	return nil
