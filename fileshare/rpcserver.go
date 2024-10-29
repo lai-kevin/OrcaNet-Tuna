@@ -42,6 +42,10 @@ type StopProvidingFileArgs struct {
 	FileHash string `json:"file_hash"`
 }
 
+type PauseDownloadArgs struct {
+	TransactionID string `json:"transaction_id"`
+}
+
 // REPLY STRUCTS
 type ProvideFileReply struct {
 	Success bool   `json:"success"`
@@ -78,10 +82,15 @@ type StopProvidingFileReply struct {
 	Message string `json:"message"`
 }
 
+type PauseDownloadReply struct {
+	Success  bool   `json:"success"`
+	Progress string `json:"progress"`
+}
+
 type FileShareService struct{}
 
 var metadataResponse = make(map[string]FileDataHeader)
-var downloadHistory = []FileTransaction{}
+var downloadHistory = make(map[string]FileTransaction)
 var fileRequests = []FileRequest{}
 var providedFiles = []FileDataHeader{}
 
@@ -142,7 +151,12 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 
 func (s *FileShareService) GetHistory(r *http.Request, args *GetHistoryArgs, reply *GetHistoryReply) error {
 	log.Printf("Received GetHistory request")
-	*reply = GetHistoryReply{Success: true, RequestedFiles: fileRequests, DownloadHistory: downloadHistory}
+	downloadHistoryList := make([]FileTransaction, 0, len(downloadHistory))
+	for _, transaction := range downloadHistory {
+		downloadHistoryList = append(downloadHistoryList, transaction)
+	}
+
+	*reply = GetHistoryReply{Success: true, RequestedFiles: fileRequests, DownloadHistory: downloadHistoryList}
 	return nil
 }
 
@@ -215,6 +229,18 @@ func (s *FileShareService) ResumeProvidingFile(r *http.Request, args *StopProvid
 	log.Printf("Resumed providing file %s on DHT\n", fileHashToPath[args.FileHash])
 	// TODO: Add file to DHT
 	*reply = StopProvidingFileReply{Success: true, Message: "File is now available on OrcaNet"}
+	return nil
+}
+
+func (s *FileShareService) PauseDownload(r *http.Request, args *PauseDownloadArgs, reply *PauseDownloadReply) error {
+	log.Printf("Received PauseDownload request for transaction: %s\n", args.TransactionID)
+
+	return nil
+}
+
+func (s *FileShareService) ResumeDownload(r *http.Request, args *PauseDownloadArgs, reply *PauseDownloadReply) error {
+	log.Printf("Received ResumeDownload request for transaction: %s\n", args.TransactionID)
+
 	return nil
 }
 

@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"os"
+
+	"github.com/google/uuid"
 )
 
 func generateFileHash(filepath string) string {
@@ -24,6 +26,11 @@ func generateFileHash(filepath string) string {
 	fileHash := fmt.Sprintf("%x", hash.Sum(nil))
 
 	return fileHash
+}
+
+func generateRequestID() string {
+	id := uuid.New()
+	return id.String()
 }
 
 func provideFileOnDHT(fileHash string, peerID string) error {

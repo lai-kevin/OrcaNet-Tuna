@@ -27,8 +27,10 @@ var fileHashToPath = make(map[string]string)
 var isFileHashProvided = make(map[string]bool)
 
 type FileTransaction struct {
-	FileHash     string
-	FileMetaData FileDataHeader
+	RequestID        string
+	FileHash         string
+	FileMetaData     FileDataHeader
+	DownloadProgress float32
 }
 
 // File struct for file data
@@ -41,11 +43,13 @@ type FileDataHeader struct {
 	Multiaddress  string
 	PeerID        string
 	price         float32 // price of the file in coins
+	RequestID     string  // Optional request ID for the file
 }
 
 // FileRequest struct for file request data
 // Send when a client is rwants to make a transaction and download a file
 type FileRequest struct {
+	RequestID             string
 	FileHash              string
 	RequesterID           string
 	RequesterMultiAddress string
@@ -130,7 +134,7 @@ func receiveFileRequests(node host.Host) {
 			}
 		} else {
 			// Send the file to the requester
-			err = sendFileToPeer(node, fileRequest.RequesterID, filePath, fileRequest.FileHash)
+			err = sendFileToPeer(node, fileRequest.RequesterID, filePath, fileRequest.FileHash, fileRequest.RequestID)
 			if err != nil {
 				log.Printf("Error sending file: %v", err)
 			} else {
@@ -155,9 +159,12 @@ func receiveFileData(node host.Host) {
 			return
 		}
 
-		downloadHistory = append(downloadHistory, FileTransaction{
-			FileHash:     fileMetaData.FileHash,
-			FileMetaData: fileMetaData})
+		downloadHistory[fileMetaData.RequestID] = FileTransaction{
+			RequestID:        fileMetaData.RequestID,
+			FileHash:         fileMetaData.FileHash,
+			FileMetaData:     fileMetaData,
+			DownloadProgress: 0.0,
+		}
 
 		file, err := os.Create(DOWNLOAD_DIRECTORY + "/" + fileMetaData.FileName)
 		if err != nil {
@@ -166,6 +173,7 @@ func receiveFileData(node host.Host) {
 		}
 		defer file.Close()
 
+		totalBytesRead := 0
 		for {
 			buffer := make([]byte, 1024)
 			bytesRead, err := stream.Read(buffer)
@@ -178,10 +186,16 @@ func receiveFileData(node host.Host) {
 			}
 
 			_, err = file.Write(buffer[:bytesRead])
+
 			if err != nil {
 				log.Printf("Error writing file data to output file: %v", err)
 				return
 			}
+
+			totalBytesRead += bytesRead
+			ft := downloadHistory[fileMetaData.RequestID]
+			ft.DownloadProgress = float32(totalBytesRead) / float32(fileMetaData.FileSize)
+			downloadHistory[fileMetaData.RequestID] = ft
 		}
 
 	})
@@ -386,6 +400,7 @@ func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string)
 
 	// Create file request struct
 	fileRequest := FileRequest{
+		RequestID:             generateRequestID(),
 		FileHash:              fileHash,
 		RequesterID:           sourceID,
 		RequesterMultiAddress: sourceMultiAddress,
@@ -413,7 +428,7 @@ func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string)
 // node: the host node sending the file
 // targetNodeId: the ID of the target peer
 // filepath: the path to the file to send
-func sendFileToPeer(node host.Host, targetNodeId, filepath string, filehash string) (err error) {
+func sendFileToPeer(node host.Host, targetNodeId, filepath string, filehash string, requestID string) (err error) {
 	stream, err := createStream(node, targetNodeId, "/senddata/p2p")
 	if err != nil {
 		return fmt.Errorf("sendFileToPeer: %v", err)
@@ -443,6 +458,7 @@ func sendFileToPeer(node host.Host, targetNodeId, filepath string, filehash stri
 		Multiaddress:  node.Addrs()[0].String(),
 		PeerID:        node.ID().String(),
 		price:         0.0,
+		RequestID:     requestID,
 	}
 
 	// Send the metadata to the peer
