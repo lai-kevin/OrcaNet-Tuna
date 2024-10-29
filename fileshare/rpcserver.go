@@ -65,7 +65,7 @@ type GetFileMetaDataReply struct {
 type GetHistoryReply struct {
 	Success         bool              `json:"success"`
 	RequestedFiles  []FileRequest     `json:"requested_files"`
-	DownloadHistory []FileTransaction `json:"history"`
+	DownloadHistory []FileTransaction `json:"download_history"`
 }
 
 type GetNodeInfoReply struct {
@@ -167,7 +167,7 @@ func (s *FileShareService) GetNodeInfo(r *http.Request, args *GetNodeInfoArgs, r
 		PeerID:    globalNode.ID().String(),
 		MultiAddr: globalOrcaDHT.Host().Addrs()[0].String(),
 		Status:    "Online",
-		WalletID:  "462dfsg46hlgsdjgpo3i5nhdfgsdfg2354",
+		WalletID:  "462dfsg46hlgsdjgpo3i5nhdfgsdfg2354", //TODO: Implement wallet
 	}
 	return nil
 }
