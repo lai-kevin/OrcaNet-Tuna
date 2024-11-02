@@ -217,17 +217,25 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 }
 
 func (s *FileShareService) StopProvidingFile(r *http.Request, args *StopProvidingFileArgs, reply *StopProvidingFileReply) error {
+	_, ok := isFileHashProvided[args.FileHash]
+	if !ok {
+		*reply = StopProvidingFileReply{Success: false, Message: "File hash not provided by node. Check file hash."}
+		return nil
+	}
 	isFileHashProvided[args.FileHash] = false
 	log.Printf("Stopped providing file %s on DHT\n", fileHashToPath[args.FileHash])
-	// TODO: Remove file from DHT
 	*reply = StopProvidingFileReply{Success: true, Message: "File is no longer available on OrcaNet"}
 	return nil
 }
 
 func (s *FileShareService) ResumeProvidingFile(r *http.Request, args *StopProvidingFileArgs, reply *StopProvidingFileReply) error {
+	_, ok := isFileHashProvided[args.FileHash]
+	if !ok {
+		*reply = StopProvidingFileReply{Success: false, Message: "File hash not provided by node. Check file hash."}
+		return nil
+	}
 	isFileHashProvided[args.FileHash] = true
 	log.Printf("Resumed providing file %s on DHT\n", fileHashToPath[args.FileHash])
-	// TODO: Add file to DHT
 	*reply = StopProvidingFileReply{Success: true, Message: "File is now available on OrcaNet"}
 	return nil
 }
