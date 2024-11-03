@@ -23,52 +23,9 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 )
 
-var fileHashToPath = make(map[string]string)
-var isFileHashProvided = make(map[string]bool)
-
-type FileTransaction struct {
-	RequestID        string
-	FileHash         string
-	FileMetaData     FileDataHeader
-	DownloadProgress float32
-}
-
-// File struct for file data
-// Send when a client is ready to make a transaction and download a file
-type FileDataHeader struct {
-	FileName      string
-	FileSize      int64
-	FileHash      string
-	FileExtension string
-	Multiaddress  string
-	PeerID        string
-	price         float32 // price of the file in coins
-	RequestID     string  // Optional request ID for the file
-}
-
-// FileRequest struct for file request data
-// Send when a client is rwants to make a transaction and download a file
-type FileRequest struct {
-	RequestID             string
-	FileHash              string
-	RequesterID           string
-	RequesterMultiAddress string
-	TimeSent              time.Time
-}
-
-// MetaDataRequest struct for metadata request data
-// Send when a client wants to get metadata for a file
-type MetaDataRequest struct {
-	FileHash              string
-	RequesterID           string
-	RequesterMultiAddress string
-	TimeSent              time.Time
-}
-
-// Error struct to handle errors
-type Error struct {
-	ErrorMessage string
-}
+var fileHashToPath = make(map[string]string)   // map of file hashes to file paths on device
+var isFileHashProvided = make(map[string]bool) // true if file hash is provided by this node, else false
+var downloadStatus = make(map[string]bool)     // proceed with download if true, else pause download
 
 // Create a stream to a target node
 func createStream(node host.Host, targetNodeId string, streamProtocol protocol.ID) (network.Stream, error) {
