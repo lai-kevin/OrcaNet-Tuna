@@ -553,6 +553,7 @@ func sendFileMetaDataRequestToPeer(node host.Host, targetNodeId string, fileHash
 }
 
 func sendPauseRequestToPeer(node host.Host, targetNodeId string, requestID string, status bool) error {
+	fmt.Printf("Sending pause request to peer %s\n", targetNodeId)
 	stream, err := createStream(node, targetNodeId, "/sendpause/p2p")
 	if err != nil {
 		return fmt.Errorf("sendPauseRequestToPeer: %v", err)
