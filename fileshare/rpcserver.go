@@ -24,7 +24,7 @@ var downloadHistory = make(map[string]FileTransaction)
 var fileRequests = []FileRequest{}
 var providedFiles = []FileDataHeader{}
 
-func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *GetFileReply) {
+func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *GetFileReply) error {
 	log.Printf("Received GetFile request for file hash %s\n", args.FileHash)
 
 	fileRequests = append(fileRequests, FileRequest{
@@ -38,9 +38,11 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 	if err != nil {
 		log.Printf("Failed to get file: %v\n", err)
 		*reply = GetFileReply{Success: false}
+		return err
 	}
 
 	*reply = GetFileReply{Success: true, Message: "File dowloaded successfully"}
+	return nil
 }
 
 func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDataArgs, reply *GetFileMetaDataReply) error {
