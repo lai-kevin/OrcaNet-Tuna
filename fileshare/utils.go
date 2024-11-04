@@ -99,3 +99,24 @@ func connectAndRequestFileMetaDataFromPeer(fileHash string) error {
 
 	return nil
 }
+
+func connectAndPauseRequestFromPeer(requestID string, status bool) error {
+	transaction, ok := downloadHistory[requestID]
+	if !ok {
+		return fmt.Errorf("transaction does not exist for requestID %s", requestID)
+	}
+
+	// Connect to the peer
+	err := connectToNodeUsingRelay(globalNode, transaction.FileMetaData.PeerID)
+	if err != nil {
+		return err
+	}
+
+	// Send the pause download request to the peer
+	err = sendPauseRequestToPeer(globalNode, transaction.FileMetaData.PeerID, requestID, status)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

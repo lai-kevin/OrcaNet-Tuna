@@ -171,8 +171,7 @@ func (s *FileShareService) ResumeProvidingFile(r *http.Request, args *StopProvid
 
 func (s *FileShareService) PauseDownload(r *http.Request, args *PauseDownloadArgs, reply *PauseDownloadReply) error {
 	log.Printf("Received PauseDownload request for transaction: %s\n", args.RequestID)
-	sourceID := downloadHistory[args.RequestID].FileMetaData.PeerID
-	err := sendPauseRequestToPeer(globalNode, sourceID, args.RequestID, false)
+	err := connectAndPauseRequestFromPeer(args.RequestID, false)
 	if err != nil {
 		log.Printf("Failed to pause download: %v\n", err)
 		*reply = PauseDownloadReply{Success: false}
@@ -184,8 +183,7 @@ func (s *FileShareService) PauseDownload(r *http.Request, args *PauseDownloadArg
 
 func (s *FileShareService) ResumeDownload(r *http.Request, args *PauseDownloadArgs, reply *PauseDownloadReply) error {
 	log.Printf("Received ResumeDownload request for transaction: %s\n", args.RequestID)
-	sourceID := downloadHistory[args.RequestID].FileMetaData.PeerID
-	err := sendPauseRequestToPeer(globalNode, sourceID, args.RequestID, true)
+	err := connectAndPauseRequestFromPeer(args.RequestID, true)
 	if err != nil {
 		log.Printf("Failed to resume download: %v\n", err)
 		*reply = PauseDownloadReply{Success: false}
