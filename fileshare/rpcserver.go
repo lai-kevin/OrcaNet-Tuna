@@ -25,24 +25,22 @@ var fileRequests = []FileRequest{}
 var providedFiles = []FileDataHeader{}
 
 func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *GetFileReply) {
-	go func() {
-		log.Printf("Received GetFile request for file hash %s\n", args.FileHash)
+	log.Printf("Received GetFile request for file hash %s\n", args.FileHash)
 
-		fileRequests = append(fileRequests, FileRequest{
-			FileHash:              args.FileHash,
-			RequesterID:           globalNode.ID().String(),
-			RequesterMultiAddress: globalOrcaDHT.Host().Addrs()[0].String(),
-			TimeSent:              time.Now(),
-		})
+	fileRequests = append(fileRequests, FileRequest{
+		FileHash:              args.FileHash,
+		RequesterID:           globalNode.ID().String(),
+		RequesterMultiAddress: globalOrcaDHT.Host().Addrs()[0].String(),
+		TimeSent:              time.Now(),
+	})
 
-		err := connectAndRequestFileFromPeer(args.FileHash)
-		if err != nil {
-			log.Printf("Failed to get file: %v\n", err)
-			*reply = GetFileReply{Success: false}
-		}
+	err := connectAndRequestFileFromPeer(args.FileHash)
+	if err != nil {
+		log.Printf("Failed to get file: %v\n", err)
+		*reply = GetFileReply{Success: false}
+	}
 
-		*reply = GetFileReply{Success: true, Message: "File dowloaded successfully"}
-	}()
+	*reply = GetFileReply{Success: true, Message: "File dowloaded successfully"}
 }
 
 func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDataArgs, reply *GetFileMetaDataReply) error {
