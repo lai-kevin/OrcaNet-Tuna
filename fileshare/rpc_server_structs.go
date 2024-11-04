@@ -25,7 +25,7 @@ type StopProvidingFileArgs struct {
 }
 
 type PauseDownloadArgs struct {
-	TransactionID string `json:"transaction_id"`
+	RequestID string `json:"request_id"`
 }
 
 // REPLY STRUCTS

@@ -11,8 +11,6 @@ type FileTransaction struct {
 	DownloadProgress float32
 }
 
-// File struct for file data
-// Send when a client is ready to make a transaction and download a file
 type FileDataHeader struct {
 	FileName      string
 	FileSize      int64
@@ -20,12 +18,10 @@ type FileDataHeader struct {
 	FileExtension string
 	Multiaddress  string
 	PeerID        string
-	price         float32 // price of the file in coins
-	RequestID     string  // Optional request ID for the file
+	price         float32
+	RequestID     string
 }
 
-// FileRequest struct for file request data
-// Send when a client is rwants to make a transaction and download a file
 type FileRequest struct {
 	RequestID             string
 	FileHash              string
@@ -34,8 +30,6 @@ type FileRequest struct {
 	TimeSent              time.Time
 }
 
-// MetaDataRequest struct for metadata request data
-// Send when a client wants to get metadata for a file
 type MetaDataRequest struct {
 	FileHash              string
 	RequesterID           string
@@ -43,7 +37,12 @@ type MetaDataRequest struct {
 	TimeSent              time.Time
 }
 
-// Error struct to handle errors
+type PauseDownloadRequest struct {
+	RequestID string
+	Status    bool // true for resume, false for pause
+	TimeSent  time.Time
+}
+
 type Error struct {
 	ErrorMessage string
 }
