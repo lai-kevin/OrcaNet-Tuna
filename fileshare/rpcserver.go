@@ -178,6 +178,7 @@ func (s *FileShareService) PauseDownload(r *http.Request, args *PauseDownloadArg
 		*reply = PauseDownloadReply{Success: false}
 		return err
 	}
+	*reply = PauseDownloadReply{Success: true}
 	return nil
 }
 
@@ -190,6 +191,7 @@ func (s *FileShareService) ResumeDownload(r *http.Request, args *PauseDownloadAr
 		*reply = PauseDownloadReply{Success: false}
 		return err
 	}
+	*reply = PauseDownloadReply{Success: true}
 	return nil
 }
 
