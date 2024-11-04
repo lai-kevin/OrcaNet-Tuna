@@ -33,15 +33,15 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 		RequesterMultiAddress: globalOrcaDHT.Host().Addrs()[0].String(),
 		TimeSent:              time.Now(),
 	})
-
-	err := connectAndRequestFileFromPeer(args.FileHash)
+	requestID := generateRequestID()
+	err := connectAndRequestFileFromPeer(args.FileHash, requestID)
 	if err != nil {
 		log.Printf("Failed to get file: %v\n", err)
 		*reply = GetFileReply{Success: false}
 		return err
 	}
 
-	*reply = GetFileReply{Success: true, Message: "File dowloaded successfully"}
+	*reply = GetFileReply{Success: true, Message: "File dowloaded successfully", RequestID: requestID, FileHash: args.FileHash}
 	return nil
 }
 
@@ -139,7 +139,7 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 
 	providedFiles = append(providedFiles, fileMetaData)
 
-	*reply = ProvideFileReply{Success: true, Message: "File is now available on OrcaNet"}
+	*reply = ProvideFileReply{Success: true, Message: "File is now available on OrcaNet", FileHash: fileHash}
 	log.Printf("Provided file %s on DHT\n", filepath)
 
 	return nil

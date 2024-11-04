@@ -365,7 +365,7 @@ func sendTransactionErrorToPeer(node host.Host, targetNodeId string) error {
 // node: the node sending the file request
 // targetNodeId: the ID of the target peer
 // fileHash: the hash of the file to request
-func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string) error {
+func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string, requestID string) error {
 	fmt.Printf("Sending file request to peer %s\n", targetNodeId)
 	stream, err := createStream(node, targetNodeId, "/sendmessage/p2p")
 	if err != nil {
@@ -378,7 +378,7 @@ func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string)
 
 	// Create file request struct
 	fileRequest := FileRequest{
-		RequestID:             generateRequestID(),
+		RequestID:             requestID,
 		FileHash:              fileHash,
 		RequesterID:           sourceID,
 		RequesterMultiAddress: sourceMultiAddress,

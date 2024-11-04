@@ -48,7 +48,7 @@ func provideFileOnDHT(fileHash string, peerID string) error {
 	return nil
 }
 
-func connectAndRequestFileFromPeer(fileHash string) error {
+func connectAndRequestFileFromPeer(fileHash string, requestID string) error {
 	dhtKey := "/orcanet/" + fileHash
 
 	log.Println("Searching for file hash: ", dhtKey)
@@ -66,7 +66,7 @@ func connectAndRequestFileFromPeer(fileHash string) error {
 	}
 
 	// Request the file from the peer
-	err = sendFileRequestToPeer(globalNode, providerPeerID, fileHash)
+	err = sendFileRequestToPeer(globalNode, providerPeerID, fileHash, requestID)
 	if err != nil {
 		return err
 	}

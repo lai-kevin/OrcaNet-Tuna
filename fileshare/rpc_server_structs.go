@@ -30,13 +30,16 @@ type PauseDownloadArgs struct {
 
 // REPLY STRUCTS
 type ProvideFileReply struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
+	Success  bool   `json:"success"`
+	Message  string `json:"message"`
+	FileHash string `json:"file_hash"`
 }
 
 type GetFileReply struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
+	Success   bool   `json:"success"`
+	Message   string `json:"message"`
+	RequestID string `json:"request_id"`
+	FileHash  string `json:"file_hash"`
 }
 
 type GetFileMetaDataReply struct {
