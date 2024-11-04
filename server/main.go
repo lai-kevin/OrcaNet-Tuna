@@ -10,6 +10,7 @@ import (
 
 	"github.com/lai-kevin/OrcaNet-Tuna/server/handlers"
 	"github.com/lai-kevin/OrcaNet-Tuna/server/manager"
+
 )
 
 // Used for GetBestBlockInfo
@@ -33,11 +34,6 @@ func main() {
 		log.Fatalf("Failed to start OrcaNet: %v", err)
 	}
 
-	// Start the btcwallet service
-	if err := manager.StartWallet(); err != nil {
-        log.Fatalf("Failed to start btcwallet: %v", err)
-    }
-
 	// Handle graceful shutdown for the OrcaNet service
 	handleGracefulShutdown()
 
@@ -54,10 +50,12 @@ func main() {
 func setupRoutes() {
 	http.HandleFunc("/", handlers.GetRoot)
 	http.HandleFunc("/hello", handlers.GetHello)
-	http.HandleFunc("/getBlockchainInfo", handlers.GetBlockchainInfo)
-	http.HandleFunc("/getNewAddress", handlers.GetNewAddress)
-	http.HandleFunc("/getBalance", handlers.GetBalance)
-	http.HandleFunc("/sendToAddress", handlers.SendToAddress)
+	http.HandleFunc("/createWallet", handlers.CreateWallet)
+	http.HandleFunc("/login", handlers.Login)
+	// http.HandleFunc("/getBlockchainInfo", handlers.GetBlockchainInfo)
+	// http.HandleFunc("/getNewAddress", handlers.GetNewAddress)
+	// http.HandleFunc("/getBalance", handlers.GetBalance)
+	// http.HandleFunc("/sendToAddress", handlers.SendToAddress)
 	// http.HandleFunc("/mine", handlers.Mine)
 	// http.HandleFunc("/getPeerInfo", handlers.GetPeerInfo)
 	// http.HandleFunc("/getBestBlock", handlers.GetBestBlock)
@@ -77,10 +75,6 @@ func handleGracefulShutdown() {
 
 		if err := manager.StopOrcaNet(); err != nil {
 			log.Fatalf("Failed to stop OrcaNet: %v", err)
-		}
-
-		if err := manager.StopWallet(); err != nil {
-			log.Fatalf("Failed to stop btcwallet: %v", err)
 		}
 
 		// Exit the program

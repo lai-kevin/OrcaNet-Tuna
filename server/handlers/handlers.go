@@ -11,16 +11,15 @@ import (
 // GetRoot returns a welcome message and blockchain info
 func GetRoot(w http.ResponseWriter, r *http.Request) {
     // Retrieve blockchain information using getblockchaininfo command
-    info, err := manager.CallBtcctlCmd("getblockchaininfo")
+    _, err := manager.CallBtcctlCmd("getblockchaininfo")
     if err != nil {
         http.Error(w, "Failed to retrieve blockchain info: "+err.Error(), http.StatusInternalServerError)
         return
     }
 
-    // Construct JSON response with dynamic info
+    // Construct JSON response with only the welcome message
     response := map[string]string{
         "message": "Welcome to OrcaNet API from testcrypto!",
-        "info":    info,
     }
 
     // Send JSON response
@@ -39,6 +38,60 @@ func GetHello(w http.ResponseWriter, r *http.Request) {
     // Send JSON response
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(response)
+}
+
+// Login handler
+func Login(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	// Call the manager function to open the wallet using the password
+	if err := manager.OpenWallet(request.Password); err != nil {
+		http.Error(w, "Failed to open wallet: "+err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Logged in successfully!"})
+}
+
+// CreateWallet handler
+func CreateWallet(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	// Call the manager function to create a new wallet with the password
+	_, err := manager.CreateWallet(request.Password)
+	if err != nil {
+		http.Error(w, "Failed to create wallet: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+    // Start the wallet after creation
+	if err := manager.StartWallet(); err != nil {
+		http.Error(w, "Failed to start wallet: "+err.Error(), http.StatusInternalServerError)
+		return
+
+    }
+
+	// Send response with the generated seed
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Wallet created successfully!",
+		
+	})
 }
 
 

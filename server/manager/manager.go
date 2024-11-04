@@ -11,6 +11,7 @@ import (
 	"time"
 	"os/signal"
 	"syscall"
+    "github.com/creack/pty"
 )
 
 var orcaNetCmd *exec.Cmd
@@ -58,14 +59,12 @@ func StartOrcaNet() error {
 
     rpcUser := "user"         
     rpcPass := "password"     
-    miningAddr := "1885q3h76A4kK3yceXMVFRTjCaWzeZNPTj"
-
+    
     // Arguments to start btcd with custom configurations
     args := []string{
         "--rpcuser=" + rpcUser,
         "--rpcpass=" + rpcPass,
         "--notls",                   // Disable TLS (for local testing only; secure in production)
-        "--miningaddr=" + miningAddr, // Address to receive mining rewards
     }
 
 
@@ -123,6 +122,95 @@ func StopOrcaNet() error {
 	return nil
 }
 
+func OpenWallet(password string) error {
+    rootPath, err := getExePath()
+    if err != nil {
+        return err
+    }
+    walletPath := filepath.Join(rootPath, "btcwallet", "btcwallet")
+
+    // Check if the wallet binary exists
+    if _, err = os.Stat(walletPath); os.IsNotExist(err) {
+        return fmt.Errorf("Wallet binary not found at %s", walletPath)
+    }
+
+    // Start the wallet process with the appropriate arguments
+    walletCmd = exec.Command(walletPath, "--password="+password)
+    stdout, err := walletCmd.StdoutPipe()
+    if err != nil {
+        return fmt.Errorf("failed to create stdout pipe: %v", err)
+    }
+    stderr, err := walletCmd.StderrPipe()
+    if err != nil {
+        return fmt.Errorf("failed to create stderr pipe: %v", err)
+    }
+
+    // Start the wallet process
+    if err := walletCmd.Start(); err != nil {
+        return fmt.Errorf("failed to open wallet: %v", err)
+    }
+
+    go streamOutput(stdout, "btcwallet")
+    go streamOutput(stderr, "btcwallet error")
+
+    fmt.Println("Wallet opened successfully.")
+    return nil
+}
+
+func CreateWallet(password string) (string, error) {
+    // Determine paths
+    rootPath, err := getExePath()
+    if err != nil {
+        return "", fmt.Errorf("failed to get root path: %v", err)
+    }
+    walletPath := filepath.Join(rootPath, "btcwallet", "btcwallet")
+
+    // Check for wallet binary
+    if _, err = os.Stat(walletPath); os.IsNotExist(err) {
+        return "", fmt.Errorf("btcwallet binary not found at %s", walletPath)
+    }
+
+    // Prepare command with --create flag
+    walletCmd := exec.Command(walletPath, "--create")
+
+    // Create a pseudo-terminal for the command
+    ptmx, err := pty.Start(walletCmd)
+    if err != nil {
+        return "", fmt.Errorf("failed to start wallet creation with pty: %v", err)
+    }
+    defer ptmx.Close() // Close the pty at the end
+
+    // Goroutine to capture output and parse the seed
+    go func() {
+        scanner := bufio.NewScanner(ptmx)
+        for scanner.Scan() {
+            line := scanner.Text()
+            fmt.Println(line) // Print output for logging/debugging
+        }
+    }()
+
+    // Send password, "no" responses
+    go func() {
+        time.Sleep(1 * time.Second)
+        fmt.Fprintln(ptmx, password) // First password prompt
+        time.Sleep(1 * time.Second)
+        fmt.Fprintln(ptmx, password) // Confirm password prompt
+        time.Sleep(1 * time.Second)
+        fmt.Fprintln(ptmx, "no")     // Additional encryption prompt
+        time.Sleep(1 * time.Second)
+        fmt.Fprintln(ptmx, "no")     // Existing seed prompt
+        fmt.Fprintln(ptmx, "OK")    // Final OK prompt to create the wallet
+    }()
+
+    // Wait for the wallet creation to complete
+    if err := walletCmd.Wait(); err != nil {
+        return "", fmt.Errorf("wallet creation failed: %v", err)
+    }
+
+    fmt.Println("Wallet created successfully with automated inputs.")
+    return "",nil
+}
+
 // Start the wallet service
 func StartWallet() error {
 	rootPath, err := getExePath()
@@ -140,14 +228,12 @@ func StartWallet() error {
     // Create a wallet if you do not have one
     btcdUser := "user"
     btcdPass := "password"
-    rpcConnect := "127.0.0.1:8334" // Don't know if I need this
-    rpcListen := "127.0.0.1:8332" // Don't know if I need this 
-
+    rpcConnect := "127.0.0.1:8334" 
+    
     args := []string{
         "--btcdusername=" + btcdUser,
         "--btcdpassword=" + btcdPass,
         "--rpcconnect=" + rpcConnect,
-        "--rpclisten="+ rpcListen,
     }
 
 	walletCmd = exec.Command(walletPath, args...)
@@ -168,7 +254,7 @@ func StartWallet() error {
     go streamOutput(stdout, "btcwallet")
     go streamOutput(stderr, "btcwallet error")
 
-	fmt.Println("Wallet started successfully.")
+	fmt.Println("Wallet started successfully!!")
 	return nil
 }
 
@@ -200,6 +286,8 @@ func handleGracefulShutdown() {
 	time.Sleep(1 * time.Second)
 	os.Exit(0)
 }
+
+
 
 // // ReadRPCInfo reads the rpcuser and rpcpass values from btcd.conf located in the user's home directory
 // func readRPCInfo() ([]string, error) {
