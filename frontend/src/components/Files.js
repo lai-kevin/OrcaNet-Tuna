@@ -17,7 +17,8 @@ import { AppContext } from "./AppContext";
 import DownloadModal from "./DownloadModal";
 import CancelUploadModal from "./UploadModal";
 import DownloadFinishedPopUp from "./PopUp";
-import SearchBar from "./SearchBar";
+import {getHistory, uploadFileRPC} from "../RpcAPI"
+
 const bip39 = require('bip39');
 const { HDKey } = require('ethereum-cryptography/hdkey');
 
@@ -53,6 +54,15 @@ const Files = ({user}) => {
   const [popUpOpen,setPopUpOpen] = useState(false);
   const [downloadFinished, setDownloadFinished] = useState(false); //set to true for demo purposes
 
+
+  const handleUpdateFile = async () => {
+    const historyResponse = await getHistory([]);
+    console.log(historyResponse);
+    const shareResponse = await uploadFileRPC([{file_path: fileToUpload.name, price: fileToUpload.price}]);
+    console.log(shareResponse);
+    
+  }
+
   //UseEffect hook that currently deals with adding the "upload" to the list of uploads in the global context once a fileToUpload has been selected
   //uploads list is used by Files.js to render cards of uploads
   //No real format for this just filler hash key generated, name, and size for display purposes
@@ -62,27 +72,35 @@ const Files = ({user}) => {
       const seed = bip39.mnemonicToSeedSync(phrase);
       const childKey = HDKey.fromMasterSeed(seed).derive("m/44'/0'/0'");
       const privateKey = Array.from(childKey.privateKey).map(byte => byte.toString(16).padStart(2, '0')).join('');
-    let newFile = {
-      type: "file",
-      name: fileToUpload.name,
-      hashId: privateKey,
-      size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
-      price: fileToUpload.price,
-      timestamp: fileToUpload.timestamp
-    } 
-    let fileForDummyFiles = {
-      type: "file",
-      name: fileToUpload.name,
-      hashId: privateKey,
-      size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
-      providers: [{id: user.walletID, price: fileToUpload.price, timestamp: new Date(), downloads: 0 , status: "online"}]
-    }
+
+      //new file and dummt file no longer have correct information pertaining to files
+      //TODO remove once loading history is done
+      let newFile = {
+        type: "file",
+        name: fileToUpload.name,
+        hashId: privateKey,
+        size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
+        price: fileToUpload.price,
+        timestamp: fileToUpload.timestamp
+      } 
+      let fileForDummyFiles = {
+        type: "file",
+        name: fileToUpload.name,
+        hashId: privateKey,
+        size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
+        providers: [{id: user.walletID, price: fileToUpload.price, timestamp: new Date(), downloads: 0 , status: "online"}]
+      }
+      handleUpdateFile();
+
+      //This might not be needed anymore we should make a call to get history to rerender uploads
+      
       setUploadHistory([...uploadHistory,newFile]);
       setDummyFiles([...dummyFiles, fileForDummyFiles]);
       setFileToUpload(null);
     }
 
   },[fileToUpload]);
+  
 
   const handlePopUp = () => {
     setPopUpOpen(prevState => (prevState ===true ? false : true ))

@@ -1,9 +1,11 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const localServerApp = express();
 const PORT = 8088;
+const fs = require('fs');
+
 const startLocalServer = (done) => {
   localServerApp.use(express.json({ limit: "100mb" }));
   localServerApp.use(cors());
@@ -30,6 +32,25 @@ function createWindow() {
   mainWindow.loadURL('http://localhost:3000');
 }
 
+//requires ipc to talk between electron main process and our react components
+ipcMain.handle('open-file-dialog', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile']
+  });
+
+  if (result.canceled) {
+    return null;
+  }
+  const filePath = result.filePaths[0];
+  const fileStats = fs.statSync(filePath); // get file stats, will leave it open for modifying DHT insertion with some additional info
+  //for demo we had file size and timestamp as a part of the displayed metadata
+  return {
+    path: filePath,
+    size: fileStats.size,           // size in bytes
+    // isFile: fileStats.isFile(),      // Tells us if its a file not a directory
+    // isDirectory: stats.isDirectory(), // Tells us if it's a directory
+  };
+});
 
 app.whenReady().then(() => {
   startLocalServer(createWindow);

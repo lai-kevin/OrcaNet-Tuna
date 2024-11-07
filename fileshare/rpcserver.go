@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/rpc"
 	"github.com/gorilla/rpc/json"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/rs/cors"
 )
 
 var globalOrcaDHT *dht.IpfsDHT
@@ -134,7 +135,15 @@ func startRPCServer(orcaDHT *dht.IpfsDHT) {
 
 	r := mux.NewRouter()
 	r.Handle("/rpc", s)
+	//random bs i found online to crcumvent cors errors so i could talk with backend
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:3000"},
+		AllowedMethods: []string{"POST"},
+		AllowedHeaders: []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
+	})
+
+	handler := c.Handler(r)
 
 	fmt.Println("Starting JSON-RPC server on port 1234")
-	http.ListenAndServe(":1234", r)
+	http.ListenAndServe(":1234", handler)
 }
