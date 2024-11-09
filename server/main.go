@@ -13,13 +13,6 @@ import (
 
 )
 
-// Used for GetBestBlockInfo
-
-// type Block struct {
-//     Hash   string `json:"hash"`
-//     Height int    `json:"height"`
-// }
-
 func main() {
 	// Initialize the application and check for errors
 	if err := manager.Initialize(); err != nil {
@@ -29,8 +22,8 @@ func main() {
 	// Set up HTTP routes
 	setupRoutes()
 
-	// Start the OrcaNet service
-	if err := manager.StartOrcaNet(); err != nil {
+	// // Start the OrcaNet service
+	if err := manager.StartOrcaNet(""); err != nil {
 		log.Fatalf("Failed to start OrcaNet: %v", err)
 	}
 
@@ -53,10 +46,10 @@ func setupRoutes() {
 	http.HandleFunc("/createWallet", handlers.CreateWallet)
 	http.HandleFunc("/login", handlers.Login)
 	// http.HandleFunc("/getBlockchainInfo", handlers.GetBlockchainInfo)
-	// http.HandleFunc("/getNewAddress", handlers.GetNewAddress)
-	// http.HandleFunc("/getBalance", handlers.GetBalance)
+	http.HandleFunc("/getNewAddress", handlers.GetNewAddress)
+	http.HandleFunc("/getBalance", handlers.GetBalance)
+	http.HandleFunc("/mine", handlers.Mine)
 	// http.HandleFunc("/sendToAddress", handlers.SendToAddress)
-	// http.HandleFunc("/mine", handlers.Mine)
 	// http.HandleFunc("/getPeerInfo", handlers.GetPeerInfo)
 	// http.HandleFunc("/getBestBlock", handlers.GetBestBlock)
 	// http.HandleFunc("/getBestBlockInfo", handlers.GetBestBlockInfo)
