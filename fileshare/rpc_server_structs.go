@@ -3,10 +3,12 @@ package main
 // REQUEST STRUCTS
 type GetFileArgs struct {
 	FileHash string `json:"file_hash"`
+	PeerID   string `json:"peer_id"`
 }
 
 type GetFileMetaDataArgs struct {
 	FileHash string `json:"file_hash"`
+	PeerID   string `json:"peer_id"`
 }
 
 type GetProvidersArgs struct {
@@ -52,8 +54,8 @@ type GetFileMetaDataReply struct {
 }
 
 type GetProvidersReply struct {
-	Success   bool             `json:"success"`
-	Providers []FileDataHeader `json:"providers"`
+	Success   bool     `json:"success"`
+	Providers []string `json:"providers"`
 }
 
 type GetHistoryReply struct {

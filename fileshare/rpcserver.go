@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	fp "path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -34,7 +35,7 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 		TimeSent:              time.Now(),
 	})
 	requestID := generateRequestID()
-	err := connectAndRequestFileFromPeer(args.FileHash, requestID)
+	err := connectAndRequestFileFromPeer(args.FileHash, requestID, args.PeerID)
 	if err != nil {
 		log.Printf("Failed to get file: %v\n", err)
 		*reply = GetFileReply{Success: false}
@@ -48,7 +49,7 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDataArgs, reply *GetFileMetaDataReply) error {
 	log.Printf("Received GetFileMetaData request for file hash %s\n", args.FileHash)
 
-	err := connectAndRequestFileMetaDataFromPeer(args.FileHash)
+	err := connectAndRequestFileMetaDataFromPeer(args.FileHash, args.PeerID)
 	if err != nil {
 		log.Printf("Failed to get file meta data: %v\n", err)
 		*reply = GetFileMetaDataReply{Success: false}
@@ -81,16 +82,16 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 func (s *FileShareService) GetProviders(r *http.Request, args *GetProvidersArgs, reply *GetProvidersReply) error {
 	log.Printf("Received GetProviders request for file hash %s\n", args.FileHash)
 
-	dhtKey := "/orcanet/" + args.FileHash
-
-	log.Println("Searching for file hash: ", dhtKey)
-	res, err := globalOrcaDHT.GetValue(globalCtx, dhtKey)
+	res, err := searchFileOnDHT(args.FileHash)
 	if err != nil {
+		log.Printf("Failed to get providers for file hash %s\n", args.FileHash)
+		*reply = GetProvidersReply{Success: false}
 		return err
 	}
-	fmt.Printf("File found at peerID: %s\n", res)
 
-	*reply = GetProvidersReply{Success: true, Providers: []FileDataHeader{metadataResponse[args.FileHash]}}
+	providers := strings.Split(string(res), ",")
+
+	*reply = GetProvidersReply{Success: true, Providers: providers}
 	return nil
 }
 

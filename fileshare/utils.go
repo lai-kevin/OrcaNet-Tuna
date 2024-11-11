@@ -34,14 +34,28 @@ func generateRequestID() string {
 	return id.String()
 }
 
+func searchFileOnDHT(fileHash string) (string, error) {
+	dhtKey := "/orcanet/" + fileHash
+
+	log.Println("Searching for file hash: ", dhtKey)
+	res, err := globalOrcaDHT.GetValue(globalCtx, dhtKey)
+	if err != nil {
+		fmt.Printf("Failed to get existing value associated with file hash: %s\n", res)
+		return "", err
+	}
+	fmt.Printf("File found at peerID: %s\n", res)
+
+	return string(res), nil
+}
+
 func provideFileOnDHT(fileHash string, peerID string) error {
 	dhtKey := "/orcanet/" + fileHash
 
-	fmt.Println("Updating DHT with file hash: ", dhtKey)
+	fmt.Println("Updating DHT with key: ", dhtKey)
 
-	res, err := globalOrcaDHT.GetValue(globalCtx, dhtKey)
-	if err == nil {
-		fmt.Printf("Failed to get existing value associated with file hash: %s\n", res)
+	res, err := searchFileOnDHT(fileHash)
+	if err != nil {
+		return err
 	}
 
 	providers := strings.Split(string(res), ",")
@@ -58,19 +72,10 @@ func provideFileOnDHT(fileHash string, peerID string) error {
 	return nil
 }
 
-func connectAndRequestFileFromPeer(fileHash string, requestID string) error {
-	dhtKey := "/orcanet/" + fileHash
-
-	log.Println("Searching for file hash: ", dhtKey)
-	res, err := globalOrcaDHT.GetValue(globalCtx, dhtKey)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("File found at peerID: %s\n", res)
-
+func connectAndRequestFileFromPeer(fileHash string, requestID string, peerID string) error {
 	// Connect to the peer
-	providerPeerID := string(res)
-	err = connectToNodeUsingRelay(globalNode, providerPeerID)
+	providerPeerID := string(peerID)
+	err := connectToNodeUsingRelay(globalNode, providerPeerID)
 	if err != nil {
 		return err
 	}
@@ -84,19 +89,10 @@ func connectAndRequestFileFromPeer(fileHash string, requestID string) error {
 	return nil
 }
 
-func connectAndRequestFileMetaDataFromPeer(fileHash string) error {
-	dhtKey := "/orcanet/" + fileHash
-
-	log.Println("Searching for file hash: ", dhtKey)
-	res, err := globalOrcaDHT.GetValue(globalCtx, dhtKey)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("File found at peerID: %s\n", res)
-
+func connectAndRequestFileMetaDataFromPeer(fileHash string, peerID string) error {
 	// Connect to the peer
-	providerPeerID := string(res)
-	err = connectToNodeUsingRelay(globalNode, providerPeerID)
+	providerPeerID := string(peerID)
+	err := connectToNodeUsingRelay(globalNode, providerPeerID)
 	if err != nil {
 		return err
 	}
