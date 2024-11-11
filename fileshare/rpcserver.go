@@ -78,6 +78,22 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 	}
 }
 
+func (s *FileShareService) GetProviders(r *http.Request, args *GetProvidersArgs, reply *GetProvidersReply) error {
+	log.Printf("Received GetProviders request for file hash %s\n", args.FileHash)
+
+	dhtKey := "/orcanet/" + args.FileHash
+
+	log.Println("Searching for file hash: ", dhtKey)
+	res, err := globalOrcaDHT.GetValue(globalCtx, dhtKey)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("File found at peerID: %s\n", res)
+
+	*reply = GetProvidersReply{Success: true, Providers: []FileDataHeader{metadataResponse[args.FileHash]}}
+	return nil
+}
+
 func (s *FileShareService) GetHistory(r *http.Request, args *GetHistoryArgs, reply *GetHistoryReply) error {
 	log.Printf("Received GetHistory request")
 	downloadHistoryList := make([]FileTransaction, 0, len(downloadHistory))

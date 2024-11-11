@@ -9,6 +9,10 @@ type GetFileMetaDataArgs struct {
 	FileHash string `json:"file_hash"`
 }
 
+type GetProvidersArgs struct {
+	FileHash string `json:"file_hash"`
+}
+
 type GetHistoryArgs struct {
 }
 
@@ -45,6 +49,11 @@ type GetFileReply struct {
 type GetFileMetaDataReply struct {
 	Success      bool           `json:"success"`
 	FileMetaData FileDataHeader `json:"file_meta_data"`
+}
+
+type GetProvidersReply struct {
+	Success   bool             `json:"success"`
+	Providers []FileDataHeader `json:"providers"`
 }
 
 type GetHistoryReply struct {

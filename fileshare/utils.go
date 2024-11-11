@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -38,7 +39,16 @@ func provideFileOnDHT(fileHash string, peerID string) error {
 
 	fmt.Println("Updating DHT with file hash: ", dhtKey)
 
-	err := globalOrcaDHT.PutValue(globalCtx, dhtKey, []byte(peerID))
+	res, err := globalOrcaDHT.GetValue(globalCtx, dhtKey)
+	if err == nil {
+		fmt.Printf("Failed to get existing value associated with file hash: %s\n", res)
+	}
+
+	providers := strings.Split(string(res), ",")
+	providers = append(providers, peerID)
+	providersStr := strings.Join(providers, ",")
+
+	err = globalOrcaDHT.PutValue(globalCtx, dhtKey, []byte(providersStr))
 	if err != nil {
 		return err
 	}
