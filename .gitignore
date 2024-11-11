@@ -1,1 +1,5 @@
 node_modules
+fileshare/examples/*.mp4
+fileshare/examples/*.zip
+fileshare/downloads/*.mp4
+fileshare/downloads/*.zip
