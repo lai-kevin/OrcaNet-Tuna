@@ -45,4 +45,5 @@ type PauseDownloadRequest struct {
 
 type Error struct {
 	ErrorMessage string
+	RequestID    string
 }

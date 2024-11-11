@@ -79,7 +79,7 @@ func receiveFileRequests(node host.Host) {
 
 		filePath, ok := fileHashToPath[fileRequest.FileHash]
 		if !ok {
-			err = sendFileNotFoundToPeer(node, fileRequest.RequesterID)
+			err = sendFileNotFoundToPeer(node, fileRequest.RequesterID, fileRequest.RequestID)
 			if err != nil {
 				log.Printf("Error sending file not found message: %v", err)
 			} else {
@@ -268,7 +268,9 @@ func receiveErrorMessages(node host.Host) {
 			return
 		}
 
-		log.Printf("Error message: %s", errorStruct.ErrorMessage)
+		log.Printf("Error occurred on requestID: %s.message: %s", errorStruct.RequestID, errorStruct.ErrorMessage)
+
+		fmt.Printf("ERROR: %s %s", errorStruct.RequestID, errorStruct.ErrorMessage)
 	})
 }
 
@@ -277,7 +279,7 @@ func receiveErrorMessages(node host.Host) {
 // Send a "file not found" message to a peer from a given node.
 // node: the node sending the file not found message
 // targetNodeId: the ID of the target peer
-func sendFileNotFoundToPeer(node host.Host, targetNodeId string) error {
+func sendFileNotFoundToPeer(node host.Host, targetNodeId string, RequestID string) error {
 	stream, err := createStream(node, targetNodeId, "/error/p2p")
 	if err != nil {
 		return fmt.Errorf("sendFileNotFoundToPeer: %v", err)
@@ -286,6 +288,7 @@ func sendFileNotFoundToPeer(node host.Host, targetNodeId string) error {
 
 	errorStruct := Error{
 		ErrorMessage: "File not found",
+		RequestID:    RequestID,
 	}
 
 	errorBytes, err := json.Marshal(errorStruct)
