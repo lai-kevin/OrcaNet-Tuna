@@ -530,6 +530,8 @@ func main() {
 
 	go receivePauseDownload(node)
 
+	go receiveErrorMessages(node)
+
 	defer node.Close()
 	select {}
 }

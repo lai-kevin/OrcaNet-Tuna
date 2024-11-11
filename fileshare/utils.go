@@ -40,8 +40,8 @@ func searchFileOnDHT(fileHash string) (string, error) {
 	log.Println("Searching for file hash: ", dhtKey)
 	res, err := globalOrcaDHT.GetValue(globalCtx, dhtKey)
 	if err != nil {
-		fmt.Printf("Failed to get existing value associated with file hash: %s\n", res)
-		return "", err
+		fmt.Printf("Failed to get existing value associated with file hash: %s\n", fileHash)
+		return "", nil
 	}
 	fmt.Printf("File found at peerID: %s\n", res)
 
@@ -67,7 +67,10 @@ func provideFileOnDHT(fileHash string, peerID string) error {
 		return err
 	}
 
-	provideKey(globalCtx, globalOrcaDHT, fileHash)
+	err = provideKey(globalCtx, globalOrcaDHT, fileHash)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -246,13 +246,39 @@ func receiveFileMetaData(node host.Host) {
 	})
 }
 
+func receiveErrorMessages(node host.Host) {
+	node.SetStreamHandler("/error/p2p", func(stream network.Stream) {
+		defer stream.Close()
+
+		log.Println("Received error message. Reading error message...")
+
+		buffer := bufio.NewReader(stream)
+
+		data, err := io.ReadAll(buffer)
+		if err != nil {
+			log.Printf("Error reading data from stream: %v", err)
+			return
+		}
+		log.Printf("Error Message: %s", data)
+
+		var errorStruct Error
+		err = json.Unmarshal(data, &errorStruct)
+		if err != nil {
+			log.Printf("Error unmarshalling error message: %v", err)
+			return
+		}
+
+		log.Printf("Error message: %s", errorStruct.ErrorMessage)
+	})
+}
+
 ///////////////////////////////// SENDER FUNCTIONS //////////////////////////////////////
 
 // Send a "file not found" message to a peer from a given node.
 // node: the node sending the file not found message
 // targetNodeId: the ID of the target peer
 func sendFileNotFoundToPeer(node host.Host, targetNodeId string) error {
-	stream, err := createStream(node, targetNodeId, "/sendmessage/p2p")
+	stream, err := createStream(node, targetNodeId, "/error/p2p")
 	if err != nil {
 		return fmt.Errorf("sendFileNotFoundToPeer: %v", err)
 	}

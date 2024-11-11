@@ -27,14 +27,14 @@ var providedFiles = []FileDataHeader{}
 
 func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *GetFileReply) error {
 	log.Printf("Received GetFile request for file hash %s\n", args.FileHash)
-
+	requestID := generateRequestID()
 	fileRequests = append(fileRequests, FileRequest{
+		RequestID:             requestID,
 		FileHash:              args.FileHash,
 		RequesterID:           globalNode.ID().String(),
 		RequesterMultiAddress: globalOrcaDHT.Host().Addrs()[0].String(),
 		TimeSent:              time.Now(),
 	})
-	requestID := generateRequestID()
 	err := connectAndRequestFileFromPeer(args.FileHash, requestID, args.PeerID)
 	if err != nil {
 		log.Printf("Failed to get file: %v\n", err)
@@ -126,7 +126,12 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 
 	fileHash := generateFileHash(filepath)
 
-	provideFileOnDHT(fileHash, peerID)
+	err := provideFileOnDHT(fileHash, peerID)
+	if err != nil {
+		log.Printf("Failed to provide file: %v\n", err)
+		*reply = ProvideFileReply{Success: false, Message: "Failed to provide file"}
+		return err
+	}
 
 	fileHashToPath[fileHash] = filepath
 	isFileHashProvided[fileHash] = true
