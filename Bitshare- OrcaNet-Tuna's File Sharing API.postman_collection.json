@@ -25,6 +25,22 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "DOWNLOAD PROGRESS",
+					"request": {
+						"method": "POST",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Download Priority",
+					"request": {
+						"method": "POST",
+						"header": []
+					},
+					"response": []
 				}
 			]
 		},
@@ -520,7 +536,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.GetFile\",\r\n    \"params\": [\r\n        {\r\n            \"file_hash\": \"8d111b69632d3abc7ee3fd9cd215679c00b91ae6717f3be1bb9f7971bec2b911\"\r\n        }\r\n    ],\r\n    \"id\": 1\r\n}",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.GetFile\",\r\n    \"params\": [\r\n        {\r\n            \"file_hash\": \"8d111b69632d3abc7ee3fd9cd215679c00b91ae6717f3be1bb9f7971bec2b911\",\r\n            \"peer_id\": \"\"\r\n        }\r\n    ],\r\n    \"id\": 1\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -724,7 +740,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.GetFileMetaData\",\r\n    \"params\": [\r\n        {\r\n            \"file_hash\": \"52261791a66132f9c25fe189322529f5bfa44cf415edbe5146eb59b25b52c1cc\"\r\n        }\r\n    ],\r\n    \"id\": 1\r\n\r\n}",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.GetFileMetaData\",\r\n    \"params\": [\r\n        {\r\n            \"file_hash\": \"52261791a66132f9c25fe189322529f5bfa44cf415edbe5146eb59b25b52c1cc\",\r\n            \"peer_id\": \"\"\r\n        }\r\n    ],\r\n    \"id\": 1\r\n\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -907,6 +923,40 @@
 				"body": {
 					"mode": "raw",
 					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.PauseDownload\",\r\n    \"params\": [\r\n        {\r\n            \"request_id\": \"8d111b69632d3abc7ee3fd9cd215679c00b91ae6717f3be1bb9f7971bec2b911\"\r\n        }\r\n    ],\r\n    \"id\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:1234/rpc",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1234",
+					"path": [
+						"rpc"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET_PROVIDERS",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"method\": \"FileShareService.GetProviders\",\r\n    \"params\": [\r\n        {\r\n            \"file_hash\": \"8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891\"\r\n        }\r\n    ],\r\n    \"id\": 1\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
