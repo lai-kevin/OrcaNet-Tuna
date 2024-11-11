@@ -5,8 +5,8 @@ import { FaArrowDown } from "react-icons/fa";
 import { FaCircle } from "react-icons/fa";
 
 
-const DownloadModal = ({user}) =>{
-    const {fileToDownload, setDownloadOpen, setSearchResultsFound, setFileToDownload,downloads,setDownloads,setUploadHistory,uploadHistory,dummyFiles,setDummyFiles} = useContext(AppContext);
+const DownloadModal = () =>{
+    const {user, fileToDownload, setDownloadOpen, setSearchResultsFound, setFileToDownload,downloads,setDownloads,setUploadHistory,uploadHistory,dummyFiles,setDummyFiles} = useContext(AppContext);
     const [activeStep, setActiveStep] = useState(0); //0 is choosing a provider, 1 is the confirm 
     const [selectedProvider, setSelectedProvider] = useState("--");
     const [errorMsg,setErrorMsg] = useState("");

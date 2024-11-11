@@ -3,9 +3,9 @@ import AccountContent from './AccountContent';
 import ConfigContent from './ConfigContent';
 import { useMode } from './Mode';
 
-const Settings = ({user}) => {
+const Settings = () => {
   const [current, setCurrent] = useState('account'); 
-  const { mode, chooseLight, chooseDark} = useMode();
+  const { user, mode, chooseLight, chooseDark} = useMode();
   const handleTabChange = (page) => {
     setCurrent(page);
   };

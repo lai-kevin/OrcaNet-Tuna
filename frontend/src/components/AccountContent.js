@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect} from 'react';
+import React, { useState, useRef, useEffect, useContext} from 'react';
 import InfoBox from './InfoBox';
 import orca from './images/orca.jpg'
 import QRCode from 'react-qr-code';
@@ -9,15 +9,17 @@ import { FaArrowDown } from "react-icons/fa";
 import { SiEnvoyproxy } from "react-icons/si";
 import { HiOutlineXMark } from "react-icons/hi2";
 import { DownloadTableExcel } from 'react-export-table-to-excel';
-const AccountContent = ({user, mode}) => {
+import { AppContext } from './AppContext';
+const AccountContent = ({mode}) => {
     return(
      <div className = "account">
-        <InfoBox key="profile" content= {<Profile user={user} mode={mode}/>}/>
-        <InfoBox key="transaction" content= {<Transaction user={user} mode={mode}/>}/>
+        <InfoBox key="profile" content= {<Profile mode={mode}/>}/>
+        <InfoBox key="transaction" content= {<Transaction mode={mode}/>}/>
      </div>
     )
 };
-const Profile = ({user, mode})=>{
+const Profile = ({mode})=>{
+    const {user} = useContext(AppContext);
     const [qr, setQr] = useState("close")
     const handleQr = ()=>{
         setQr(prevState =>(prevState === "open" ? "close": "open"))
@@ -46,7 +48,7 @@ const Profile = ({user, mode})=>{
                 <div className="profile_pic">
                     <img src={orca} alt="orca" style={{ width: '108%', height: '108%', background: 'white',  borderRadius: '80px', marginLeft:"-7px", marginTop:"-7px"}}/>
                 </div>
-                <h4 id ="wID" >Wallet ID: </h4>
+                <h4 id ="wID" >Wallet Address: </h4>
                 <span id="number" style={{ color: mode === "dark" ? "white" : "black" }}>{user.walletID}</span>
                 <button type="button" id = {mode ==="dark"? "copy_button_dark": "copy_button"} onClick={handleCopy}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button>
                 <button type="button" id = {mode ==="dark"? "copy_button_dark": "copy_button"} ref={profile} onClick={handleQr}><FaQrcode  style={{ width: '100%', height: '100%', background: 'transparent'}}/></button>
@@ -60,32 +62,46 @@ const Profile = ({user, mode})=>{
         </div>
     )
 }
-const Transaction = ({user, mode})=>{
+const Transaction = ({mode})=>{
+    const {user} = useContext(AppContext);
     const [click, setClick] = useState(false);
-    const table = useRef(null);
+    const info =[{id:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"down", Spent:"0.25", Earned:0},
+        {id:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"up", Spent: 0, Earned:"2.25"}
+    ]
+    let current = [ ...info, ...user.transactions]
+    const download = () => {
+        const fields =["id", "from", "to", "time", "status", "size", "Type", "Spent", "Earned"]
+        const names =["TXID", "From", "To", "Time", "Status", "Size", "Type", "Spent", "Earned"]
+        const headers = names.join(",") + "\n";
+        const rows = current.map(row => 
+            fields.map(field => row[field]).join(",")
+          ).join("\n");
+        const blob = new Blob([headers + rows], { type: "text/csv" });
+        const link = document.createElement("a");
+        link.download = "Transaction Data.csv";
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        URL.revokeObjectURL(link.href);
+      };
     return(
         <div className={mode ==="dark"? "transaction": "transaction"}>
             <div id="trans_container">
                 <h2 id="transaction_title">Transaction History</h2>
                 <div id="button_layer">
                     <button id ="view"onClick={()=>{setClick(true)}}> View </button>
-                    <DownloadTableExcel 
-                        filename="Transaction table"
-                        sheet="Transaction table"
-                        currentRef={table.current}>
-                        <button id="download"> Download </button>
-                    </DownloadTableExcel>
+                    <button id="download" onClick={download}> Download </button>
                 </div>
             </div>
-            {click && (<TransactionTable user={user} mode={mode} setClick={setClick} table={table}/>)}
+            {click && (<TransactionTable user={user} mode={mode} setClick={setClick}/>)}
         </div>
     )
 }
-const TransactionTable=({user, mode, setClick, table})=> {
+const TransactionTable=({mode, setClick})=> {
+    const {user} = useContext(AppContext);
     const info =[{id:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"down", Spent:"0.25", Earned:0},
         {id:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"up", Spent: 0, Earned:"2.25"}
     ]
-    let current = [ ...info, ...user.transactions,]
+    let current = [ ...info, ...user.transactions]
     console.log(current);
     const [sort, setSort] = useState("")
     const [curr, setCurr] = useState(current);
@@ -94,6 +110,7 @@ const TransactionTable=({user, mode, setClick, table})=> {
     };
     useEffect(() => {
         const updateCurr = () => {
+          let current = [ ...info, ...user.transactions]
           let filteredList = current
           if (sort === "Latest") {
             filteredList.sort((a, b) => new Date(b.time) - new Date(a.time));
@@ -140,7 +157,7 @@ const TransactionTable=({user, mode, setClick, table})=> {
                     </div>
                 </div>
             <div id="bottom_table">
-            <table id="transaction_table" ref={table}>
+            <table id="transaction_table">
                 <thead>
                     <tr>
                         <th>ID</th>

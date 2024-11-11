@@ -1,14 +1,16 @@
 import { GiWhaleTail } from 'react-icons/gi';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Rings } from 'react-loader-spinner';
 import bs58check from 'bs58check'
 import { FaRegCopy } from 'react-icons/fa';
 import { useMode } from './Mode';
+import { AppContext } from './AppContext';
+import { GoDownload } from "react-icons/go";
 const bip39 = require('bip39');
 const { HDKey } = require('ethereum-cryptography/hdkey');
 const hash = require('hash.js')
 
-const Entry = ({user, setUser}) =>{
+const Entry = () =>{
     const [page, setPage] = useState('login')
     const[effect, setEffect] = useState(false);
     const {mode} = useMode();
@@ -43,10 +45,10 @@ const Entry = ({user, setUser}) =>{
                 </div>
             <div id="contents">
                 <div className={`effect ${effect ? (page === 'register' ? 'right' : 'left') : ''}`}>
-                    {page === 'login' && <Login handleRegPage={handleRegPage} user={user} setUser={setUser} setPage ={setPage}/>}
+                    {page === 'login' && <Login handleRegPage={handleRegPage} setPage ={setPage}/>}
                 </div>
                 <div className={`effect ${effect ? (page === 'login' ? 'right' : 'left') : ''}`}>
-                    {page === 'register' && <Register handleLoginPage={handleLoginPage} user={user} setPage={setPage}/>}
+                    {page === 'register' && <Register handleLoginPage={handleLoginPage}  setPage={setPage}/>}
                 </div>
             </div>
             </div>
@@ -121,16 +123,35 @@ const Recover = ({setPage})=>{
        </div>
     )
 }
-const Login=({handleRegPage, user, setUser, setPage})=>{
+const Login=({handleRegPage, setPage})=>{
     const [input, setInput] = useState("")
     const {mode} = useMode();
     const [err, setErr] = useState({message: "", present:false})
+    const {rem, setRem, user, setUser} = useContext(AppContext);
     const handleInput=(e)=>{
         setInput(e.target.value);
         if (err.present) {
             setErr({ message: "", present: false });
         }
     }
+    useEffect(() => {
+        const userKey = localStorage.getItem('currentUser');
+        const data = JSON.parse(localStorage.getItem(userKey));
+        const checked = localStorage.getItem('rem') === 'true';
+        const time = localStorage.getItem('time');
+        
+        if (checked && time) {
+          const currentTime = Date.now();
+          if (currentTime < time) {
+            setUser(data);
+            setRem(checked);
+          } else {
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('rem');
+            localStorage.removeItem('time');
+          }
+        }
+      }, []);
     const check = (e)=>{
         e.preventDefault();
         const key = input.trim();
@@ -139,12 +160,23 @@ const Login=({handleRegPage, user, setUser, setPage})=>{
             return
         }
         let result = localStorage.getItem(key);
+        const expiration = Date.now() + 24 * 60 * 60 * 1000;
         if (result == null){
             setErr({message:"^Invalid Key", present:true});
         }
         else{
             let data = JSON.parse(result)
             setUser(data);
+            if(rem){
+                localStorage.setItem("rem", true);
+                localStorage.setItem("currentUser", key);
+                localStorage.setItem('time', expiration); 
+            }
+            else{
+                localStorage.setItem("rem", false);
+                localStorage.removeItem("currentUser");
+                localStorage.removeItem('time');
+            }
         }
     }
     return(
@@ -152,6 +184,7 @@ const Login=({handleRegPage, user, setUser, setPage})=>{
          <form onSubmit={check}>
             <input type="text" id="key" value={input} onChange={handleInput} placeholder='Enter Private Key'></input><br></br>
             {err.present && (<p id="err">{err.message}</p>)}
+            <input type="checkbox" id="remember" checked={rem} onChange={() => setRem(!rem)}/> Remember Me
             <a onClick={()=>setPage('recover')}id="recover">Forgot key?</a>
          </form>
          <button type="submit" id="log_button" onClick={check}> Login</button>
@@ -160,7 +193,7 @@ const Login=({handleRegPage, user, setUser, setPage})=>{
 
     )
 }
-const Register=({handleLoginPage, user, setPage})=>{
+const Register=({handleLoginPage})=>{
     const[current, setCurrent] = useState("first")
     const[data, setData] = useState(null)
     const {mode} = useMode();
@@ -202,11 +235,22 @@ const Register=({handleLoginPage, user, setPage})=>{
                 balance: 100, // for demo purposes
                 transactions:[],
                 fileHistory:[],
+                servedHistory:[], // the clients that it served before  
+                proxied:[], // the peers that user proxied
                 mode: "light"
             };
             setData(userData);
             localStorage.setItem(privateKey, JSON.stringify(userData));
     }, 3000)
+    };
+    const save = () => {
+        const content = `Recovery Phase:\t${data.phrase}\nPrivate Key:\t${data.privateKey}\nWallet Address:\t${data.walletID}`;
+        const blob = new Blob([content], { type: "text/plain" });
+        const link = document.createElement("a");
+        link.download = "LoginCredentials.txt";
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        URL.revokeObjectURL(link.href);
     };
     return(
         <div>
@@ -235,15 +279,14 @@ const Register=({handleLoginPage, user, setPage})=>{
             )}
             {current === "fourth" && (
                 <div className = "register_page">
-                <h3 id="welcome1" style={{ color: mode === "dark" ? "black" : "black" }}>Please save these info:</h3>
+                <button id= "save" onClick={save}><GoDownload size={18}/>Save Credentials</button>
                 <div className='info_container'>
                     <ul className='info_list'>
                         <li><span id="phrase_title" style={{ color: mode === "dark" ? "black" : "black" }}>Recovery phrase:</span> <button type="button" id="copy" onClick={()=>handleCopy(data.phrase)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button> <br></br><span className="recover_phrase">{data.phrase.split(" ").slice(0, 6).join(" ")}</span><br></br>
                         <span className="recover_phrase">{data.phrase.split(" ").slice(5, 12).join(" ")}</span>
                         </li>
                         <li style={{ color: mode === "dark" ? "black" : "black" }}>Private key:  <button type="button" id="copy" onClick={()=>handleCopy(data.privateKey)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br> <span id="private_key">{data.privateKey}</span></li>
-                        <li style={{ color: mode === "dark" ? "black" : "black" }}>Public key:  <button type="button" id="copy" onClick={()=>handleCopy(data.publicKey)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br><span id="public_key">{data.publicKey}</span></li>
-                        <li style={{ color: mode === "dark" ? "black" : "black" }}>Wallet ID:  <button type="button" id="copy" onClick={()=>handleCopy(data.walletID)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br><span id="w">{data.walletID}</span></li>
+                        <li style={{ color: mode === "dark" ? "black" : "black" }}>Wallet Address:  <button type="button" id="copy" onClick={()=>handleCopy(data.walletID)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br><span id="w">{data.walletID}</span></li>
                     </ul>
                 </div>
             </div>

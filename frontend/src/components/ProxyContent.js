@@ -7,12 +7,11 @@ import { FaRegCircleXmark } from "react-icons/fa6";
 import { HiOutlineXMark } from "react-icons/hi2";
 import { IoCheckmarkCircleOutline } from "react-icons/io5";
 import { useMode } from './Mode';
-
-const ProxyContent=({user, setUser})=>{
+const ProxyContent=()=>{
   const [current, setCurrent] = useState('client');
   const [err, setErr] = useState(false)
   const {mode} = useMode();
-  const {server, setServer,proxy, proxyPrice, proxyHistory, setProxyHistory,setTotal,setServerHistory, stop} = useContext(AppContext);
+  const {user, setUser, server, setServer,proxy, proxyPrice, proxyHistory, setProxyHistory,setTotal,setServerHistory, stop, ownHistory, setOwnHistory} = useContext(AppContext);
   const handleTabChange = (page) => {
     setCurrent(page);
   };
@@ -40,7 +39,23 @@ useEffect(() => {
 }, [server, proxyHistory, user]); 
   const handleUpdate = (result)=> setProxyHistory(prevHistory => [...prevHistory, result]);
   const handleUpdate1 = (result)=> setServerHistory(prevHistory => [...prevHistory, result]);
+  const handleUpdate2 = (result)=> setOwnHistory(prevHistory => [...prevHistory, result]);
   const generateServer = ()=>{
+    const locations = [
+        "New York, USA",
+        "Tokyo, Japan",
+        "London, UK",
+        "Paris, France",
+        "Berlin, Germany",
+        "Toronto, Canada",
+        "Sydney, Australia",
+        "Dubai, UAE",
+        "Mumbai, India",
+        "São Paulo, Brazil",
+        "Moscow, Russia",
+        "Cape Town, South Africa",
+        "Mexico City, Mexico",
+        "Singapore"]
     const ip = ["192.168.2.1", "11.1.0.1", "171.16.0.1", "131.0.2.1", "243.0.113.1", "189.51.100.1"];
     const wallet= {"192.168.2.1":"1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", 
         "11.1.0.1": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
@@ -53,6 +68,7 @@ useEffect(() => {
     const stat =["Success", "Failed"]
 
     const randomIP = ip[Math.floor(Math.random() * ip.length)];
+    const randomLocation= locations[Math.floor(Math.random() * locations.length)];
     const randomURL = u[Math.floor(Math.random() * u.length)];
     const randomMethod = m[Math.floor(Math.random() * m.length)];
     const randomStatus = stat[Math.floor(Math.random() * stat.length)];
@@ -74,6 +90,7 @@ useEffect(() => {
     const result ={
         id: idgenerator(),
         client: randomIP,
+        location: randomLocation,
         Url: randomURL,
         method: randomMethod,
         time: formatTime(),
@@ -102,8 +119,8 @@ useEffect(() => {
         localStorage.setItem(prev.privateKey, JSON.stringify(updated));
         return updated;
     });
-    handleUpdate(result);
-    handleUpdate1(result);
+    handleUpdate(result); // add to the whole proxy history of packets
+    handleUpdate1(result); // add to server history 
 }
 const generateClient = ()=>{
     const u = ["www.google.com", "www.abc.com", "www.123.com", "www.example.com", "www.example12.com"];
@@ -166,11 +183,29 @@ const generateClient = ()=>{
         localStorage.setItem(prev.privateKey, JSON.stringify(updated));
         return updated;
     });
-    handleUpdate(result);
+    handleUpdate(result); // add to the whole proxy
+    handleUpdate2(result); // add to current history
     }
     const handleClick =()=>{
+        const spent = ownHistory.reduce((acc, transaction) => {
+            return parseFloat(acc) + parseFloat(transaction.Spent);
+          }, 0);
+        let curr = {...server, end: formatTime(), status: "Disconnected", Spent: spent.toFixed(2), Earned:"--"};
+        console.log(curr);
+        setUser(prev => {
+            const updated = {
+                ...prev,
+                proxied: [
+                    ...prev.proxied, curr
+                ]
+            };
+            localStorage.setItem(prev.privateKey, JSON.stringify(updated));
+            return updated;
+        });
+        console.log(user);
         setServer("--")
         setErr(false)
+        setOwnHistory([])
     }
     return(
         <div className="proxys">
@@ -214,12 +249,158 @@ const generateClient = ()=>{
     </div>
     )
 }
+const Serving = () =>{
+    const {serverHistory, user, stop} = useContext(AppContext);
+    const hist = Object.values(
+        serverHistory.reduce((acc, item) => {
+          const client = item.client;
+      
+          if (stop.includes(client)) {
+            return acc;
+          }
+      
+          if (!acc[client]) {
+            acc[client] = {
+              client: client,
+              location: item.location,
+              Earned: 0,
+              Spent:"--",
+              totalBandwidth: 0, 
+              count: 0,     
+              date: item.time,
+              end: "---",
+              status: "Connected"
+            };
+          }
+          acc[client].Earned += parseFloat(item.Earned);
+          acc[client].totalBandwidth += parseFloat(item.bandwidth);
+          acc[client].count += 1;
+      
+          return acc;
+        }, {})
+      ).map(clientData => ({
+        ...clientData,
+        averageBandwidth: (clientData.totalBandwidth / clientData.count).toFixed(2),
+        Earned: parseFloat(clientData.Earned).toFixed(2)
+      }));
+    const conHist = [...hist, ...user.servedHistory]; // retrieve the previously servered requests
+    const [currList, setCurrList] = useState(conHist.sort((a, b) => {
+        const one = new Date(a.date).getTime(); 
+        const two = new Date(b.date).getTime(); 
+        return two - one;
+      }));
+    const [sort, setSort] = useState("")
+    const {mode} = useMode();
+    useEffect(() => {
+        const hist = Object.values(
+            serverHistory.reduce((acc, item) => {
+              const client = item.client;
+          
+              if (stop.includes(client)) {
+                return acc;
+              }
+          
+              if (!acc[client]) {
+                acc[client] = {
+                  client: client,
+                  location: item.location,
+                  Earned: 0,
+                  Spent: "--",
+                  totalBandwidth: 0, 
+                  count: 0,     
+                  date: item.time,
+                  end: "---",
+                  status: "Connected"
+                };
+              }
+              acc[client].Earned += parseFloat(item.Earned);
+              acc[client].totalBandwidth += parseFloat(item.bandwidth);
+              acc[client].count += 1;
+          
+              return acc;
+            }, {})
+          ).map(clientData => ({
+            ...clientData,
+            averageBandwidth: (clientData.totalBandwidth / clientData.count).toFixed(2),
+            Earned: parseFloat(clientData.Earned).toFixed(2)
+          }));
+        const conHist = [...hist, ...user.servedHistory]; 
+        if (sort === "Latest") {
+            conHist.sort((a, b) => new Date(b.date) - new Date(a.date));
+          } else if (sort === "Earliest") {
+            conHist.sort((a, b) => new Date(a.date) - new Date(b.date));
+          }
+        setCurrList(conHist);
+    },[stop, serverHistory, sort]);
+    const handleSort = (event) => {
+        let curSort = event.target.value;
+        let sortedList = [...currList];
+        if (curSort === "Latest") {
+            sortedList = sortedList.sort((a, b) => {
+              const one = new Date(a.date).getTime(); 
+              const two = new Date(b.date).getTime(); 
+              return two - one;
+            });          
+        }
+        if (curSort === "Earliest") {
+            sortedList = sortedList.sort((a, b) => {
+              const one = new Date(a.date).getTime(); 
+              const two = new Date(b.date).getTime(); 
+              return one - two;
+            });          
+        }
+        setSort(event.target.value);
+        setCurrList([...sortedList]);
+    }
+    return(
+        <div id="server_cont">
+        <div className= "sort-container1">
+            <p className="sort-label1">Sort By: </p>
+            <select className="sort-select" value={sort} onChange={handleSort}>
+                <option value="" disabled>Select an option</option>
+                <option value="Latest">Newest</option>
+                <option value="Earliest">Earliest</option>
+            </select>
+        </div>
+        <div id ="table_cont">
+        <table id={mode==="dark"? "proxy_data_dark": "proxy_data"}>
+            <thead>
+                <tr>
+                <th>IP</th>
+                <th>Location</th>
+                <th>Status </th>
+                <th>Started </th>
+                <th>Ended </th>
+                <th>Average Bandwidth</th>
+                <th>Profit (Oracoins)</th>
+                </tr>
+            </thead>
+            <tbody>
+            {currList.map((row) => (
+                <tr
+                    key={row.id}
+                >
+                    <td>{row.client}</td>
+                    <td>{row.location}</td>
+                    <td>{row.status}</td>
+                    <td>{row.date}</td>
+                    <td>{row.end}</td>
+                    <td>{row.averageBandwidth}</td>
+                    <td>{row.Earned}</td>
+                </tr>
+            ))}
+            </tbody>
+        </table>
+    </div>
+    </div>
+    )
+}
 const Delete = ({setNodes}) => {
     const [current, setCurrent] = useState([]);
     const [confirm, setConfirm] = useState(false);
     const [str, setStr] = useState("")
     const {mode} = useMode();
-    const{stop, proxyHistory,setStop} = useContext(AppContext)
+    const{setUser, stop, proxyHistory,setStop, serverHistory} = useContext(AppContext)
     const list = proxyHistory.reduce((acc, item) => {
         if (item.client !== "None" && !stop.includes(item.client) && !acc.some(existingItem => existingItem.client === item.client)) {
             acc.push(item); 
@@ -247,12 +428,54 @@ const Delete = ({setNodes}) => {
     };
   
     const handleYes = () => {
-        const r = current.map(index => list[index].client);
+      const r = current.map(index => list[index].client);
       setStop((prev) => [...prev, ...r]);
       setConfirm(false);
       setCurrent([]);
       setStr("")
       setNodes(false);
+      const conHist = Object.values(
+        serverHistory.reduce((acc, item) => {
+          const client = item.client;
+      
+          if (r.includes(client)) {
+      
+            if (!acc[client]) {
+                acc[client] = {
+                client: client,
+                location: item.location,
+                Earned: 0,
+                Spent:"--",
+                totalBandwidth: 0, 
+                count: 0,     
+                date: item.time,
+                end: formatTime(),
+                status: "Disconnected"
+                };
+            }
+            acc[client].Earned += parseFloat(item.Earned);
+            acc[client].totalBandwidth += parseFloat(item.bandwidth);
+            acc[client].count += 1;
+        }
+          return acc;
+        }, {})
+      ).map(clientData => ({
+        ...clientData,
+        averageBandwidth: (clientData.totalBandwidth / clientData.count).toFixed(2),
+        Earned: parseFloat(clientData.Earned).toFixed(2)
+      }));
+      
+        // add all the served history to database
+      setUser(prev => {
+          const updated = {
+              ...prev,
+              servedHistory: [
+                  ...prev.servedHistory, ...conHist
+              ],
+          };
+          localStorage.setItem(prev.privateKey, JSON.stringify(updated));
+          return updated;
+      });
     };
   
     const handleNo = () => {
@@ -356,35 +579,120 @@ const BandwidthTable =({setB})=>{
     )
 }
 const History =()=>{
-    const {proxyHistory} = useContext(AppContext);
-    const [curr, setCurr] = useState(proxyHistory);
+    const {serverHistory, ownHistory, stop, user, server} = useContext(AppContext);
+    const sp = ownHistory.reduce((acc, transaction) => {
+        return parseFloat(acc) + parseFloat(transaction.Spent)
+      }, 0);
+    let updatedList = [...user.proxied];
+    if(server!== "--"){
+        let current= {...server, end: "---", status: "Connected", Spent: sp.toFixed(2), Earned:"--"};
+        updatedList = [current, ...user.proxied];
+    }
+    const hist = Object.values(
+        serverHistory.reduce((acc, item) => {
+          const client = item.client;
+      
+          if (stop.includes(client)) {
+            return acc;
+          }
+      
+          if (!acc[client]) {
+            acc[client] = {
+              client: client,
+              location: item.location,
+              Earned: 0,
+              Spent:"--",
+              totalBandwidth: 0, 
+              count: 0,     
+              date: item.time,
+              end: "---",
+              status: "Connected"
+            };
+          }
+          acc[client].Earned += parseFloat(item.Earned);
+          acc[client].totalBandwidth += parseFloat(item.bandwidth);
+          acc[client].count += 1;
+      
+          return acc;
+        }, {})
+      ).map(clientData => ({
+        ...clientData,
+        averageBandwidth: (clientData.totalBandwidth / clientData.count).toFixed(2),
+        Earned: parseFloat(clientData.Earned).toFixed(2)
+      }));
+
+    const conHist = [...hist, ...user.servedHistory];
+    const allHist = [...updatedList, ...conHist];
+    console.log(allHist)
+    const [curr, setCurr] = useState(allHist);
     const [sort, setSort] = useState("")
     useEffect(() => {
         const updateCurr = () => {
-          let filteredList = proxyHistory
+            const sp = ownHistory.reduce((acc, transaction) => {
+                return parseFloat(acc) + parseFloat(transaction.Spent)
+              }, 0);
+            let updatedList = [...user.proxied];
+            if(server!== "--"){
+                let current= {...server, end: "---", status: "Connected", Spent: sp.toFixed(2), Earned:"--"};
+                updatedList = [current, ...user.proxied];
+            }
+            const hist = Object.values(
+                serverHistory.reduce((acc, item) => {
+                  const client = item.client;
+              
+                  if (stop.includes(client)) {
+                    return acc;
+                  }
+              
+                  if (!acc[client]) {
+                    acc[client] = {
+                      client: client,
+                      location: item.location,
+                      Earned: 0,
+                      Spent:"--",
+                      totalBandwidth: 0, 
+                      count: 0,     
+                      date: item.time,
+                      end: "---",
+                      status: "Connected"
+                    };
+                  }
+                  acc[client].Earned += parseFloat(item.Earned);
+                  acc[client].totalBandwidth += parseFloat(item.bandwidth);
+                  acc[client].count += 1;
+              
+                  return acc;
+                }, {})
+              ).map(clientData => ({
+                ...clientData,
+                averageBandwidth: (clientData.totalBandwidth / clientData.count).toFixed(2),
+                Earned: parseFloat(clientData.Earned).toFixed(2)
+              }));
+            const conHist = [...hist, ...user.servedHistory];
+            const allHist = [...updatedList, ...conHist];
           if (sort === "Latest") {
-            filteredList.sort((a, b) => new Date(b.time) - new Date(a.time));
+            allHist.sort((a, b) => new Date(b.date) - new Date(a.date));
           } else if (sort === "Earliest") {
-            filteredList.sort((a, b) => new Date(a.time) - new Date(b.time));
+            allHist.sort((a, b) => new Date(a.date) - new Date(b.date));
           }
-          setCurr(filteredList);
+          setCurr(allHist);
         };
         updateCurr(); 
-      }, [proxyHistory, sort]); 
+      }, [ownHistory, serverHistory, sort]); 
     const handleSort = (event) => {
         let curSort = event.target.value;
-        let sorted = [...proxyHistory];
+        let sorted = [...allHist];
         if (curSort === "Latest") {
             sorted = sorted.sort((a, b) => {
-              const one = new Date(a.time).getTime(); 
-              const two = new Date(b.time).getTime(); 
+              const one = new Date(a.date).getTime(); 
+              const two = new Date(b.date).getTime(); 
               return two - one;
             });          
         }
         if (curSort === "Earliest") {
             sorted = sorted.sort((a, b) => {
-              const one = new Date(a.time).getTime(); 
-              const two = new Date(b.time).getTime(); 
+              const one = new Date(a.date).getTime(); 
+              const two = new Date(b.date).getTime(); 
               return one - two;
             });          
         }
@@ -406,14 +714,12 @@ const History =()=>{
         <table id="proxy_data">
             <thead>
                 <tr>
-                <th>Client</th>
-                <th>URL</th>
-                <th>Method</th>
-                <th>Time</th>
+                <th>IP</th>
+                <th>Location</th>
+                <th>Start</th>
+                <th>End</th>
                 <th>Status</th>
-                <th>Sent</th>
-                <th>Received</th>
-                <th>Cost (Oracoins)</th>
+                <th>Spent (Oracoins)</th>
                 <th>Earned (Orcacoins)</th>
                 </tr>
             </thead>
@@ -422,13 +728,11 @@ const History =()=>{
                 <tr
                     key={row.id}
                 >
-                    <td>{row.client ==="None" ? "---": row.client}</td>
-                    <td>{row.Url}</td>
-                    <td>{row.method}</td>
-                    <td>{row.time}</td>
-                    <td>{row.status === "Success"? <FaCheck style={{color:'green'}}/>: <FaXmark style={{color: 'red'}}/> }</td>
-                    <td>{row.sent}</td>
-                    <td>{row.received}</td>
+                    <td>{row.client || row.ip}</td>
+                    <td>{row.location}</td>
+                    <td>{row.date}</td>
+                    <td>{row.end}</td>
+                    <td>{row.status === "Connected"? <FaCheck style={{color:'green'}}/>: <FaXmark style={{color: 'red'}}/> }</td>
                     <td>{row.Spent}</td>
                     <td>{row.Earned}</td>
                 </tr>
@@ -440,8 +744,8 @@ const History =()=>{
     </div>
  )
 }
-const Client =({user, setUser})=>{
-    const {server} = useContext(AppContext);
+const Client =()=>{
+    const {server, user, setUser} = useContext(AppContext);
     const {mode} = useMode();
     const [click, setClick] = useState(false)
     const handleSelected=()=>{
@@ -464,19 +768,23 @@ const Client =({user, setUser})=>{
         </div>
     )
 }
-const ProxyConnected =({user, setUser})=>{
-    const {server, total, setTotal} = useContext(AppContext);
+const ProxyConnected =()=>{
+    const {server, total, setTotal, user, setUser} = useContext(AppContext);
     const [open, setOpen] = useState(false)
     const {mode} = useMode();
+    const [current, setCurrent] = useState("connection")
      const handleClick =() =>{
         setOpen(true)
         setTotal(0)
     }
+    const handleTabChange = (page) => {
+        setCurrent(page);
+      };
     return(
         <div className={mode==="dark"? "top_dark":""} >
             <div id="client_top">
                 <IoCheckmarkCircleOutline color="green" size="24"/>
-                <h3 id= {mode==="dark"? "server_info_dark":"server_info"}>Connected to Proxy Server: {server === "--" ? "---" : server.location} </h3>
+                <h3 id= {mode==="dark"? "server_info_dark":"server_info"}>Connected to Proxy Server: {server === "--" ? "---" : server.ip} [{server.location}]</h3>
                 <button id ="disconnect" onClick={handleClick}> Disconnect</button>
             </div>
                 <div id="client_info">
@@ -491,41 +799,198 @@ const ProxyConnected =({user, setUser})=>{
                     </div>
                 </div>
             <div id="bottom_client">
-                <h3 id="request_title">Proxy Requests History</h3>
-                <ProxyDisplayClient/>
+                <h3 id="request_title">Proxy History</h3>
+                <div className="tab">
+                <nav className="proxy_bar">
+                <ul>
+                    <li>
+                    <a className={current === 'connection' ? 'current1' : ''} onClick={() => handleTabChange('connection')}>
+                        Connections
+                    </a>
+                    </li>
+                    <li>
+                    <a className={current === 'request' ? 'current1' : ''} onClick={() => handleTabChange('request')}>
+                        Requests
+                    </a>
+                    </li>
+                </ul>
+                </nav>
+            </div>
+                {current=== "request" && (<ProxyDisplayClient/>)}
+                {current=== "connection" && (<Connections user={user}/>)}
             </div>
             {open && (<DisModal setOpen={setOpen}/>)}
         </div>
     )
 }
-const DisModal =({setOpen})=>{
-    const {server,setServer} = useContext(AppContext);
-    const handleYes =()=>{
-        setServer("--")
-        setOpen(false)
+const Connections = () =>{
+    const {user, ownHistory, server} = useContext(AppContext);
+    const spent = ownHistory.reduce((acc, transaction) => {
+        return parseFloat(acc) + parseFloat(transaction.Spent);
+      }, 0);
+    let curr = {...server, end: "---", status: "Connected", Spent: spent.toFixed(2), Earned:"--"};
+    let conHist = [curr, ...user.proxied]
+    const [currList, setCurrList] = useState(conHist.sort((a, b) => {
+        const one = new Date(a.date).getTime(); 
+        const two = new Date(b.date).getTime(); 
+        return two - one;
+      }));
+    const [sort, setSort] = useState("")
+    const {mode} = useMode();
+    useEffect(() => {
+        const spent = ownHistory.reduce((acc, transaction) => {
+            return parseFloat(acc) + parseFloat(transaction.Spent)
+          }, 0);
+        let curr = {...server, end: "---", connection: "Connected", Spent: spent.toFixed(2), Earned:"--"};
+        let updatedList = [curr, ...user.proxied];
+        if (sort === "Latest") {
+            updatedList.sort((a, b) => new Date(b.time) - new Date(a.time));
+          } else if (sort === "Earliest") {
+            updatedList.sort((a, b) => new Date(a.time) - new Date(b.time));
+          }
+        setCurrList(updatedList);
+    }, [ownHistory, sort]); 
+    const handleSort = (event) => {
+        let curSort = event.target.value;
+        let sortedList = [...currList];
+        if (curSort === "Latest") {
+            sortedList = sortedList.sort((a, b) => {
+              const one = new Date(a.date).getTime(); 
+              const two = new Date(b.date).getTime(); 
+              return two - one;
+            });          
+        }
+        if (curSort === "Earliest") {
+            sortedList = sortedList.sort((a, b) => {
+              const one = new Date(a.date).getTime(); 
+              const two = new Date(b.date).getTime(); 
+              return one - two;
+            });          
+        }
+        setSort(event.target.value);
+        setCurrList([...sortedList]);
     }
+    return(
+        <div id="connect_cont">
+        <div className= "sort-container1">
+            <p className="sort-label1">Sort By: </p>
+            <select className="sort-select" value={sort} onChange={handleSort}>
+                <option value="" disabled>Select an option</option>
+                <option value="Latest">Newest</option>
+                <option value="Earliest">Earliest</option>
+            </select>
+        </div>
+        <div id ="table_cont">
+        <table id={mode==="dark"? "proxy_data_dark": "proxy_data"}>
+            <thead>
+                <tr>
+                <th>IP</th>
+                <th>Location</th>
+                <th>Time</th>
+                <th>End Time</th>
+                <th>Cost (Oracoins)</th>
+                <th>Total Spent (Oracoins)</th>
+                </tr>
+            </thead>
+            <tbody>
+            {currList.map((row) => (
+                <tr
+                    key={row.id}
+                >
+                    <td>{row.ip}</td>
+                    <td>{row.location}</td>
+                    <td>{row.date}</td>
+                    <td>{row.end}</td>
+                    <td>{row.Price}</td>
+                    <td>{row.Spent}</td>
+                </tr>
+            ))}
+            </tbody>
+        </table>
+    </div>
+    </div>
+    )
+}
+const DisModal =({setOpen})=>{
+    const {user, server,setServer, setUser,ownHistory, setOwnHistory, isProgressing, setIsProgressing} = useContext(AppContext);
+    const [curr, setCurr] = useState("confirm");
+    const [progress, setProgress] = useState(0)
+    const handleYes =()=>{
+        const spent = ownHistory.reduce((acc, transaction) => {
+            return parseFloat(acc) + parseFloat(transaction.Spent);
+        }, 0);
+        let currData = {...server, end: formatTime(), status: "Disconnected", Spent: spent.toFixed(2), Earned:"--"};
+
+        setUser(prev => {
+            const updated = {
+                ...prev,
+                proxied: [...prev.proxied, currData],
+            };
+            localStorage.setItem(prev.privateKey, JSON.stringify(updated));
+            return updated;
+        });
+        setCurr("progress")
+    }
+    useEffect(() => {
+        if (curr === "progress") {
+            const interval = setInterval(() => {
+                setProgress((prevProgress) => {
+                    if (prevProgress === 100) {
+                        clearInterval(interval); 
+                        setOpen(false);
+                        setServer("--");
+                        setOwnHistory([]);
+                        return 100;
+                    }
+                    return prevProgress + 20; 
+                });
+            }, 1000); 
+    
+            return () => clearInterval(interval); 
+        }
+    }, [curr, setOpen]); 
     const handleNo = ()=>{
         setOpen(false)
     }
     return(
     <div id="dis_container">
       <div id="disModal">
-          <h3>Are you sure you want to disconnect from {server.location}?</h3>
+          {curr==="confirm" && (<><h3>Are you sure you want to disconnect from {server.ip}?</h3>
           <div id="bottom_b">
             <button id="yes1" onClick={handleYes}> Yes </button>
             <button id="No1" onClick={handleNo}> No </button>
           </div>
+          </>)}
+          {curr==="progress" && (
+                <>
+                <h3>Disconnecting from server...</h3>
+                <div className="progress">
+                <div 
+                    className="pbar" 
+                    style={{
+                        width: `${progress}%`,
+                        backgroundColor: progress < 100 ? '#4caf50' : '#2196f3',
+                    }}
+                ></div>
+                </div>
+                <p>{progress}%</p>
+                </>
+            )}
       </div>
     </div>
     )
 }
 
-const Server = ({user,setUser}) =>{
+const Server = () =>{
    const {proxy} = useContext(AppContext);
    const [open, setOpen] = useState(false);
    const [pop,setPop] = useState(false)
    const [b, setB] = useState(false)
    const [nodes, setNodes] = useState(false)
+   const [current, setCurrent] = useState("connection");
+   const handleTabChange = (page) => {
+    setCurrent(page);
+  };
     const handleProxy = () => {
     if (!proxy){
         setOpen(true)
@@ -552,8 +1017,25 @@ const Server = ({user,setUser}) =>{
             <div>
                 <Stats setB={setB}setNodes={setNodes}/>
                 <div id="extra">
-                     <h3 id="history">Proxy Service History</h3>
-                     <ProxyDisplayServer/>
+                     <h3 id="history">Proxy History</h3>
+                     <div className="tab">
+                            <nav className="proxy_bar">
+                            <ul>
+                                <li>
+                                <a className={current === 'connection' ? 'current1' : ''} onClick={() => handleTabChange('connection')}>
+                                    Connections
+                                </a>
+                                </li>
+                                <li>
+                                <a className={current === 'request' ? 'current1' : ''} onClick={() => handleTabChange('request')}>
+                                    Requests
+                                </a>
+                                </li>
+                            </ul>
+                            </nav>
+                        </div>
+                     {current === "request" && (<ProxyDisplayServer/>)}
+                     {current === "connection" && (<Serving/>)}
                 </div>
             </div>)}
         {pop && (<Confirmation setPop={setPop}/>)}
@@ -563,7 +1045,7 @@ const Server = ({user,setUser}) =>{
    )
 }
 const Stats=({setB, setNodes})=>{
-    const {proxyPrice, proxyHistory,serverHistory, stop} = useContext(AppContext);
+    const {proxyPrice, proxyHistory, serverHistory, stop} = useContext(AppContext);
     const [rev, setRev] = useState(0)
     const [conn, setConn] = useState(0)
     const [ban, setBan] = useState(0.00)
@@ -625,14 +1107,58 @@ const Stats=({setB, setNodes})=>{
     )
 }
 const Confirmation =({setPop})=>{
-    const {setProxy, setStop, setServerHistory} = useContext(AppContext);
+    const {setUser, setProxy, stop, setStop, setServerHistory, serverHistory} = useContext(AppContext);
     const [content, setContent] = useState("first");
     const {mode} = useMode();
     const handleYes=()=>{
         setContent("second")
         setProxy(prev =>!prev);
+        const conHist = Object.values(
+          serverHistory.reduce((acc, item) => {
+            const client = item.client;
+        
+            if (stop.includes(client)) {
+              return acc;
+            }
+        
+            if (!acc[client]) {
+              acc[client] = {
+                client: client,
+                location: item.location,
+                Earned: 0,
+                Spent:"--",
+                totalBandwidth: 0, 
+                count: 0,     
+                date: item.time,
+                end: formatTime(),
+                status: "Disconnected"
+              };
+            }
+            acc[client].Earned += parseFloat(item.Earned);
+            acc[client].totalBandwidth += parseFloat(item.bandwidth);
+            acc[client].count += 1;
+        
+            return acc;
+          }, {})
+        ).map(clientData => ({
+          ...clientData,
+          averageBandwidth: (clientData.totalBandwidth / clientData.count).toFixed(2),
+        }));
+
+          // add all the served history to database
+        setUser(prev => {
+            const updated = {
+                ...prev,
+                servedHistory: [
+                    ...prev.servedHistory, ...conHist
+                ],
+                //servedRequests: [...prev.servedRequests, ...serverHistory]
+            };
+            localStorage.setItem(prev.privateKey, JSON.stringify(updated));
+            return updated;
+        });
         setStop([])
-        setServerHistory([]);
+        setServerHistory([]); // clear the current serving history
     }
     const handleNo = ()=>{
         setPop(false);
@@ -718,13 +1244,13 @@ const formatTime = () => {
 };
 
 const ProxyDisplayClient = ()=>{
-    const {proxyHistory,total} = useContext(AppContext);
+    const {ownHistory,total} = useContext(AppContext);
     const [sort, setSort] = useState("")
-    const [currList, setCurrList] = useState(proxyHistory.filter(item => item.client === "None"));
+    const [currList, setCurrList] = useState(ownHistory.filter(item => item.client === "None"));
     const {mode} = useMode();
     useEffect(() => {
         const updateCurrList = () => {
-          const filteredList = proxyHistory.filter(item => item.client === "None");
+          const filteredList = ownHistory.filter(item => item.client === "None");
           if (sort === "Latest") {
             filteredList.sort((a, b) => new Date(b.time) - new Date(a.time));
           } else if (sort === "Earliest") {
@@ -733,11 +1259,11 @@ const ProxyDisplayClient = ()=>{
           setCurrList(filteredList);
         };
         updateCurrList(); 
-      }, [proxyHistory, sort]); 
+      }, [ownHistory, sort]); 
 
     const handleSort = (event) => {
         let curSort = event.target.value;
-        let sortedList = proxyHistory.filter(item => item.client === "None");
+        let sortedList = ownHistory.filter(item => item.client === "None");
         if (curSort === "Latest") {
             sortedList = sortedList.sort((a, b) => {
               const one = new Date(a.time).getTime(); 

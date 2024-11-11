@@ -29,7 +29,7 @@ function randomTimestamp() {
 }
 
 
-const Files = ({user}) => {
+const Files = () => {
   let sampleData = [{type: "image",name: "Screenshot 2025-02-18 211342",hashId: "zxcasd2lajnf5aoiuanfna1kjzx",size: "1 MB",timestamp: randomTimestamp()},
     {type: "image",name: "my_social_security_number.png",hashId: "as13dncx,jvkbvskh4sf",size: "1 MB", timestamp: randomTimestamp() },
     {type: "pdf",name: "tuna_recipes.pdf",hashId: "ascn123kcadsxvh14boadab",size: "124 MB",timestamp: randomTimestamp() },
@@ -42,7 +42,7 @@ const Files = ({user}) => {
   const location = useLocation();
 
 
-  const {searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads,setFileToRemove,fileToRemove,  setSearchResultsFound, setFileToDownload, dummyFiles,setDummyFiles} = useContext(AppContext);
+  const {user, searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads,setFileToRemove,fileToRemove,  setSearchResultsFound, setFileToDownload, dummyFiles,setDummyFiles} = useContext(AppContext);
   const [downloadHistory, setDownloadHistory] = useState(sampleData);// move to a global app context in the future?
   // const [proxyHistory, setProxyHistory] = useState([]);this should probably somewhere else now that we know what it is
 

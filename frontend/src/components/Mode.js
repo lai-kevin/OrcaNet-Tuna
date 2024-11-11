@@ -1,7 +1,9 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { AppContext } from './AppContext';
 export const Mode = createContext();
 
-export const ModeProvider = ({ children, user, setUser}) => {
+export const ModeProvider = ({ children}) => {
+  const {user, setUser} = useContext(AppContext);
   const [mode, setMode] = useState(user ===null ? "light" : user.mode);
   if(user!==null){
   console.log(user.mode);
