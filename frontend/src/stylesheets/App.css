@@ -1405,6 +1405,10 @@
   overflow-y: auto;
   height: 80vh;
 }
+#table_cont1{
+  overflow-y: auto;
+  height: 100vh;
+}
 #server, #history_container, #history_container{
   max-height: 100vh;
   overflow-y: auto;
@@ -1842,4 +1846,24 @@ input:checked + .sl:before {
 }
 #confirmation{
   text-align: center;
+}
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+}
+
+.spinner {
+  border: 8px solid #f3f3f3; 
+  border-top: 8px solid #70b7ff; 
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
