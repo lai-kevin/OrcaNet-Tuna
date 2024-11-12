@@ -17,7 +17,7 @@ import { AppContext } from "./AppContext";
 import DownloadModal from "./DownloadModal";
 import CancelUploadModal from "./UploadModal";
 import DownloadFinishedPopUp from "./PopUp";
-import {getHistory, uploadFileRPC} from "../RpcAPI"
+import {getFileMetaDataRPC, getHistory, uploadFileRPC} from "../RpcAPI"
 
 const bip39 = require('bip39');
 const { HDKey } = require('ethereum-cryptography/hdkey');
@@ -55,12 +55,26 @@ const Files = () => {
   const [downloadFinished, setDownloadFinished] = useState(false); //set to true for demo purposes
 
 
-  const handleUpdateFile = async () => {
+  const handleProvideFile = async () => {
     const historyResponse = await getHistory([]);
     console.log(historyResponse);
     const shareResponse = await uploadFileRPC([{file_path: fileToUpload.name, price: fileToUpload.price}]);
     console.log(shareResponse);
     
+  }
+  const handleGetFileMetaData = async (hashId) => {
+
+    const fileMetaData = await getFileMetaDataRPC([{"file_hash" : hashId}]);
+    if(fileMetaData.Success === false){
+      //Success is a key in the return object
+      //do our error here
+    }
+
+    setSearchResultsFound(true);
+    if(fileMetaData !== undefined){
+      setFileToDownload(fileMetaData);
+    }
+
   }
 
   //UseEffect hook that currently deals with adding the "upload" to the list of uploads in the global context once a fileToUpload has been selected
@@ -90,7 +104,7 @@ const Files = () => {
         size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
         providers: [{id: user.walletID, price: fileToUpload.price, timestamp: new Date(), downloads: 0 , status: "online"}]
       }
-      handleUpdateFile();
+      handleProvideFile();
 
       //This might not be needed anymore we should make a call to get history to rerender uploads
       
@@ -122,12 +136,11 @@ const Files = () => {
   const handleSearch = (event) => {
       event.preventDefault(); // Prevent the default form submission behavior i hate forms ;-; 
       let fullSearchText = searchInput;
-      let file = dummyFiles.find((file) => file.hashId === fullSearchText);
+      handleGetFileMetaData(fullSearchText);
+
+      // let file = dummyFiles.find((file) => file.hashId === fullSearchText);
       event.target.value = ""; // this should clear it after clicking
-      setSearchResultsFound(true);
-      if(file !== undefined){
-        setFileToDownload(file);
-      }
+      
   }
 
   const handleSort = (event) => {

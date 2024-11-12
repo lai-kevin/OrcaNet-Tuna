@@ -9,6 +9,9 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
   const [errorMsg, setErrorMsg] = useState("");
   const [price, setPrice] = useState("");
 
+  //should probably change this to maybe make a copy of a file into the project directory
+  //it might create a different hash for the same file since everyones user files will be different
+
 
   //Triggered by file input selection of a file
   //^ no longer triggered by file change instead we have explicit button to trigger electron dialog doesnt trigger anymore on browser
