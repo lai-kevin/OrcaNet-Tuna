@@ -12,6 +12,8 @@ const ProxyContent=()=>{
   const [err, setErr] = useState(false)
   const {mode} = useMode();
   const {user, setUser, server, setServer,proxy, proxyPrice, proxyHistory, setProxyHistory,setTotal,setServerHistory, stop, ownHistory, setOwnHistory} = useContext(AppContext);
+  const [curr, setCurr] = useState("confirm");
+  const [progress, setProgress] = useState(0)
   const handleTabChange = (page) => {
     setCurrent(page);
   };
@@ -102,7 +104,8 @@ useEffect(() => {
         Earned :` ${price}`,
         bandwidth: bandwidth, 
         to: to,
-        from:from
+        from:from,
+        Type: "proxy"
     }
     console.log(stop)
     if (stop.includes(randomIP)) {
@@ -165,7 +168,8 @@ const generateClient = ()=>{
         Earned : 0.00, 
         bandwidth: bandwidth,
         to: to,
-        from:from
+        from:from,
+        Type: "proxy"
     }
     if ((parseFloat((user.balance - price)).toFixed(2)) < 0) {
         setErr(true);
@@ -203,10 +207,28 @@ const generateClient = ()=>{
             return updated;
         });
         console.log(user);
-        setServer("--")
-        setErr(false)
-        setOwnHistory([])
+        setCurr("progress")
     }
+    useEffect(() => {
+        if (curr === "progress") {
+            const interval = setInterval(() => {
+                setProgress((prevProgress) => {
+                    if (prevProgress === 100) {
+                        clearInterval(interval); 
+                        setErr(false);
+                        setCurr("confirm")
+                        setProgress(0)
+                        setServer("--");
+                        setOwnHistory([]);
+                        return 100;
+                    }
+                    return prevProgress + 20; 
+                });
+            }, 1000); 
+    
+            return () => clearInterval(interval); 
+        }
+    }, [curr, setErr]); 
     return(
         <div className="proxys">
             <h1 className="text">Proxy</h1>
@@ -236,7 +258,7 @@ const generateClient = ()=>{
                 {current === "server" && (<Server user={user} setUser={setUser}/>)}
                 {current === "proxy" && (<History user={user}/>)}
             </div>
-            {err && (
+            {err && curr==="confirm" && (
                 <div id="price_container">
                     <div id="price_content">
                         <h3 style={{ color: mode === "dark" ? "black" : "black" }}>Your account balance is low. You will be disconnected from the proxy server.</h3>
@@ -246,6 +268,24 @@ const generateClient = ()=>{
                     </div>
                 </div>
             )}
+            {err && curr==="progress" && (
+                <div id="price_container">
+                    <div id="disModal">
+                        <h3>Disconnecting from server...</h3>
+                        <div className="progress">
+                        <div 
+                            className="pbar" 
+                            style={{
+                                width: `${progress}%`,
+                                backgroundColor: progress < 100 ? '#4caf50' : '#2196f3',
+                            }}
+                        ></div>
+                        </div>
+                        <p>{progress}%</p>
+                    </div>
+                </div>
+             )}
+            
     </div>
     )
 }

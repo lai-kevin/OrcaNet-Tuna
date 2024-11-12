@@ -627,7 +627,7 @@
   max-height: 500px;
   overflow-y:auto;
 }
-.modal_content, #proxyModal, #err_content, #disModal, #price_content,#confirm_content, #bandModal{
+.modal_content, #proxyModal, #err_content, #price_content,#confirm_content, #bandModal{
   background-color: white;
   padding: 35px;
   justify-content: space-between;
@@ -1332,7 +1332,6 @@
 }
 #yes1{
   margin-right: 20px;
-  margin-left:100px ;
   width: 100px;
   height: 30px;
   background-color: #007bffa9;
@@ -1349,21 +1348,6 @@
 #yes5{
   margin-right: 20px;
   margin-left:100px ;
-  width: 100px;
-  height: 30px;
-  background-color: #007bffa9;
-  border-radius: 10px;
-}
-#yes1{
-  margin-right: 20px;
-  margin-left:100px ;
-  width: 100px;
-  height: 30px;
-  background-color: #007bffa9;
-  border-radius: 10px;
-}
-#yes2{
-  margin-right: 20px;
   width: 100px;
   height: 30px;
   background-color: #007bffa9;
@@ -1540,6 +1524,7 @@
 }
 #bottom_b{
   justify-content: center;
+  text-align: center;
 }
 #conSub{
   background-color: #007bffa9;
