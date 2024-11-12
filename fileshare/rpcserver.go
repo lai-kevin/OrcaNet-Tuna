@@ -224,7 +224,7 @@ func startRPCServer(orcaDHT *dht.IpfsDHT) {
 
 	r := mux.NewRouter()
 	r.Handle("/rpc", s)
-	//random bs i found online to crcumvent cors errors so i could talk with backend
+	//random bs i found online to circumvent cors errors so i could talk with backend
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"http://localhost:3000"},
 		AllowedMethods: []string{"POST"},

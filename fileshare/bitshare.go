@@ -180,7 +180,7 @@ func receiveFileMetaDataRequests(node host.Host) {
 		// Find the file given the file hash
 		filePath, ok := fileHashToPath[fileRequest.FileHash]
 		if !ok {
-			err = sendFileNotFoundToPeer(node, fileRequest.RequesterID)
+			err = sendFileNotFoundToPeer(node, fileRequest.RequesterID, fileRequest.RequestID)
 			if err != nil {
 				log.Printf("Error sending file not found message: %v", err)
 			} else {

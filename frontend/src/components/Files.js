@@ -17,7 +17,7 @@ import { AppContext } from "./AppContext";
 import DownloadModal from "./DownloadModal";
 import CancelUploadModal from "./UploadModal";
 import DownloadFinishedPopUp from "./PopUp";
-import {getFileMetaDataRPC, getHistory, uploadFileRPC} from "../RpcAPI"
+import {getFileMetaDataRPC, getFileProviders, getFileProvidersWMetaData, getHistory, uploadFileRPC} from "../RpcAPI"
 
 const bip39 = require('bip39');
 const { HDKey } = require('ethereum-cryptography/hdkey');
@@ -63,9 +63,9 @@ const Files = () => {
     
   }
   const handleGetFileMetaData = async (hashId) => {
-
-    const fileMetaData = await getFileMetaDataRPC([{"file_hash" : hashId}]);
-    if(fileMetaData.Success === false){
+    //gets providers
+    const fileMetaData = await getFileProvidersWMetaData([{"file_hash" : hashId}]);
+    if(fileMetaData.success === false){
       //Success is a key in the return object
       //do our error here
     }
