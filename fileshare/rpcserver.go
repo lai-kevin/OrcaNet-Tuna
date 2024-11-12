@@ -1,84 +1,56 @@
 // Author: Kevin Lai
-// This file handles the RPC server to provide file sharing services to the client
+// This file handles the RPC server to provide file sharing services to the client.
 package main
 
 import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	fp "path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/rpc"
-	"github.com/gorilla/rpc/json"
+	rpcjson "github.com/gorilla/rpc/json"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/rs/cors"
 )
 
-var globalOrcaDHT *dht.IpfsDHT
-
-// REQUEST STRUCTS
-type GetFileArgs struct {
-	FileHash string `json:"file_hash"`
-}
-
-type GetFileMetaDataArgs struct {
-	FileHash string `json:"file_hash"`
-}
-
-type GetHistoryArgs struct {
-}
-
-type ProvideFileArgs struct {
-	FilePath string  `json:"file_path"`
-	Price    float64 `json:"price"`
-}
-
-// REPLY STRUCTS
-type ProvideFileReply struct {
-	Success bool `json:"success"`
-}
-
-type GetFileReply struct {
-	Success bool `json:"success"`
-}
-
-type GetFileMetaDataReply struct {
-	Success      bool           `json:"success"`
-	FileMetaData FileDataHeader `json:"file_meta_data"`
-}
-
-type GetHistoryReply struct {
-	Success bool              `json:"success"`
-	History []FileTransaction `json:"history"`
-}
-
 type FileShareService struct{}
 
+var globalOrcaDHT *dht.IpfsDHT
 var metadataResponse = make(map[string]FileDataHeader)
-var history []FileTransaction
+var downloadHistory = make(map[string]FileTransaction)
+var fileRequests = []FileRequest{}
+var providedFiles = []FileDataHeader{}
 
-func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *ProvideFileReply) error {
+func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *GetFileReply) error {
 	log.Printf("Received GetFile request for file hash %s\n", args.FileHash)
-
-	// TODO: send file meta data request and store in history as file transaction
-
-	err := connectAndRequestFileFromPeer(args.FileHash)
+	requestID := generateRequestID()
+	fileRequests = append(fileRequests, FileRequest{
+		RequestID:             requestID,
+		FileHash:              args.FileHash,
+		RequesterID:           globalNode.ID().String(),
+		RequesterMultiAddress: globalOrcaDHT.Host().Addrs()[0].String(),
+		TimeSent:              time.Now(),
+	})
+	err := connectAndRequestFileFromPeer(args.FileHash, requestID, args.PeerID)
 	if err != nil {
 		log.Printf("Failed to get file: %v\n", err)
-		*reply = ProvideFileReply{Success: false}
+		*reply = GetFileReply{Success: false}
 		return err
 	}
 
-	*reply = ProvideFileReply{Success: true}
-
+	*reply = GetFileReply{Success: true, Message: "File dowloaded successfully", RequestID: requestID, FileHash: args.FileHash}
 	return nil
 }
 
 func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDataArgs, reply *GetFileMetaDataReply) error {
 	log.Printf("Received GetFileMetaData request for file hash %s\n", args.FileHash)
 
-	err := connectAndRequestFileMetaDataFromPeer(args.FileHash)
+	err := connectAndRequestFileMetaDataFromPeer(args.FileHash, args.PeerID)
 	if err != nil {
 		log.Printf("Failed to get file meta data: %v\n", err)
 		*reply = GetFileMetaDataReply{Success: false}
@@ -95,16 +67,55 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 			*reply = GetFileMetaDataReply{Success: false}
 			return fmt.Errorf("timeout while waiting for file meta data")
 		case <-tick:
-			if metaData, exists := metadataResponse[args.FileHash]; exists {
-				*reply = GetFileMetaDataReply{Success: true, FileMetaData: metaData}
-				return nil
+			metaData, ok := metadataResponse[args.FileHash]
+			if !ok {
+				log.Printf("File metadata does not exist. Failed to marshal %s\n", args.FileHash)
+				*reply = GetFileMetaDataReply{Success: false}
+				return err
 			}
+
+			*reply = GetFileMetaDataReply{Success: true, FileMetaData: metaData}
+			return nil
 		}
 	}
 }
 
+func (s *FileShareService) GetProviders(r *http.Request, args *GetProvidersArgs, reply *GetProvidersReply) error {
+	log.Printf("Received GetProviders request for file hash %s\n", args.FileHash)
+
+	res, err := searchFileOnDHT(args.FileHash)
+	if err != nil {
+		log.Printf("Failed to get providers for file hash %s\n", args.FileHash)
+		*reply = GetProvidersReply{Success: false}
+		return err
+	}
+
+	providers := strings.Split(string(res), ",")
+
+	*reply = GetProvidersReply{Success: true, Providers: providers}
+	return nil
+}
+
 func (s *FileShareService) GetHistory(r *http.Request, args *GetHistoryArgs, reply *GetHistoryReply) error {
 	log.Printf("Received GetHistory request")
+	downloadHistoryList := make([]FileTransaction, 0, len(downloadHistory))
+	for _, transaction := range downloadHistory {
+		downloadHistoryList = append(downloadHistoryList, transaction)
+	}
+
+	*reply = GetHistoryReply{Success: true, RequestedFiles: fileRequests, DownloadHistory: downloadHistoryList}
+	return nil
+}
+
+func (s *FileShareService) GetNodeInfo(r *http.Request, args *GetNodeInfoArgs, reply *GetNodeInfoReply) error {
+	log.Printf("Received GetNodeInfo request")
+	*reply = GetNodeInfoReply{
+		Success:   true,
+		PeerID:    globalNode.ID().String(),
+		MultiAddr: globalOrcaDHT.Host().Addrs()[0].String(),
+		Status:    "Online",
+		WalletID:  "462dfsg46hlgsdjgpo3i5nhdfgsdfg2354", //TODO: Implement wallet
+	}
 	return nil
 }
 
@@ -116,21 +127,99 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 
 	fileHash := generateFileHash(filepath)
 
-	provideFileOnDHT(fileHash, peerID)
+	err := provideFileOnDHT(fileHash, peerID)
+	if err != nil {
+		log.Printf("Failed to provide file: %v\n", err)
+		*reply = ProvideFileReply{Success: false, Message: "Failed to provide file"}
+		return err
+	}
 
 	fileHashToPath[fileHash] = filepath
 	isFileHashProvided[fileHash] = true
 
-	*reply = ProvideFileReply{Success: true}
+	file, err := os.Open(filepath)
+	if err != nil {
+		return fmt.Errorf("sendFileToPeer: %v", err)
+	}
+	defer file.Close()
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return fmt.Errorf("sendFileToPeer: %v", err)
+	}
+
+	fileExt := fp.Ext(filepath)
+
+	fileMetaData := FileDataHeader{
+		FileName:      fileInfo.Name(),
+		FileSize:      fileInfo.Size(),
+		FileHash:      fileHash,
+		FileExtension: fileExt,
+		Multiaddress:  globalNode.Addrs()[0].String(),
+		PeerID:        globalNode.ID().String(),
+		price:         0.0,
+	}
+
+	providedFiles = append(providedFiles, fileMetaData)
+
+	*reply = ProvideFileReply{Success: true, Message: "File is now available on OrcaNet", FileHash: fileHash}
 	log.Printf("Provided file %s on DHT\n", filepath)
 
+	return nil
+}
+
+func (s *FileShareService) StopProvidingFile(r *http.Request, args *StopProvidingFileArgs, reply *StopProvidingFileReply) error {
+	_, ok := isFileHashProvided[args.FileHash]
+	if !ok {
+		*reply = StopProvidingFileReply{Success: false, Message: "File hash not provided by node. Check file hash."}
+		return nil
+	}
+	isFileHashProvided[args.FileHash] = false
+	log.Printf("Stopped providing file %s on DHT\n", fileHashToPath[args.FileHash])
+	*reply = StopProvidingFileReply{Success: true, Message: "File is no longer available on OrcaNet"}
+	return nil
+}
+
+func (s *FileShareService) ResumeProvidingFile(r *http.Request, args *StopProvidingFileArgs, reply *StopProvidingFileReply) error {
+	_, ok := isFileHashProvided[args.FileHash]
+	if !ok {
+		*reply = StopProvidingFileReply{Success: false, Message: "File hash not provided by node. Check file hash."}
+		return nil
+	}
+	isFileHashProvided[args.FileHash] = true
+	log.Printf("Resumed providing file %s on DHT\n", fileHashToPath[args.FileHash])
+	*reply = StopProvidingFileReply{Success: true, Message: "File is now available on OrcaNet"}
+	return nil
+}
+
+func (s *FileShareService) PauseDownload(r *http.Request, args *PauseDownloadArgs, reply *PauseDownloadReply) error {
+	log.Printf("Received PauseDownload request for transaction: %s\n", args.RequestID)
+	err := connectAndPauseRequestFromPeer(args.RequestID, false)
+	if err != nil {
+		log.Printf("Failed to pause download: %v\n", err)
+		*reply = PauseDownloadReply{Success: false}
+		return err
+	}
+	*reply = PauseDownloadReply{Success: true}
+	return nil
+}
+
+func (s *FileShareService) ResumeDownload(r *http.Request, args *PauseDownloadArgs, reply *PauseDownloadReply) error {
+	log.Printf("Received ResumeDownload request for transaction: %s\n", args.RequestID)
+	err := connectAndPauseRequestFromPeer(args.RequestID, true)
+	if err != nil {
+		log.Printf("Failed to resume download: %v\n", err)
+		*reply = PauseDownloadReply{Success: false}
+		return err
+	}
+	*reply = PauseDownloadReply{Success: true}
 	return nil
 }
 
 func startRPCServer(orcaDHT *dht.IpfsDHT) {
 	globalOrcaDHT = orcaDHT
 	s := rpc.NewServer()
-	s.RegisterCodec(json.NewCodec(), "application/json")
+	s.RegisterCodec(rpcjson.NewCodec(), "application/json")
 	s.RegisterService(new(FileShareService), "")
 
 	r := mux.NewRouter()

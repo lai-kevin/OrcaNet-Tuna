@@ -23,47 +23,10 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 )
 
-var fileHashToPath = make(map[string]string)
-var isFileHashProvided = make(map[string]bool)
-
-type FileTransaction struct {
-	FileRequest  FileRequest
-	FileMetaData FileDataHeader
-}
-
-// File struct for file data
-// Send when a client is ready to make a transaction and download a file
-type FileDataHeader struct {
-	FileName      string
-	FileSize      int64
-	FileExtension string
-	Multiaddress  string
-	PeerID        string
-	price         float32 // price of the file in coins
-}
-
-// FileRequest struct for file request data
-// Send when a client is rwants to make a transaction and download a file
-type FileRequest struct {
-	FileHash              string
-	RequesterID           string
-	RequesterMultiAddress string
-	timeSent              time.Time
-}
-
-// MetaDataRequest struct for metadata request data
-// Send when a client wants to get metadata for a file
-type MetaDataRequest struct {
-	FileHash              string
-	RequesterID           string
-	RequesterMultiAddress string
-	timeSent              time.Time
-}
-
-// Error struct to handle errors
-type Error struct {
-	ErrorMessage string
-}
+var fileHashToPath = make(map[string]string)   // map of file hashes to file paths on device
+var isFileHashProvided = make(map[string]bool) // true if file hash is provided by this node, else false
+var downloadStatus = make(map[string]bool)     // proceed with download if true, else pause download
+var lastDownloadStatus time.Time = time.Time{} // last time download status was updated
 
 // Create a stream to a target node
 func createStream(node host.Host, targetNodeId string, streamProtocol protocol.ID) (network.Stream, error) {
@@ -92,8 +55,6 @@ func createStream(node host.Host, targetNodeId string, streamProtocol protocol.I
 
 ///////////////////////////////// RECEIVER FUNCTIONS //////////////////////////////////////
 
-// Listens for incoming file requests from peers
-// node: the host node to listen for file requests on
 func receiveFileRequests(node host.Host) {
 	node.SetStreamHandler("/sendmessage/p2p", func(stream network.Stream) {
 		defer stream.Close()
@@ -102,7 +63,6 @@ func receiveFileRequests(node host.Host) {
 
 		buffer := bufio.NewReader(stream)
 
-		// Read the data from the stream
 		data, err := io.ReadAll(buffer)
 		if err != nil {
 			log.Printf("Error reading data from stream: %v", err)
@@ -110,7 +70,6 @@ func receiveFileRequests(node host.Host) {
 		}
 		log.Printf("File Request Data: %s", data)
 
-		// Read the JSON file request from the stream
 		var fileRequest FileRequest
 		err = json.Unmarshal(data, &fileRequest)
 		if err != nil {
@@ -118,18 +77,19 @@ func receiveFileRequests(node host.Host) {
 			return
 		}
 
-		// Find the file given the file hash
 		filePath, ok := fileHashToPath[fileRequest.FileHash]
 		if !ok {
-			err = sendFileNotFoundToPeer(node, fileRequest.RequesterID)
+			err = sendFileNotFoundToPeer(node, fileRequest.RequesterID, fileRequest.RequestID)
 			if err != nil {
 				log.Printf("Error sending file not found message: %v", err)
 			} else {
 				log.Printf("Sent file not found message: %v", fileRequest.FileHash)
 			}
 		} else {
-			// Send the file to the requester
-			err = sendFileToPeer(node, fileRequest.RequesterID, filePath)
+			if lastDownloadStatus.IsZero() || lastDownloadStatus.Before(fileRequest.TimeSent) {
+				downloadStatus[fileRequest.RequestID] = true
+			}
+			err = sendFileToPeer(node, fileRequest.RequesterID, filePath, fileRequest.FileHash, fileRequest.RequestID)
 			if err != nil {
 				log.Printf("Error sending file: %v", err)
 			} else {
@@ -139,15 +99,12 @@ func receiveFileRequests(node host.Host) {
 	})
 }
 
-// Listens for incoming raw file data
-// node: the host node to listen for file data on
 func receiveFileData(node host.Host) {
 	node.SetStreamHandler("/senddata/p2p", func(stream network.Stream) {
 		defer stream.Close()
 
 		log.Println("Received file data. Reading data...")
 
-		// Read the metadata
 		var fileMetaData FileDataHeader
 		decoder := gob.NewDecoder(stream)
 		if err := decoder.Decode(&fileMetaData); err != nil {
@@ -155,7 +112,13 @@ func receiveFileData(node host.Host) {
 			return
 		}
 
-		// Create a file to write the data to
+		downloadHistory[fileMetaData.RequestID] = FileTransaction{
+			RequestID:        fileMetaData.RequestID,
+			FileHash:         fileMetaData.FileHash,
+			FileMetaData:     fileMetaData,
+			DownloadProgress: 0.0,
+		}
+
 		file, err := os.Create(DOWNLOAD_DIRECTORY + "/" + fileMetaData.FileName)
 		if err != nil {
 			log.Printf("Error creating file: %v", err)
@@ -163,7 +126,7 @@ func receiveFileData(node host.Host) {
 		}
 		defer file.Close()
 
-		// Read the file data from the stream and write it to the file
+		totalBytesRead := 0
 		for {
 			buffer := make([]byte, 1024)
 			bytesRead, err := stream.Read(buffer)
@@ -176,17 +139,21 @@ func receiveFileData(node host.Host) {
 			}
 
 			_, err = file.Write(buffer[:bytesRead])
+
 			if err != nil {
 				log.Printf("Error writing file data to output file: %v", err)
 				return
 			}
+
+			totalBytesRead += bytesRead
+			ft := downloadHistory[fileMetaData.RequestID]
+			ft.DownloadProgress = float32(totalBytesRead) / float32(fileMetaData.FileSize)
+			downloadHistory[fileMetaData.RequestID] = ft
 		}
 
 	})
 }
 
-// Listens for incoming file metadata requests from peers
-// node: the host node to listen for file metadata requests on
 func receiveFileMetaDataRequests(node host.Host) {
 	node.SetStreamHandler("/sendmetadatarequest/p2p", func(stream network.Stream) {
 		defer stream.Close()
@@ -206,7 +173,7 @@ func receiveFileMetaDataRequests(node host.Host) {
 		var fileRequest FileRequest
 		err = json.Unmarshal(data, &fileRequest)
 		if err != nil {
-			log.Printf("Error unmarshalling file request: %v", err)
+			log.Printf("Error unmarshalling file metadata request: %v", err)
 			return
 		}
 
@@ -221,14 +188,89 @@ func receiveFileMetaDataRequests(node host.Host) {
 			}
 		} else {
 			// Send the file to the requester
-			err = sendFileMetaDataToPeer(node, fileRequest.RequesterID, filePath)
+			err = sendFileMetaDataToPeer(node, fileRequest.RequesterID, filePath, fileRequest.FileHash)
 			if err != nil {
-				log.Printf("Error sending file: %v", err)
+				log.Printf("Error sending file metadata: %v", err)
 			} else {
-				log.Printf("File sent")
+				log.Printf("File metadata sent")
 			}
 		}
 
+	})
+}
+
+func receivePauseDownload(node host.Host) {
+	node.SetStreamHandler("/sendpause/p2p", func(stream network.Stream) {
+		defer stream.Close()
+		log.Println("Received pause/resume download request. Chaning download status...")
+
+		buffer := bufio.NewReader(stream)
+		data, err := io.ReadAll(buffer)
+		if err != nil {
+			log.Printf("Error reading data from stream: %v", err)
+			return
+		}
+		var pauseRequest PauseDownloadRequest
+		err = json.Unmarshal(data, &pauseRequest)
+		if err != nil {
+			log.Printf("Error unmarshalling pause request: %v", err)
+			return
+		}
+
+		downloadStatus[pauseRequest.RequestID] = pauseRequest.Status
+		if pauseRequest.Status {
+			log.Printf("Download resumed for request ID: %s", pauseRequest.RequestID)
+		} else {
+			log.Printf("Download paused for request ID: %s", pauseRequest.RequestID)
+		}
+	})
+}
+
+func receiveFileMetaData(node host.Host) {
+	node.SetStreamHandler("/sendmetadata/p2p", func(stream network.Stream) {
+		defer stream.Close()
+
+		log.Println("Received file metadata. Reading metadata...")
+
+		// Read the metadata
+		var fileMetaData FileDataHeader
+		decoder := gob.NewDecoder(stream)
+		if err := decoder.Decode(&fileMetaData); err != nil {
+			log.Printf("Error decoding file metadata in file data receiver: %v", err)
+			return
+		}
+
+		metadataResponse[fileMetaData.FileHash] = fileMetaData
+		log.Printf("Metadata received: %v", fileMetaData)
+
+	})
+}
+
+func receiveErrorMessages(node host.Host) {
+	node.SetStreamHandler("/error/p2p", func(stream network.Stream) {
+		defer stream.Close()
+
+		log.Println("Received error message. Reading error message...")
+
+		buffer := bufio.NewReader(stream)
+
+		data, err := io.ReadAll(buffer)
+		if err != nil {
+			log.Printf("Error reading data from stream: %v", err)
+			return
+		}
+		log.Printf("Error Message: %s", data)
+
+		var errorStruct Error
+		err = json.Unmarshal(data, &errorStruct)
+		if err != nil {
+			log.Printf("Error unmarshalling error message: %v", err)
+			return
+		}
+
+		log.Printf("Error occurred on requestID: %s.message: %s", errorStruct.RequestID, errorStruct.ErrorMessage)
+
+		fmt.Printf("ERROR: %s %s", errorStruct.RequestID, errorStruct.ErrorMessage)
 	})
 }
 
@@ -237,8 +279,8 @@ func receiveFileMetaDataRequests(node host.Host) {
 // Send a "file not found" message to a peer from a given node.
 // node: the node sending the file not found message
 // targetNodeId: the ID of the target peer
-func sendFileNotFoundToPeer(node host.Host, targetNodeId string) error {
-	stream, err := createStream(node, targetNodeId, "/sendmessage/p2p")
+func sendFileNotFoundToPeer(node host.Host, targetNodeId string, RequestID string) error {
+	stream, err := createStream(node, targetNodeId, "/error/p2p")
 	if err != nil {
 		return fmt.Errorf("sendFileNotFoundToPeer: %v", err)
 	}
@@ -246,6 +288,7 @@ func sendFileNotFoundToPeer(node host.Host, targetNodeId string) error {
 
 	errorStruct := Error{
 		ErrorMessage: "File not found",
+		RequestID:    RequestID,
 	}
 
 	errorBytes, err := json.Marshal(errorStruct)
@@ -351,7 +394,7 @@ func sendTransactionErrorToPeer(node host.Host, targetNodeId string) error {
 // node: the node sending the file request
 // targetNodeId: the ID of the target peer
 // fileHash: the hash of the file to request
-func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string) error {
+func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string, requestID string) error {
 	fmt.Printf("Sending file request to peer %s\n", targetNodeId)
 	stream, err := createStream(node, targetNodeId, "/sendmessage/p2p")
 	if err != nil {
@@ -364,10 +407,11 @@ func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string)
 
 	// Create file request struct
 	fileRequest := FileRequest{
+		RequestID:             requestID,
 		FileHash:              fileHash,
 		RequesterID:           sourceID,
 		RequesterMultiAddress: sourceMultiAddress,
-		timeSent:              time.Now(),
+		TimeSent:              time.Now(),
 	}
 
 	// Update the file request map
@@ -391,14 +435,13 @@ func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string)
 // node: the host node sending the file
 // targetNodeId: the ID of the target peer
 // filepath: the path to the file to send
-func sendFileToPeer(node host.Host, targetNodeId, filepath string) (err error) {
+func sendFileToPeer(node host.Host, targetNodeId, filepath string, filehash string, requestID string) (err error) {
 	stream, err := createStream(node, targetNodeId, "/senddata/p2p")
 	if err != nil {
 		return fmt.Errorf("sendFileToPeer: %v", err)
 	}
 	defer stream.Close()
 
-	// Open the file and store it in a buffer
 	file, err := os.Open(filepath)
 	if err != nil {
 		return fmt.Errorf("sendFileToPeer: %v", err)
@@ -412,26 +455,28 @@ func sendFileToPeer(node host.Host, targetNodeId, filepath string) (err error) {
 
 	fileExt := fp.Ext(filepath)
 
-	// Create fileDataHeader struct
 	fileMetaData := FileDataHeader{
 		FileName:      fileInfo.Name(),
 		FileSize:      fileInfo.Size(),
+		FileHash:      filehash,
 		FileExtension: fileExt,
 		Multiaddress:  node.Addrs()[0].String(),
 		PeerID:        node.ID().String(),
 		price:         0.0,
+		RequestID:     requestID,
 	}
 
-	// Send the metadata to the peer
 	encoder := gob.NewEncoder(stream)
 	if err := encoder.Encode(fileMetaData); err != nil {
 		return fmt.Errorf("sendFileToPeer: %v", err)
 	}
 
-	// Send the file data to the peer in chunks
 	buffer := make([]byte, 1024)
 	for {
-		// Read the file data into the buffer/chunk
+		for !downloadStatus[requestID] {
+			time.Sleep(1 * time.Second)
+		}
+
 		bytesRead, err := file.Read(buffer)
 		if err != nil {
 			if err.Error() == "EOF" {
@@ -440,7 +485,6 @@ func sendFileToPeer(node host.Host, targetNodeId, filepath string) (err error) {
 			return fmt.Errorf("sendFileToPeer: failed to read file: %v", err)
 		}
 
-		// Write the buffer/chunk to the stream
 		_, err = stream.Write(buffer[:bytesRead])
 		if err != nil {
 			return fmt.Errorf("sendFileToPeer: failed to write buffer to stream: %v", err)
@@ -461,7 +505,7 @@ func sendFileToPeer(node host.Host, targetNodeId, filepath string) (err error) {
 // node: the host node sending the file
 // targetNodeId: the ID of the target peer
 // filepath: the path to the file to send metadata for
-func sendFileMetaDataToPeer(node host.Host, targetNodeId, filepath string) (err error) {
+func sendFileMetaDataToPeer(node host.Host, targetNodeId, filepath string, filehash string) (err error) {
 	stream, err := createStream(node, targetNodeId, "/sendmetadata/p2p")
 	if err != nil {
 		return fmt.Errorf("sendFileMetaDataToPeer: %v", err)
@@ -484,6 +528,7 @@ func sendFileMetaDataToPeer(node host.Host, targetNodeId, filepath string) (err 
 	fileMetaData := FileDataHeader{
 		FileName:      fileName,
 		FileSize:      fileSize,
+		FileHash:      filehash,
 		FileExtension: fileExt,
 		Multiaddress:  node.Addrs()[0].String(),
 		PeerID:        node.ID().String(),
@@ -519,7 +564,7 @@ func sendFileMetaDataRequestToPeer(node host.Host, targetNodeId string, fileHash
 		FileHash:              fileHash,
 		RequesterID:           sourceID,
 		RequesterMultiAddress: sourceMultiAddress,
-		timeSent:              time.Now(),
+		TimeSent:              time.Now(),
 	}
 
 	// Write the file metadata request to the stream
@@ -533,5 +578,32 @@ func sendFileMetaDataRequestToPeer(node host.Host, targetNodeId string, fileHash
 	}
 
 	fmt.Printf("Successful file metadata request sent to peer %s\n", targetNodeId)
+	return nil
+}
+
+func sendPauseRequestToPeer(node host.Host, targetNodeId string, requestID string, status bool) error {
+	fmt.Printf("Sending pause request to peer %s\n", targetNodeId)
+	stream, err := createStream(node, targetNodeId, "/sendpause/p2p")
+	if err != nil {
+		return fmt.Errorf("sendPauseRequestToPeer: %v", err)
+	}
+	defer stream.Close()
+
+	pauseRequest := PauseDownloadRequest{
+		RequestID: requestID,
+		Status:    status,
+		TimeSent:  time.Now(),
+	}
+
+	pauseRequestBytes, err := json.Marshal(pauseRequest)
+	if err != nil {
+		return fmt.Errorf("sendPauseRequestToPeer: %v", err)
+	}
+
+	_, err = stream.Write(pauseRequestBytes)
+	if err != nil {
+		return fmt.Errorf("sendPauseRequestToPeer: %v", err)
+	}
+
 	return nil
 }

@@ -6,6 +6,9 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
+
+	"github.com/google/uuid"
 )
 
 func generateFileHash(filepath string) string {
@@ -26,40 +29,62 @@ func generateFileHash(filepath string) string {
 	return fileHash
 }
 
-func provideFileOnDHT(fileHash string, peerID string) error {
-	dhtKey := "/orcanet/" + fileHash
-
-	fmt.Println("Updating DHT with file hash: ", dhtKey)
-
-	err := globalOrcaDHT.PutValue(globalCtx, dhtKey, []byte(peerID))
-	if err != nil {
-		return err
-	}
-
-	provideKey(globalCtx, globalOrcaDHT, fileHash)
-
-	return nil
+func generateRequestID() string {
+	id := uuid.New()
+	return id.String()
 }
 
-func connectAndRequestFileFromPeer(fileHash string) error {
+func searchFileOnDHT(fileHash string) (string, error) {
 	dhtKey := "/orcanet/" + fileHash
 
 	log.Println("Searching for file hash: ", dhtKey)
 	res, err := globalOrcaDHT.GetValue(globalCtx, dhtKey)
 	if err != nil {
-		return err
+		fmt.Printf("Failed to get existing value associated with file hash: %s\n", fileHash)
+		return "", nil
 	}
 	fmt.Printf("File found at peerID: %s\n", res)
 
+	return string(res), nil
+}
+
+func provideFileOnDHT(fileHash string, peerID string) error {
+	dhtKey := "/orcanet/" + fileHash
+
+	fmt.Println("Updating DHT with key: ", dhtKey)
+
+	res, err := searchFileOnDHT(fileHash)
+	if err != nil {
+		return err
+	}
+
+	providers := strings.Split(string(res), ",")
+	providers = append(providers, peerID)
+	providersStr := strings.Join(providers, ",")
+
+	err = globalOrcaDHT.PutValue(globalCtx, dhtKey, []byte(providersStr))
+	if err != nil {
+		return err
+	}
+
+	err = provideKey(globalCtx, globalOrcaDHT, fileHash)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func connectAndRequestFileFromPeer(fileHash string, requestID string, peerID string) error {
 	// Connect to the peer
-	providerPeerID := string(res)
-	err = connectToNodeUsingRelay(globalNode, providerPeerID)
+	providerPeerID := string(peerID)
+	err := connectToNodeUsingRelay(globalNode, providerPeerID)
 	if err != nil {
 		return err
 	}
 
 	// Request the file from the peer
-	err = sendFileRequestToPeer(globalNode, providerPeerID, fileHash)
+	err = sendFileRequestToPeer(globalNode, providerPeerID, fileHash, requestID)
 	if err != nil {
 		return err
 	}
@@ -67,25 +92,37 @@ func connectAndRequestFileFromPeer(fileHash string) error {
 	return nil
 }
 
-func connectAndRequestFileMetaDataFromPeer(fileHash string) error {
-	dhtKey := "/orcanet/" + fileHash
-
-	log.Println("Searching for file hash: ", dhtKey)
-	res, err := globalOrcaDHT.GetValue(globalCtx, dhtKey)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("File found at peerID: %s\n", res)
-
+func connectAndRequestFileMetaDataFromPeer(fileHash string, peerID string) error {
 	// Connect to the peer
-	providerPeerID := string(res)
-	err = connectToNodeUsingRelay(globalNode, providerPeerID)
+	providerPeerID := string(peerID)
+	err := connectToNodeUsingRelay(globalNode, providerPeerID)
 	if err != nil {
 		return err
 	}
 
 	// Request the file metadata from the peer
 	err = sendFileMetaDataRequestToPeer(globalNode, providerPeerID, fileHash)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func connectAndPauseRequestFromPeer(requestID string, status bool) error {
+	transaction, ok := downloadHistory[requestID]
+	if !ok {
+		return fmt.Errorf("transaction does not exist for requestID %s", requestID)
+	}
+
+	// Connect to the peer
+	err := connectToNodeUsingRelay(globalNode, transaction.FileMetaData.PeerID)
+	if err != nil {
+		return err
+	}
+
+	// Send the pause download request to the peer
+	err = sendPauseRequestToPeer(globalNode, transaction.FileMetaData.PeerID, requestID, status)
 	if err != nil {
 		return err
 	}
