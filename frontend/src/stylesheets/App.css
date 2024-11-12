@@ -627,7 +627,7 @@
   max-height: 500px;
   overflow-y:auto;
 }
-.modal_content, #proxyModal, #err_content, #disModal, #price_content,#confirm_content, #bandModal{
+.modal_content, #proxyModal, #err_content, #price_content,#confirm_content, #bandModal{
   background-color: white;
   padding: 35px;
   justify-content: space-between;
@@ -1332,7 +1332,6 @@
 }
 #yes1{
   margin-right: 20px;
-  margin-left:100px ;
   width: 100px;
   height: 30px;
   background-color: #007bffa9;
@@ -1349,21 +1348,6 @@
 #yes5{
   margin-right: 20px;
   margin-left:100px ;
-  width: 100px;
-  height: 30px;
-  background-color: #007bffa9;
-  border-radius: 10px;
-}
-#yes1{
-  margin-right: 20px;
-  margin-left:100px ;
-  width: 100px;
-  height: 30px;
-  background-color: #007bffa9;
-  border-radius: 10px;
-}
-#yes2{
-  margin-right: 20px;
   width: 100px;
   height: 30px;
   background-color: #007bffa9;
@@ -1420,6 +1404,10 @@
 #table_cont{
   overflow-y: auto;
   height: 80vh;
+}
+#table_cont1{
+  overflow-y: auto;
+  height: 100vh;
 }
 #server, #history_container, #history_container{
   max-height: 100vh;
@@ -1540,6 +1528,7 @@
 }
 #bottom_b{
   justify-content: center;
+  text-align: center;
 }
 #conSub{
   background-color: #007bffa9;
@@ -1857,4 +1846,24 @@ input:checked + .sl:before {
 }
 #confirmation{
   text-align: center;
+}
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+}
+
+.spinner {
+  border: 8px solid #f3f3f3; 
+  border-top: 8px solid #70b7ff; 
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

@@ -145,7 +145,6 @@ const formatTime = () => {
 const Options = ({row, setRow, setClick, setContent}) =>{
     const {setServer, setUser} = useContext(AppContext);
     const [curr, setCurr] = useState("confirm")
-    const [progress, setProgress] = useState(0);
     let info = { ...row, date: formatTime()};
     const {mode} = useMode();
     const handleYes = ()=>{
@@ -156,22 +155,15 @@ const Options = ({row, setRow, setClick, setContent}) =>{
         setContent("select")
     }
     useEffect(() => {
+        let timer; 
         if (curr === "progress") {
-            const interval = setInterval(() => {
-                setProgress((prevProgress) => {
-                    if (prevProgress === 100) {
-                        clearInterval(interval); 
-                        setClick(false); 
-                        setServer(info);
-                        return 100;
-                    }
-                    return prevProgress + 20; 
-                });
-            }, 1000); 
-
-            return () => clearInterval(interval); 
+            timer = setTimeout(() => {
+                setClick(false); 
+                setServer(info);
+            }, 3000);
         }
-    }, [curr, setClick]); 
+        return () => clearTimeout(timer); 
+    }, [curr]);
     return(
         <div id="confirmation">
             {curr==="confirm" && (<><h3 style={{ color: mode === "dark" ? "black" : "black" }}>Are you sure you want to perform a proxy connection with a cost of {row.Price} OrcaCoins per MB?</h3>
@@ -181,17 +173,10 @@ const Options = ({row, setRow, setClick, setContent}) =>{
             </div></>)}
             {curr==="progress" && (
                 <>
-                <h3 style={{size: 20}}>Connecting to server...</h3>
-                <div className="progress">
-                <div 
-                    className="pbar" 
-                    style={{
-                        width: `${progress}%`,
-                        backgroundColor: progress < 100 ? '#4caf50' : '#2196f3',
-                    }}
-                ></div>
+                <h3>Connecting to proxy node...</h3>
+                <div className="spinner-container">
+                    <div className="spinner" />
                 </div>
-                <p style={{size: 20}}>{progress}%</p>
                 </>
             )}
         </div>

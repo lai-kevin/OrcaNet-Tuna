@@ -98,8 +98,8 @@ const Transaction = ({mode})=>{
 }
 const TransactionTable=({mode, setClick})=> {
     const {user} = useContext(AppContext);
-    const info =[{id:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"down", Spent:"0.25", Earned:0},
-        {id:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"up", Spent: 0, Earned:"2.25"}
+    const info =[{id:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"Download", Spent:"0.25", Earned:0},
+        {id:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"Upload", Spent: 0, Earned:"2.25"}
     ]
     let current = [ ...info, ...user.transactions]
     console.log(current);
@@ -179,7 +179,7 @@ const TransactionTable=({mode, setClick})=> {
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.to}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.time}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.status}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Type === "up" ? (<FaArrowUp style={{ color: 'green' }} />) : item.Type === "down" ? (<FaArrowDown style={{ color: 'red' }} />) : (<SiEnvoyproxy style={{ color: 'grey' }} />)}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Type === "Upload" ? (<FaArrowUp style={{ color: 'green' }} />) : item.Type === "Download" ? (<FaArrowDown style={{ color: 'red' }} />) : (<SiEnvoyproxy style={{ color: 'grey' }} />)}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.size}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Earned === 0 ? "---": item.Earned}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Spent=== 0 ?"---" : item.Spent}</td>

@@ -12,6 +12,7 @@ const ProxyContent=()=>{
   const [err, setErr] = useState(false)
   const {mode} = useMode();
   const {user, setUser, server, setServer,proxy, proxyPrice, proxyHistory, setProxyHistory,setTotal,setServerHistory, stop, ownHistory, setOwnHistory} = useContext(AppContext);
+  const [curr, setCurr] = useState("confirm");
   const handleTabChange = (page) => {
     setCurrent(page);
   };
@@ -42,20 +43,20 @@ useEffect(() => {
   const handleUpdate2 = (result)=> setOwnHistory(prevHistory => [...prevHistory, result]);
   const generateServer = ()=>{
     const locations = [
+        "California, USA",
+        "Texas, USA",
+        "Florida, USA",
         "New York, USA",
-        "Tokyo, Japan",
-        "London, UK",
-        "Paris, France",
-        "Berlin, Germany",
-        "Toronto, Canada",
-        "Sydney, Australia",
-        "Dubai, UAE",
-        "Mumbai, India",
-        "São Paulo, Brazil",
-        "Moscow, Russia",
-        "Cape Town, South Africa",
-        "Mexico City, Mexico",
-        "Singapore"]
+        "Illinois, USA",
+        "Pennsylvania, USA",
+        "Ohio, USA",
+        "Georgia, USA",
+        "North Carolina, USA",
+        "Michigan, USA",
+        "New Jersey, USA",
+        "Wisconsin, USA"
+    ];
+    
     const ip = ["192.168.2.1", "11.1.0.1", "171.16.0.1", "131.0.2.1", "243.0.113.1", "189.51.100.1"];
     const wallet= {"192.168.2.1":"1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", 
         "11.1.0.1": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
@@ -102,7 +103,8 @@ useEffect(() => {
         Earned :` ${price}`,
         bandwidth: bandwidth, 
         to: to,
-        from:from
+        from:from,
+        Type: "proxy"
     }
     console.log(stop)
     if (stop.includes(randomIP)) {
@@ -165,7 +167,8 @@ const generateClient = ()=>{
         Earned : 0.00, 
         bandwidth: bandwidth,
         to: to,
-        from:from
+        from:from,
+        Type: "proxy"
     }
     if ((parseFloat((user.balance - price)).toFixed(2)) < 0) {
         setErr(true);
@@ -203,10 +206,21 @@ const generateClient = ()=>{
             return updated;
         });
         console.log(user);
-        setServer("--")
-        setErr(false)
-        setOwnHistory([])
+        setCurr("progress")
     }
+    useEffect(() => {
+        let timer; 
+        if (curr === "progress") {
+            timer = setTimeout(() => {
+                setErr(false);
+                setCurr("confirm")
+                setServer("--");
+                setOwnHistory([]);
+            }, 3000);
+        }
+        return () => clearTimeout(timer); 
+    }, [curr]);
+
     return(
         <div className="proxys">
             <h1 className="text">Proxy</h1>
@@ -236,7 +250,7 @@ const generateClient = ()=>{
                 {current === "server" && (<Server user={user} setUser={setUser}/>)}
                 {current === "proxy" && (<History user={user}/>)}
             </div>
-            {err && (
+            {err && curr==="confirm" && (
                 <div id="price_container">
                     <div id="price_content">
                         <h3 style={{ color: mode === "dark" ? "black" : "black" }}>Your account balance is low. You will be disconnected from the proxy server.</h3>
@@ -244,6 +258,16 @@ const generateClient = ()=>{
                             <button id="okay1" onClick={handleClick}>Ok</button>
                         </div>
                     </div>
+                </div>
+            )}
+            {err && curr==="progress" && (
+                <div id="price_container">
+                    <div id="price_content">
+                        <h3>Disconnecting from proxy node...</h3>
+                        <div className="spinner-container">
+                            <div className="spinner" />
+                        </div>
+                     </div>
                 </div>
             )}
     </div>
@@ -710,7 +734,7 @@ const History =()=>{
                 <option value="Earliest">Earliest</option>
             </select>
         </div>
-        <div id ="table_cont">
+        <div id ="table_cont1">
         <table id="proxy_data">
             <thead>
                 <tr>
@@ -758,7 +782,7 @@ const Client =()=>{
                     <div>
                         <div className = "top_title">
                             <FaRegCircleXmark color="red" size="24"/>
-                            <h3 id="server_info"> Not Connected to Any Proxy Servers </h3>
+                            <h3 id="server_info"> Not Connected to Any Proxy Node </h3>
                         </div>
                         <button id="conn" onClick={handleSelected}>Initiate Connection</button>
                     </div>)}
@@ -784,7 +808,7 @@ const ProxyConnected =()=>{
         <div className={mode==="dark"? "top_dark":""} >
             <div id="client_top">
                 <IoCheckmarkCircleOutline color="green" size="24"/>
-                <h3 id= {mode==="dark"? "server_info_dark":"server_info"}>Connected to Proxy Server: {server === "--" ? "---" : server.ip} [{server.location}]</h3>
+                <h3 id= {mode==="dark"? "server_info_dark":"server_info"}>Connected to Proxy Node: {server === "--" ? "---" : server.ip} [{server.location}]</h3>
                 <button id ="disconnect" onClick={handleClick}> Disconnect</button>
             </div>
                 <div id="client_info">
@@ -914,7 +938,6 @@ const Connections = () =>{
 const DisModal =({setOpen})=>{
     const {user, server,setServer, setUser,ownHistory, setOwnHistory, isProgressing, setIsProgressing} = useContext(AppContext);
     const [curr, setCurr] = useState("confirm");
-    const [progress, setProgress] = useState(0)
     const handleYes =()=>{
         const spent = ownHistory.reduce((acc, transaction) => {
             return parseFloat(acc) + parseFloat(transaction.Spent);
@@ -932,23 +955,16 @@ const DisModal =({setOpen})=>{
         setCurr("progress")
     }
     useEffect(() => {
+        let timer; 
         if (curr === "progress") {
-            const interval = setInterval(() => {
-                setProgress((prevProgress) => {
-                    if (prevProgress === 100) {
-                        clearInterval(interval); 
-                        setOpen(false);
-                        setServer("--");
-                        setOwnHistory([]);
-                        return 100;
-                    }
-                    return prevProgress + 20; 
-                });
-            }, 1000); 
-    
-            return () => clearInterval(interval); 
+            timer = setTimeout(() => {
+                setOpen(false);
+                setServer("--");
+                setOwnHistory([]);
+            }, 3000);
         }
-    }, [curr, setOpen]); 
+        return () => clearTimeout(timer); 
+    }, [curr]);
     const handleNo = ()=>{
         setOpen(false)
     }
@@ -963,17 +979,10 @@ const DisModal =({setOpen})=>{
           </>)}
           {curr==="progress" && (
                 <>
-                <h3>Disconnecting from server...</h3>
-                <div className="progress">
-                <div 
-                    className="pbar" 
-                    style={{
-                        width: `${progress}%`,
-                        backgroundColor: progress < 100 ? '#4caf50' : '#2196f3',
-                    }}
-                ></div>
+                <h3>Disconnecting from proxy node...</h3>
+                <div className="spinner-container">
+                    <div className="spinner" />
                 </div>
-                <p>{progress}%</p>
                 </>
             )}
       </div>

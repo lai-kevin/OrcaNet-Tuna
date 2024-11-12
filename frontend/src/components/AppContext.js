@@ -36,15 +36,15 @@ export function AppContextProvider(props){
     }
 
     let peers = [
-        { id: 0, ip: "142.168.1.1", location: "Paris, France", Price: 1, wallet:"1FfmbHfnpaZjKFvyi1okTjJJusN455paPH" },
-        { id: 1, ip: "15.0.0.1", location: "Tokyo, Japan", Price: 2, wallet:"1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v"},
+        { id: 0, ip: "142.168.1.1", location: "California, USA", Price: 1, wallet:"1FfmbHfnpaZjKFvyi1okTjJJusN455paPH" },
+        { id: 1, ip: "15.0.0.1", location:  "Illinois, USA", Price: 2, wallet:"1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v"},
         { id: 2, ip: "122.16.0.1", location: "New York, USA", Price: 1 , wallet:"1BoatSLRHtKNngkdXEeobR76b53LETtpyT"},
-        { id: 3, ip: "102.0.2.1", location: "London, UK", Price: 3 , wallet:"1Ez69SnzzmePmZX3WpEzMKTrcBF2gpNQ55"},
+        { id: 3, ip: "102.0.2.1", location: "Michigan, USA", Price: 3 , wallet:"1Ez69SnzzmePmZX3WpEzMKTrcBF2gpNQ55"},
         { id: 4, ip: "203.0.113.1", location: "New York, USA", Price: 0.5 , wallet:"1PzP1eP5QGefi2DMPTfTL5SLmv7DivfNa"},
         { id: 5, ip: "198.51.100.1", location: "New York, USA", Price: 0.5, wallet:"1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp" },
-        { id: 6, ip: "191.168.1.100", location: "Berlin, Germany",  Price: 4, wallet:"1A8JiWcwvpY7tAopUkSnGuEYHmzGYfZPiq" },
-        { id: 7, ip: "14.0.1.1",  location: "São Paulo, Brazil", Price: 2, wallet:"1dice97ECuByXAvqXpaYzSaQuPVvrtmz6" },
-        { id: 8, ip: "182.16.1.1",  location: "Sydney, Australia", Price: 3 , wallet:"1G5RHZgLA9ppp8SEpGG58CRvzYHsYuTfAy"},
+        { id: 6, ip: "191.168.1.100", location: "Wisconsin, USA",  Price: 4, wallet:"1A8JiWcwvpY7tAopUkSnGuEYHmzGYfZPiq" },
+        { id: 7, ip: "14.0.1.1",  location: "Ohio, USA", Price: 2, wallet:"1dice97ECuByXAvqXpaYzSaQuPVvrtmz6" },
+        { id: 8, ip: "182.16.1.1",  location:  "New Jersey, USA", Price: 3 , wallet:"1G5RHZgLA9ppp8SEpGG58CRvzYHsYuTfAy"},
         { id: 9, ip: "162.168.2.1", location: "New York, USA", Price: 1, wallet:"1LuckyR1fFHEsXYyx5QK4UFzv3PEAepPMK"},
     ];
     const [user, setUser] = useState(null);
