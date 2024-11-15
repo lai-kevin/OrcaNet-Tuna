@@ -1,6 +1,6 @@
 module github.com/lai-kevin/OrcaNet-Tuna
 
-go 1.23.1
+go 1.20
 
 require github.com/creack/pty v1.1.24
 

@@ -50,12 +50,12 @@ func StartOrcaNet(miningAddr string) error {
 
 	rpcUser := "user"
 	rpcPass := "password"
-    //addpeer := "130.245.173.221:8333"
+    addpeer := "130.245.173.221:8333"
 	args := []string{
 		"--rpcuser=" + rpcUser,
 		"--rpcpass=" + rpcPass,
 		"--notls",
-        //"-a" + addpeer, 
+        "-a" + addpeer, 
 	}
 
 	if miningAddr != "" {

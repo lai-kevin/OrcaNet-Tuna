@@ -51,8 +51,7 @@ func setupRoutes() {
 	http.HandleFunc("/mine", handlers.Mine)
 	// http.HandleFunc("/sendToAddress", handlers.SendToAddress)
 	// http.HandleFunc("/getPeerInfo", handlers.GetPeerInfo)
-	// http.HandleFunc("/getBestBlock", handlers.GetBestBlock)
-	// http.HandleFunc("/getBestBlockInfo", handlers.GetBestBlockInfo)
+
 }
 
 // handleGracefulShutdown listens for termination signals and shuts down services gracefully

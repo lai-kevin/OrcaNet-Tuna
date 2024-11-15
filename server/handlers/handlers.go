@@ -12,12 +12,6 @@ import (
 
 // GetRoot returns a welcome message and blockchain info
 func GetRoot(w http.ResponseWriter, r *http.Request) {
-	// Retrieve blockchain information using getblockchaininfo command
-	_, err := manager.CallBtcctlCmd("getblockchaininfo")
-	if err != nil {
-		http.Error(w, "Failed to retrieve blockchain info: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
 
 	// Construct JSON response with only the welcome message
 	response := map[string]string{
@@ -64,7 +58,7 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Step 4: Wait for 5 seconds to allow btcwallet to fully initialize
-	time.Sleep(5 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	// Step 3: Generate a new mining address
 	newAddress, err := manager.CallBtcctlCmd("getnewaddress")
@@ -88,36 +82,59 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 
 // Login handler for logging in an existing user and starting services
 func Login(w http.ResponseWriter, r *http.Request) {
-	
-	var request struct {
-		Password string `json:"password"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
-		return
-	}
+    var request struct {
+        Password string `json:"password"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+        http.Error(w, "Invalid request payload", http.StatusBadRequest)
+        return 
+    }
 
-	// Start btcwallet if needed and verify the mining address is set
-	if err := manager.StartWallet(); err != nil {
-		http.Error(w, "Failed to start wallet: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+    // Step 1: Start btcwallet if needed
+    if err := manager.StartWallet(); err != nil {
+        fmt.Println("Error: Failed to start wallet -", err)
+        http.Error(w, "Failed to start wallet. Please create a wallet first.", http.StatusUnauthorized)
+        return 
+    }
 
-	// Ensure mining address is configured
-	miningAddr, err := manager.GetMiningAddressFromConfig()
-	if err != nil || miningAddr == "" {
-		http.Error(w, "Mining address not configured. Please create a wallet first.", http.StatusUnauthorized)
-		return
-	}
-	fmt.Println("!!!Retrieved mining address from config:", miningAddr)
-	// Start btcd with the existing mining address
-	if err := manager.StartOrcaNet(miningAddr); err != nil {
-		http.Error(w, "Failed to start btcd with mining address: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+    time.Sleep(3 * time.Second) // Allow wallet some time to initialize
+    fmt.Println("Going to unlock wallet")
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Logged in successfully, services are running."})
+    // Step 2: Unlock the wallet with the provided password
+    unlockCmd := fmt.Sprintf("walletpassphrase %s %d", request.Password, 60*60) // Unlock for 1 hour
+    if _, err := manager.CallBtcctlCmd(unlockCmd); err != nil {
+        fmt.Println("Error: Failed to unlock wallet -", err)
+        http.Error(w, "Failed to unlock wallet: "+err.Error(), http.StatusUnauthorized)
+        return 
+    }
+
+    // Step 3: Ensure mining address is configured
+    miningAddr, err := manager.GetMiningAddressFromConfig()
+    if err != nil || miningAddr == "" {
+        fmt.Println("Error: Mining address not configured.")
+        http.Error(w, "Mining address not configured. Please create a wallet first.", http.StatusUnauthorized)
+        return 
+    }
+    fmt.Println("Retrieved mining address from config:", miningAddr)
+
+    // Step 4: Restart btcd (OrcaNet) with the retrieved mining address
+    if err := manager.StopOrcaNet(); err != nil {
+        fmt.Println("Error: Failed to stop OrcaNet -", err)
+        http.Error(w, "Failed to stop btcd: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+	time.Sleep(3 * time.Second)
+
+    if err := manager.StartOrcaNet(miningAddr); err != nil {
+        fmt.Println("Error: Failed to start btcd -", err)
+        http.Error(w, "Failed to start btcd with mining address: "+err.Error(), http.StatusInternalServerError)
+        return 
+    }
+
+    // Step 5: If all steps succeed, respond to the client indicating a successful login
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(map[string]string{"message": "Logged in successfully, services are running."})
 }
 
 // GetNewAddress generates and returns a new wallet address
