@@ -27,6 +27,7 @@ var fileHashToPath = make(map[string]string)   // map of file hashes to file pat
 var isFileHashProvided = make(map[string]bool) // true if file hash is provided by this node, else false
 var downloadStatus = make(map[string]bool)     // proceed with download if true, else pause download
 var lastDownloadStatus time.Time = time.Time{} // last time download status was updated
+var currentDownloadSpeed = 0.0                 // current download speed in bytes per second
 
 // Create a stream to a target node
 func createStream(node host.Host, targetNodeId string, streamProtocol protocol.ID) (network.Stream, error) {
@@ -127,6 +128,12 @@ func receiveFileData(node host.Host) {
 		defer file.Close()
 
 		totalBytesRead := 0
+		startTime := time.Now()
+		lastUpdateTime := startTime
+		lastUpdateBytes := 0
+
+		updateInterval := time.Second * 1
+
 		for {
 			buffer := make([]byte, 1024)
 			bytesRead, err := stream.Read(buffer)
@@ -145,11 +152,29 @@ func receiveFileData(node host.Host) {
 				return
 			}
 
+			currentTime := time.Now()
 			totalBytesRead += bytesRead
-			ft := downloadHistory[fileMetaData.RequestID]
-			ft.DownloadProgress = float32(totalBytesRead) / float32(fileMetaData.FileSize)
-			downloadHistory[fileMetaData.RequestID] = ft
+
+			if currentTime.Sub(lastUpdateTime) >= updateInterval {
+				duration := currentTime.Sub(lastUpdateTime)
+				bytesReadSinceLastUpdate := totalBytesRead - lastUpdateBytes
+				ft := downloadHistory[fileMetaData.RequestID]
+				ft.DownloadSpeed = float32(bytesReadSinceLastUpdate) / float32(duration.Seconds())
+				ft.DownloadSpeed = ft.DownloadSpeed / (1024 * 1024) // convert to MB/s
+				ft.DownloadProgress = float32(totalBytesRead) / float32(fileMetaData.FileSize)
+				downloadHistory[fileMetaData.RequestID] = ft
+				lastUpdateTime = currentTime
+				lastUpdateBytes = totalBytesRead
+			}
 		}
+
+		endTime := time.Now()
+		duration := endTime.Sub(startTime)
+		ft := downloadHistory[fileMetaData.RequestID]
+		ft.DownloadSpeed = float32(totalBytesRead) / float32(duration.Seconds())
+		ft.DownloadSpeed = ft.DownloadSpeed / (1024 * 1024) // convert to MB/s
+		ft.DownloadProgress = 1.0
+		downloadHistory[fileMetaData.RequestID] = ft
 
 	})
 }

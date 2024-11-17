@@ -9,6 +9,7 @@ type FileTransaction struct {
 	FileHash         string
 	FileMetaData     FileDataHeader
 	DownloadProgress float32
+	DownloadSpeed    float32
 }
 
 type FileDataHeader struct {
