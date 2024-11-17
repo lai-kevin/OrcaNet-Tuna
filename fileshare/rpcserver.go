@@ -118,6 +118,26 @@ func (s *FileShareService) GetNodeInfo(r *http.Request, args *GetNodeInfoArgs, r
 	return nil
 }
 
+func (s *FileShareService) GetUpdates(r *http.Request, args *GetUpdatesArgs, reply *GetUpdatesReply) error {
+	log.Printf("Received GetUpdates request")
+	downloadHistoryList := make([]FileTransaction, 0, len(downloadHistory))
+	for _, transaction := range downloadHistory {
+		downloadHistoryList = append(downloadHistoryList, transaction)
+	}
+	*reply = GetUpdatesReply{
+		Success:        true,
+		WalletID:       "462dfsg46hlgsdjgpo3i5nhdfgsdfg2354", //TODO: Implement wallet
+		PeerID:         globalNode.ID().String(),
+		MultiAddr:      globalOrcaDHT.Host().Addrs()[0].String(),
+		Status:         "Online",
+		PrivateIP:      false, //TODO: Implement private IP
+		Providing:      providedFiles,
+		RequestedFiles: fileRequests,
+		Downloads:      downloadHistoryList,
+	}
+	return nil
+}
+
 func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, reply *ProvideFileReply) error {
 	log.Printf("Received ProvideFile request for file %s with price %f\n", args.FilePath, args.Price)
 
