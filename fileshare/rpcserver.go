@@ -20,8 +20,8 @@ import (
 type FileShareService struct{}
 
 var globalOrcaDHT *dht.IpfsDHT
-var metadataResponse = make(map[string]FileDataHeader)
-var downloadHistory = make(map[string]FileTransaction)
+var metadataResponse = make(map[string]FileDataHeader) // fileHash -> metadata
+var downloadHistory = make(map[string]FileTransaction) // requestID -> transaction
 var fileRequests = []FileRequest{}
 var providedFiles = []FileDataHeader{}
 
@@ -72,7 +72,6 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 				*reply = GetFileMetaDataReply{Success: false}
 				return err
 			}
-
 			*reply = GetFileMetaDataReply{Success: true, FileMetaData: metaData}
 			return nil
 		}
@@ -123,7 +122,10 @@ func (s *FileShareService) GetUpdates(r *http.Request, args *GetUpdatesArgs, rep
 	downloadHistoryList := make([]FileTransaction, 0, len(downloadHistory))
 	for _, transaction := range downloadHistory {
 		downloadHistoryList = append(downloadHistoryList, transaction)
+		reaminingBytes := transaction.FileMetaData.FileSize - transaction.BytesDownloaded
+		transaction.RemainingTime = time.Duration(reaminingBytes/(int64(transaction.DownloadSpeed)*1024*1024)) * time.Second
 	}
+
 	*reply = GetUpdatesReply{
 		Success:        true,
 		WalletID:       "462dfsg46hlgsdjgpo3i5nhdfgsdfg2354", //TODO: Implement wallet

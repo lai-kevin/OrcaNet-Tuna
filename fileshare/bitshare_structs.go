@@ -10,6 +10,9 @@ type FileTransaction struct {
 	FileMetaData     FileDataHeader
 	DownloadProgress float32
 	DownloadSpeed    float32
+	DownloadStart    time.Time
+	RemainingTime    time.Duration
+	BytesDownloaded  int64
 }
 
 type FileDataHeader struct {

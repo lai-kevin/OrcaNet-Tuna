@@ -117,6 +117,10 @@ func receiveFileData(node host.Host) {
 			FileHash:         fileMetaData.FileHash,
 			FileMetaData:     fileMetaData,
 			DownloadProgress: 0.0,
+			DownloadSpeed:    0.0,
+			DownloadStart:    time.Now(),
+			RemainingTime:    0,
+			BytesDownloaded:  0,
 		}
 
 		file, err := os.Create(DOWNLOAD_DIRECTORY + "/" + fileMetaData.FileName)
@@ -158,6 +162,7 @@ func receiveFileData(node host.Host) {
 				duration := currentTime.Sub(lastUpdateTime)
 				bytesReadSinceLastUpdate := totalBytesRead - lastUpdateBytes
 				ft := downloadHistory[fileMetaData.RequestID]
+				ft.BytesDownloaded = ft.BytesDownloaded + int64(totalBytesRead)
 				ft.DownloadSpeed = float32(bytesReadSinceLastUpdate) / float32(duration.Seconds())
 				ft.DownloadSpeed = ft.DownloadSpeed / (1024 * 1024) // convert to MB/s
 				ft.DownloadProgress = float32(totalBytesRead) / float32(fileMetaData.FileSize)
@@ -167,11 +172,7 @@ func receiveFileData(node host.Host) {
 			}
 		}
 
-		endTime := time.Now()
-		duration := endTime.Sub(startTime)
 		ft := downloadHistory[fileMetaData.RequestID]
-		ft.DownloadSpeed = float32(totalBytesRead) / float32(duration.Seconds())
-		ft.DownloadSpeed = ft.DownloadSpeed / (1024 * 1024) // convert to MB/s
 		ft.DownloadProgress = 1.0
 		downloadHistory[fileMetaData.RequestID] = ft
 
@@ -437,9 +438,6 @@ func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string,
 		RequesterMultiAddress: sourceMultiAddress,
 		TimeSent:              time.Now(),
 	}
-
-	// Update the file request map
-	requestedFiles[fileHash] = fileRequest
 
 	// Write the file request to the stream
 	fileRequestBytes, err := json.Marshal(fileRequest)
