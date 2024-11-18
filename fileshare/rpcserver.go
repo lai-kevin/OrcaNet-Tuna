@@ -122,6 +122,7 @@ func (s *FileShareService) GetUpdates(r *http.Request, args *GetUpdatesArgs, rep
 	log.Printf("Received GetUpdates request")
 	downloadHistoryList := make([]FileTransaction, 0, len(downloadHistory))
 	for _, transaction := range downloadHistory {
+		log.Printf("Transaction: %v\n", transaction)
 		downloadHistoryList = append(downloadHistoryList, transaction)
 	}
 	*reply = GetUpdatesReply{
