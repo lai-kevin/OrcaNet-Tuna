@@ -123,7 +123,11 @@ func (s *FileShareService) GetUpdates(r *http.Request, args *GetUpdatesArgs, rep
 	for _, transaction := range downloadHistory {
 		downloadHistoryList = append(downloadHistoryList, transaction)
 		reaminingBytes := transaction.FileMetaData.FileSize - transaction.BytesDownloaded
-		transaction.RemainingTime = time.Duration(reaminingBytes/(int64(transaction.DownloadSpeed)*1024*1024)) * time.Second
+		if transaction.DownloadSpeed > 0 {
+			log.Printf("Remaining bytes: %d, Download speed: %f\n", reaminingBytes, transaction.DownloadSpeed)
+			transaction.RemainingTime = time.Duration(reaminingBytes/(int64(transaction.DownloadSpeed)*1024*1024)) * time.Second
+			log.Printf("Remaining time: %v\n", transaction.RemainingTime)
+		}
 	}
 
 	*reply = GetUpdatesReply{
