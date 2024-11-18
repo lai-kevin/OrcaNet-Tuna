@@ -45,11 +45,6 @@ var globalCtx context.Context
 
 var globalNode host.Host
 
-// File hash to file type mapping
-// This is used when a node is requesting a file and needs the file type for saving.
-// This map is updated when a file is requested from the network.
-var requestedFiles = make(map[string]FileRequest)
-
 type PeerInfo struct {
 	PeerID string `json:"peerID"`
 }
