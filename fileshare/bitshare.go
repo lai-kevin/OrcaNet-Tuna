@@ -118,6 +118,9 @@ func receiveFileData(node host.Host) {
 			FileMetaData:     fileMetaData,
 			DownloadProgress: 0.0,
 			DownloadSpeed:    0.0,
+			DownloadStart:    time.Now(),
+			RemainingTime:    0,
+			BytesDownloaded:  0,
 		}
 
 		file, err := os.Create(DOWNLOAD_DIRECTORY + "/" + fileMetaData.FileName)
@@ -159,6 +162,7 @@ func receiveFileData(node host.Host) {
 				duration := currentTime.Sub(lastUpdateTime)
 				bytesReadSinceLastUpdate := totalBytesRead - lastUpdateBytes
 				ft := downloadHistory[fileMetaData.RequestID]
+				ft.BytesDownloaded = ft.BytesDownloaded + int64(totalBytesRead)
 				ft.DownloadSpeed = float32(bytesReadSinceLastUpdate) / float32(duration.Seconds())
 				ft.DownloadSpeed = ft.DownloadSpeed / (1024 * 1024) // convert to MB/s
 				ft.DownloadProgress = float32(totalBytesRead) / float32(fileMetaData.FileSize)
