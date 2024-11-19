@@ -121,13 +121,20 @@ func (s *FileShareService) GetUpdates(r *http.Request, args *GetUpdatesArgs, rep
 	log.Printf("Received GetUpdates request")
 	downloadHistoryList := make([]FileTransaction, 0, len(downloadHistory))
 	for _, transaction := range downloadHistory {
-		downloadHistoryList = append(downloadHistoryList, transaction)
 		reaminingBytes := transaction.FileMetaData.FileSize - transaction.BytesDownloaded
-		if transaction.DownloadSpeed > 0 {
+		if (int64(transaction.DownloadSpeed)*1024*1024 > 0) && (transaction.DownloadProgress < 1) && (reaminingBytes > 0) {
 			log.Printf("Remaining bytes: %d, Download speed: %f\n", reaminingBytes, transaction.DownloadSpeed)
-			transaction.RemainingTime = time.Duration(reaminingBytes/(int64(transaction.DownloadSpeed)*1024*1024)) * time.Second
+			transaction.RemainingTime = (time.Duration(reaminingBytes/(int64(transaction.DownloadSpeed)*1024*1024)) * time.Second).String()
 			log.Printf("Remaining time: %v\n", transaction.RemainingTime)
 		}
+		if reaminingBytes < 0 {
+			transaction.DownloadSpeed = 0
+			transaction.RemainingTime = "Finishing Download..."
+		}
+		if transaction.DownloadProgress >= 1 {
+			transaction.RemainingTime = "Download Completed"
+		}
+		downloadHistoryList = append(downloadHistoryList, transaction)
 	}
 
 	privateIP := false

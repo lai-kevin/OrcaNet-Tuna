@@ -11,7 +11,7 @@ type FileTransaction struct {
 	DownloadProgress float32
 	DownloadSpeed    float32
 	DownloadStart    time.Time
-	RemainingTime    time.Duration
+	RemainingTime    string
 	BytesDownloaded  int64
 }
 
