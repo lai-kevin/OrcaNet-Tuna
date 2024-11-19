@@ -13,6 +13,7 @@ import (
 	"log"
 	"os"
 	fp "path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -27,6 +28,8 @@ var fileHashToPath = make(map[string]string)   // map of file hashes to file pat
 var isFileHashProvided = make(map[string]bool) // true if file hash is provided by this node, else false
 var downloadStatus = make(map[string]bool)     // proceed with download if true, else pause download
 var lastDownloadStatus time.Time = time.Time{} // last time download status was updated
+
+var downloadPriority = make([]string, 4) // list of file requests in order of priority
 
 // Create a stream to a target node
 func createStream(node host.Host, targetNodeId string, streamProtocol protocol.ID) (network.Stream, error) {
@@ -123,6 +126,19 @@ func receiveFileData(node host.Host) {
 			BytesDownloaded:  0,
 		}
 
+		// Pause download if priority list is full, else update the priority list
+		for !slices.Contains(downloadPriority, fileMetaData.RequestID) {
+			if len(downloadPriority) < 4 {
+				// Add request ID of oldest file request that isn't downloaded to download priority list
+				for _, fileRequest := range fileRequests {
+					if !fileRequest.Complete {
+						downloadPriority = append(downloadPriority, fileRequest.RequestID)
+						break
+					}
+				}
+			}
+		}
+
 		file, err := os.Create(DOWNLOAD_DIRECTORY + "/" + fileMetaData.FileName)
 		if err != nil {
 			log.Printf("Error creating file: %v", err)
@@ -175,6 +191,23 @@ func receiveFileData(node host.Host) {
 		ft := downloadHistory[fileMetaData.RequestID]
 		ft.DownloadProgress = 1.0
 		downloadHistory[fileMetaData.RequestID] = ft
+
+		// Remove the request ID from the download priority list
+		for i, requestID := range downloadPriority {
+			if requestID == fileMetaData.RequestID {
+				downloadPriority = append(downloadPriority[:i], downloadPriority[i+1:]...)
+				break
+			}
+		}
+
+		// Make as complete in fileRequests
+		for i, fileRequest := range fileRequests {
+			if fileRequest.RequestID == fileMetaData.RequestID {
+				fileRequest.Complete = true
+				fileRequests[i] = fileRequest
+				break
+			}
+		}
 
 	})
 }
@@ -437,6 +470,7 @@ func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string,
 		RequesterID:           sourceID,
 		RequesterMultiAddress: sourceMultiAddress,
 		TimeSent:              time.Now(),
+		Complete:              false,
 	}
 
 	// Write the file request to the stream

@@ -32,6 +32,7 @@ type FileRequest struct {
 	RequesterID           string
 	RequesterMultiAddress string
 	TimeSent              time.Time
+	Complete              bool
 }
 
 type MetaDataRequest struct {
