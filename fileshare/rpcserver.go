@@ -130,13 +130,27 @@ func (s *FileShareService) GetUpdates(r *http.Request, args *GetUpdatesArgs, rep
 		}
 	}
 
+	privateIP := false
+	addrs := globalOrcaDHT.Host().Addrs()
+	for _, addr := range addrs {
+		if strings.HasPrefix(addr.String(), "172.16.") || strings.HasPrefix(addr.String(), "10.") || strings.HasPrefix(addr.String(), "192.168.") {
+			privateIP = true
+			break
+		}
+	}
+
+	status := "Offline"
+	if globalOrcaDHT.RoutingTable().Size() > 0 {
+		status = "Online"
+	}
+
 	*reply = GetUpdatesReply{
 		Success:        true,
 		WalletID:       "462dfsg46hlgsdjgpo3i5nhdfgsdfg2354", //TODO: Implement wallet
 		PeerID:         globalNode.ID().String(),
 		MultiAddr:      globalOrcaDHT.Host().Addrs()[0].String(),
-		Status:         "Online",
-		PrivateIP:      false, //TODO: Implement private IP
+		Status:         status,
+		PrivateIP:      privateIP,
 		Providing:      providedFiles,
 		RequestedFiles: fileRequests,
 		Downloads:      downloadHistoryList,
