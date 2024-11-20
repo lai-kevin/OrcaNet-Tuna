@@ -474,12 +474,56 @@ func provideKey(ctx context.Context, dht *dht.IpfsDHT, key string) error {
 	return nil
 }
 
+func saveState() error {
+	state := AppState{
+		SBU_ID:             SBU_ID,
+		DOWNLOAD_DIRECTORY: DOWNLOAD_DIRECTORY,
+		fileHashToPath:     fileHashToPath,
+		isFileHashProvided: isFileHashProvided,
+		downloadStatus:     downloadStatus,
+		lastDownloadStatus: lastDownloadStatus,
+		metadataResponse:   metadataResponse,
+		downloadHistory:    downloadHistory,
+		fileRequests:       fileRequests,
+		providedFiles:      providedFiles,
+	}
+
+	data, err := json.Marshal(state)
+	if err != nil {
+		return fmt.Errorf("failed to marshal state in saveState(): %v", err)
+	}
+	return os.WriteFile("state"+SBU_ID+".json", data, 0644)
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Expected SBU ID")
 		return
 	}
 	SBU_ID = os.Args[1]
+
+	// Load state from file
+	data, err := os.ReadFile("state" + SBU_ID + ".json")
+	if err != nil {
+		fmt.Println("Failed to read state file: ", err)
+	} else {
+		var state AppState
+		err = json.Unmarshal(data, &state)
+		if err != nil {
+			fmt.Println("Failed to unmarshal state: ", err)
+		}
+
+		SBU_ID = state.SBU_ID
+		DOWNLOAD_DIRECTORY = state.DOWNLOAD_DIRECTORY
+		fileHashToPath = state.fileHashToPath
+		isFileHashProvided = state.isFileHashProvided
+		downloadStatus = state.downloadStatus
+		lastDownloadStatus = state.lastDownloadStatus
+		metadataResponse = state.metadataResponse
+		downloadHistory = state.downloadHistory
+		fileRequests = state.fileRequests
+		providedFiles = state.providedFiles
+	}
 
 	node, orcaDHT, err := createNode(dht.ModeServer)
 	if err != nil {

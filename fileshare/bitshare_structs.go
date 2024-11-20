@@ -4,6 +4,19 @@ import (
 	"time"
 )
 
+type AppState struct {
+	SBU_ID             string
+	DOWNLOAD_DIRECTORY string
+	fileHashToPath     map[string]string          // map of file hashes to file paths on device
+	isFileHashProvided map[string]bool            // true if file hash is provided by this node, else false
+	downloadStatus     map[string]bool            // proceed with download if true, else pause download
+	lastDownloadStatus time.Time                  // last time download status was updated
+	metadataResponse   map[string]FileDataHeader  // fileHash -> metadata
+	downloadHistory    map[string]FileTransaction // requestID -> transaction
+	fileRequests       []FileRequest
+	providedFiles      []FileDataHeader
+}
+
 type FileTransaction struct {
 	RequestID        string
 	FileHash         string

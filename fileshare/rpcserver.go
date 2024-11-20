@@ -39,6 +39,7 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 	}
 
 	*reply = GetFileReply{Success: true, Message: "File dowloaded successfully", RequestID: requestID, FileHash: args.FileHash}
+	saveState()
 	return nil
 }
 
@@ -60,6 +61,7 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 		case <-timeout:
 			log.Printf("Timeout while waiting for file meta data for file hash %s\n", args.FileHash)
 			*reply = GetFileMetaDataReply{Success: false}
+			saveState()
 			return fmt.Errorf("timeout while waiting for file meta data")
 		case <-tick:
 			metaData, ok := metadataResponse[args.FileHash]
@@ -69,6 +71,7 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 				return err
 			}
 			*reply = GetFileMetaDataReply{Success: true, FileMetaData: metaData}
+			saveState()
 			return nil
 		}
 	}
@@ -87,6 +90,7 @@ func (s *FileShareService) GetProviders(r *http.Request, args *GetProvidersArgs,
 	providers := strings.Split(string(res), ",")
 
 	*reply = GetProvidersReply{Success: true, Providers: providers}
+	saveState()
 	return nil
 }
 
@@ -98,6 +102,7 @@ func (s *FileShareService) GetHistory(r *http.Request, args *GetHistoryArgs, rep
 	}
 
 	*reply = GetHistoryReply{Success: true, RequestedFiles: fileRequests, DownloadHistory: downloadHistoryList}
+	saveState()
 	return nil
 }
 
@@ -110,6 +115,7 @@ func (s *FileShareService) GetNodeInfo(r *http.Request, args *GetNodeInfoArgs, r
 		Status:    "Online",
 		WalletID:  "462dfsg46hlgsdjgpo3i5nhdfgsdfg2354", //TODO: Implement wallet
 	}
+	saveState()
 	return nil
 }
 
@@ -158,6 +164,7 @@ func (s *FileShareService) GetUpdates(r *http.Request, args *GetUpdatesArgs, rep
 		RequestedFiles: fileRequests,
 		Downloads:      downloadHistoryList,
 	}
+	saveState()
 	return nil
 }
 
@@ -206,7 +213,7 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 
 	*reply = ProvideFileReply{Success: true, Message: "File is now available on OrcaNet", FileHash: fileHash}
 	log.Printf("Provided file %s on DHT\n", filepath)
-
+	saveState()
 	return nil
 }
 
@@ -219,6 +226,7 @@ func (s *FileShareService) StopProvidingFile(r *http.Request, args *StopProvidin
 	isFileHashProvided[args.FileHash] = false
 	log.Printf("Stopped providing file %s on DHT\n", fileHashToPath[args.FileHash])
 	*reply = StopProvidingFileReply{Success: true, Message: "File is no longer available on OrcaNet"}
+	saveState()
 	return nil
 }
 
@@ -231,6 +239,7 @@ func (s *FileShareService) ResumeProvidingFile(r *http.Request, args *StopProvid
 	isFileHashProvided[args.FileHash] = true
 	log.Printf("Resumed providing file %s on DHT\n", fileHashToPath[args.FileHash])
 	*reply = StopProvidingFileReply{Success: true, Message: "File is now available on OrcaNet"}
+	saveState()
 	return nil
 }
 
@@ -243,6 +252,7 @@ func (s *FileShareService) PauseDownload(r *http.Request, args *PauseDownloadArg
 		return err
 	}
 	*reply = PauseDownloadReply{Success: true}
+	saveState()
 	return nil
 }
 
@@ -255,6 +265,7 @@ func (s *FileShareService) ResumeDownload(r *http.Request, args *PauseDownloadAr
 		return err
 	}
 	*reply = PauseDownloadReply{Success: true}
+	saveState()
 	return nil
 }
 
