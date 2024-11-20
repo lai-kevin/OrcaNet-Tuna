@@ -508,7 +508,8 @@ func main() {
 	// Load state from file
 	data, err := os.ReadFile("state" + SBU_ID + ".json")
 	if err != nil {
-		fmt.Println("Failed to read state file: ", err)
+		fmt.Println("State file not found: ", err)
+		fmt.Println("Starting without state file")
 	} else {
 		var state AppState
 		err = json.Unmarshal(data, &state)
