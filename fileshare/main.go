@@ -8,13 +8,14 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p"
@@ -56,6 +57,8 @@ var globalNode host.Host
 type PeerInfo struct {
 	PeerID string `json:"peerID"`
 }
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func generatePrivateKeyFromSeed(seed string) (crypto.PrivKey, error) {
 	hash := sha256.Sum256([]byte(seed))

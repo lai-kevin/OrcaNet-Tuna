@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"context"
 	"encoding/gob"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
