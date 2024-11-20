@@ -31,14 +31,22 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
+// Application state variables
+var SBU_ID string
+var DOWNLOAD_DIRECTORY = "downloads"
+var fileHashToPath = make(map[string]string)           // map of file hashes to file paths on device
+var isFileHashProvided = make(map[string]bool)         // true if file hash is provided by this node, else false
+var downloadStatus = make(map[string]bool)             // proceed with download if true, else pause download
+var lastDownloadStatus time.Time = time.Time{}         // last time download status was updated
+var metadataResponse = make(map[string]FileDataHeader) // fileHash -> metadata
+var downloadHistory = make(map[string]FileTransaction) // requestID -> transaction
+var fileRequests = []FileRequest{}
+var providedFiles = []FileDataHeader{}
+
 // Hard coded values to connect to TA provided relay node and bootstrap node
 const BOOTSTRAP_NODE_MULTIADDR = "/ip4/130.245.173.222/tcp/61000/p2p/12D3KooWQd1K1k8XA9xVEzSAu7HUCodC7LJB6uW5Kw4VwkRdstPE"
 const RELAY_NODE_MULTIADDR = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
 const DESKTOP_NODE_MULTIADDR = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN/p2p-circuit/p2p/12D3KooWS9VBsbpZPzpxsK6by9LzFUsW62fHHk3owJGHRKWy4KnX"
-
-var SBU_ID string
-
-var DOWNLOAD_DIRECTORY = "downloads"
 
 // Global context for the application
 var globalCtx context.Context

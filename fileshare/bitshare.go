@@ -23,13 +23,6 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 )
 
-var fileHashToPath = make(map[string]string)   // map of file hashes to file paths on device
-var isFileHashProvided = make(map[string]bool) // true if file hash is provided by this node, else false
-var downloadStatus = make(map[string]bool)     // proceed with download if true, else pause download
-var lastDownloadStatus time.Time = time.Time{} // last time download status was updated
-
-var downloadPriority = make([]string, 4) // list of file requests in order of priority
-
 // Create a stream to a target node
 func createStream(node host.Host, targetNodeId string, streamProtocol protocol.ID) (network.Stream, error) {
 	var ctx = context.Background()

@@ -20,10 +20,6 @@ import (
 type FileShareService struct{}
 
 var globalOrcaDHT *dht.IpfsDHT
-var metadataResponse = make(map[string]FileDataHeader) // fileHash -> metadata
-var downloadHistory = make(map[string]FileTransaction) // requestID -> transaction
-var fileRequests = []FileRequest{}
-var providedFiles = []FileDataHeader{}
 
 func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *GetFileReply) error {
 	log.Printf("Received GetFile request for file hash %s\n", args.FileHash)
