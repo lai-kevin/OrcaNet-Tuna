@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"strconv"
 	"time"
 	"github.com/creack/pty"
 )
@@ -55,7 +56,8 @@ func StartOrcaNet(miningAddr string) error {
 		"--rpcuser=" + rpcUser,
 		"--rpcpass=" + rpcPass,
 		"--notls",
-        "-a" + addpeer, 
+		"--txindex",
+        "--addpeer=" + addpeer, 
 	}
 
 	if miningAddr != "" {
@@ -321,7 +323,7 @@ func CallBtcctlCmd(cmdStr string) (string, error) {
         "--rpcserver=" + rpcServer,
         "--notls",
     }
-    // Append the actual command (e.g., "getnewaddress") after the flags
+
     params = append(params, strings.Split(cmdStr, " ")...)
 
     fmt.Printf("Executing command: %s %s\n", btcctlPath, strings.Join(params, " "))
@@ -345,4 +347,32 @@ func streamOutput(r io.Reader, prefix string) {
 	if err := scanner.Err(); err != nil {
 		fmt.Printf("Error reading %s stream: %v\n", prefix, err)
 	}
+}
+
+
+// ValidateAddress checks if the given address is valid
+func ValidateAddress(address string) (bool, error) {
+    cmd := fmt.Sprintf("validateaddress %s", address)
+    output, err := CallBtcctlCmd(cmd)
+    if err != nil {
+        return false, fmt.Errorf("failed to validate address: %v", err)
+    }
+
+    // Parse the output to check if the address is valid
+    return strings.Contains(output, `"isvalid": true`), nil
+}
+
+// ParseBalanceAndAmount parses balance and amount strings into float64
+func ParseBalanceAndAmount(balanceStr, amountStr string) (float64, float64, error) {
+    balance, err := strconv.ParseFloat(balanceStr, 64)
+    if err != nil {
+        return 0, 0, fmt.Errorf("invalid balance format: %v", err)
+    }
+
+    amount, err := strconv.ParseFloat(amountStr, 64)
+    if err != nil {
+        return 0, 0, fmt.Errorf("invalid amount format: %v", err)
+    }
+
+    return balance, amount, nil
 }

@@ -55,6 +55,6 @@ require (
 
 go 1.22
 
-replace github.com/btcsuite/btcd v0.24.2-beta.rc1.0.20240625142744-cc26860b4026 => github.com/prithesh07/btcd v0.0.0-20240926044127-e6b3c485296b
+replace github.com/btcsuite/btcd v0.24.2-beta.rc1.0.20240625142744-cc26860b4026 => github.com/prithesh07/btcd v0.0.0-20241116201043-bce587d591da
 
 replace github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.2

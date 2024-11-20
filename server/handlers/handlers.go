@@ -57,21 +57,31 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Step 4: Wait for 5 seconds to allow btcwallet to fully initialize
+	// Step 3: Wait for 5 seconds to allow btcwallet to fully initialize
 	time.Sleep(3 * time.Second)
 
-	// Step 3: Generate a new mining address
+	// Step 5: Generate a new mining address
 	newAddress, err := manager.CallBtcctlCmd("getnewaddress")
 	if err != nil {
 		http.Error(w, "Failed to generate mining address: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Step 4: Configure btcd to use this new address
+	// Step 6: Configure btcd to use this new address
 	if err := manager.ConfigureMiningAddress(newAddress); err != nil {
 		http.Error(w, "Failed to configure mining address: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	time.Sleep(3 * time.Second)
+
+	// Step 4: Unlock the wallet with the provided password
+	unlockCmd := fmt.Sprintf("walletpassphrase %s %d", request.Password, 60*60) // Unlock for 1 hour
+	if _, err := manager.CallBtcctlCmd(unlockCmd); err != nil {
+		http.Error(w, "Failed to unlock wallet: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Println("Unlocking wallet after wallet creation")
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{
@@ -168,33 +178,6 @@ func GetBalance(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// SendToAddress handles sending funds to a specific address
-func SendToAddress(w http.ResponseWriter, r *http.Request) {
-	var request struct {
-		Address string `json:"address"`
-		Amount  string `json:"amount"`
-	}
-
-	// Decode the request body
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
-		return
-	}
-
-	// Use sendtoaddress command to transfer funds
-	response, err := manager.CallBtcctlCmd(fmt.Sprintf("sendtoaddress %s %s", request.Address, request.Amount))
-	if err != nil {
-		http.Error(w, "Failed to send funds: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": fmt.Sprintf("Successfully sent %s to %s.", request.Amount, request.Address),
-		"txid":    response,
-	})
-}
-
 
 // Mine triggers mining by generating a specified number of blocks
 func Mine(w http.ResponseWriter, r *http.Request) {
@@ -224,5 +207,75 @@ func Mine(w http.ResponseWriter, r *http.Request) {
 		"message":    "Mining started successfully",
 		"block_hash": blockHashes,
 	})
+}
+
+// GetMiningAddress retrieves the current mining address from the configuration
+func GetMiningAddress(w http.ResponseWriter, r *http.Request) {
+	miningAddr, err := manager.GetMiningAddressFromConfig()
+	if err != nil || miningAddr == "" {
+		http.Error(w, "Mining address not configured or unavailable.", http.StatusNotFound)
+		return
+	}
+
+	response := map[string]string{
+		"miningAddress": miningAddr,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+
+// SendToAddress handles sending funds to a specific address
+func SendToAddress(w http.ResponseWriter, r *http.Request) {
+    var request struct {
+        Address string `json:"address"`
+        Amount  string `json:"amount"`
+    }
+
+    // Decode the request body
+    if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+        http.Error(w, "Invalid request payload", http.StatusBadRequest)
+        return
+    }
+
+    // Validate the recipient's address
+    isValid, err := manager.ValidateAddress(request.Address)
+    if err != nil || !isValid {
+        http.Error(w, "Invalid recipient address: "+err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    // Check balance using the existing getBalance command
+    balanceStr, err := manager.CallBtcctlCmd("getbalance")
+    if err != nil {
+        http.Error(w, "Failed to retrieve wallet balance: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    // Parse balance and amount to float for comparison
+    balance, amount, parseErr := manager.ParseBalanceAndAmount(balanceStr, request.Amount)
+    if parseErr != nil {
+        http.Error(w, "Failed to parse balance or amount: "+parseErr.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    if amount > balance {
+        http.Error(w, "Insufficient funds to complete the transaction", http.StatusBadRequest)
+        return
+    }
+
+    // Execute the btcctl sendtoaddress command
+    txid, err := manager.CallBtcctlCmd(fmt.Sprintf("sendtoaddress %s %s", request.Address, request.Amount))
+    if err != nil {
+        http.Error(w, "Failed to send funds: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    // Respond with the transaction ID
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]string{
+        "message": "Funds sent successfully!",
+        "txid":    txid,
+    })
 }
 
