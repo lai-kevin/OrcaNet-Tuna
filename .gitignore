@@ -5,3 +5,4 @@ fileshare/downloads/*.mp4
 fileshare/downloads/*.zip
 fileshare/downloads/*.txt
 fileshare/state*.json
+fileshare/state*.json.lock
