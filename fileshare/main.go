@@ -455,7 +455,7 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) 
 			}
 
 		default:
-			fmt.Println("Expected GET, GET_PROVIDERS, PUT, PUT_PROVIDER, PROVIDE_FILE, PROVIDE_FILE_META, DOWNLOAD_FILE, DOWNLOAD_FILE_META")
+			//fmt.Println("Expected GET, GET_PROVIDERS, PUT, PUT_PROVIDER, PROVIDE_FILE, PROVIDE_FILE_META, DOWNLOAD_FILE, DOWNLOAD_FILE_META")
 		}
 	}
 }

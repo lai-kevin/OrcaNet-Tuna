@@ -1,4 +1,4 @@
-FROM golang:1.21
+FROM golang:1.23.1
 
 WORKDIR /
 
@@ -12,4 +12,4 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /app/myapp
 
 EXPOSE 1234
 
-CMD ["/fileshare"]
+ENTRYPOINT ["/app/myapp"]
