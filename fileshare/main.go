@@ -481,21 +481,60 @@ func saveState() error {
 	state := AppState{
 		SBU_ID:             SBU_ID,
 		DOWNLOAD_DIRECTORY: DOWNLOAD_DIRECTORY,
-		fileHashToPath:     fileHashToPath,
-		isFileHashProvided: isFileHashProvided,
-		downloadStatus:     downloadStatus,
-		lastDownloadStatus: lastDownloadStatus,
-		metadataResponse:   metadataResponse,
-		downloadHistory:    downloadHistory,
-		fileRequests:       fileRequests,
-		providedFiles:      providedFiles,
+		FileHashToPath:     fileHashToPath,
+		IsFileHashProvided: isFileHashProvided,
+		DownloadStatus:     downloadStatus,
+		LastDownloadStatus: lastDownloadStatus,
+		MetadataResponse:   metadataResponse,
+		DownloadHistory:    downloadHistory,
+		FileRequests:       fileRequests,
+		ProvidedFiles:      providedFiles,
 	}
 
-	data, err := json.Marshal(state)
+	fmt.Print("State: ")
+	fmt.Println(state)
+
+	file, err := os.Create("state" + SBU_ID + ".json")
 	if err != nil {
-		return fmt.Errorf("failed to marshal state in saveState(): %v", err)
+		return fmt.Errorf("error occured while creating state file: %v", err)
 	}
-	return os.WriteFile("state"+SBU_ID+".json", data, 0644)
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	err = encoder.Encode(state)
+	if err != nil {
+		return fmt.Errorf("error occured while encoding state: %v", err)
+	}
+
+	return nil
+}
+
+func loadState() error {
+	file, err := os.Open("state" + SBU_ID + ".json")
+	if err != nil {
+		return fmt.Errorf("error occured while opening state file: %v", err)
+	}
+	defer file.Close()
+
+	var state AppState
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&state)
+	if err != nil {
+		return fmt.Errorf("error occured while decoding state: %v", err)
+	}
+
+	SBU_ID = state.SBU_ID
+	DOWNLOAD_DIRECTORY = state.DOWNLOAD_DIRECTORY
+	fileHashToPath = state.FileHashToPath
+	isFileHashProvided = state.IsFileHashProvided
+	downloadStatus = state.DownloadStatus
+	lastDownloadStatus = state.LastDownloadStatus
+	metadataResponse = state.MetadataResponse
+	downloadHistory = state.DownloadHistory
+	fileRequests = state.FileRequests
+	providedFiles = state.ProvidedFiles
+
+	return nil
 }
 
 func main() {
@@ -505,28 +544,23 @@ func main() {
 	}
 	SBU_ID = os.Args[1]
 
+	// Initialize application state
+	fileHashToPath = make(map[string]string)
+	isFileHashProvided = make(map[string]bool)
+	downloadStatus = make(map[string]bool)
+	lastDownloadStatus = time.Time{}
+	metadataResponse = make(map[string]FileDataHeader)
+	downloadHistory = make(map[string]FileTransaction)
+	fileRequests = []FileRequest{}
+	providedFiles = []FileDataHeader{}
+
 	// Load state from file
-	data, err := os.ReadFile("state" + SBU_ID + ".json")
+	_, err := os.ReadFile("state" + SBU_ID + ".json")
 	if err != nil {
 		fmt.Println("State file not found: ", err)
 		fmt.Println("Starting without state file")
 	} else {
-		var state AppState
-		err = json.Unmarshal(data, &state)
-		if err != nil {
-			fmt.Println("Failed to unmarshal state: ", err)
-		}
-
-		SBU_ID = state.SBU_ID
-		DOWNLOAD_DIRECTORY = state.DOWNLOAD_DIRECTORY
-		fileHashToPath = state.fileHashToPath
-		isFileHashProvided = state.isFileHashProvided
-		downloadStatus = state.downloadStatus
-		lastDownloadStatus = state.lastDownloadStatus
-		metadataResponse = state.metadataResponse
-		downloadHistory = state.downloadHistory
-		fileRequests = state.fileRequests
-		providedFiles = state.providedFiles
+		loadState()
 	}
 
 	node, orcaDHT, err := createNode(dht.ModeServer)

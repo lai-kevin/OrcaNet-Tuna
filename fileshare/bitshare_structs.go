@@ -7,14 +7,14 @@ import (
 type AppState struct {
 	SBU_ID             string
 	DOWNLOAD_DIRECTORY string
-	fileHashToPath     map[string]string          // map of file hashes to file paths on device
-	isFileHashProvided map[string]bool            // true if file hash is provided by this node, else false
-	downloadStatus     map[string]bool            // proceed with download if true, else pause download
-	lastDownloadStatus time.Time                  // last time download status was updated
-	metadataResponse   map[string]FileDataHeader  // fileHash -> metadata
-	downloadHistory    map[string]FileTransaction // requestID -> transaction
-	fileRequests       []FileRequest
-	providedFiles      []FileDataHeader
+	FileHashToPath     map[string]string          // map of file hashes to file paths on device
+	IsFileHashProvided map[string]bool            // true if file hash is provided by this node, else false
+	DownloadStatus     map[string]bool            // proceed with download if true, else pause download
+	LastDownloadStatus time.Time                  // last time download status was updated
+	MetadataResponse   map[string]FileDataHeader  // fileHash -> metadata
+	DownloadHistory    map[string]FileTransaction // requestID -> transaction
+	FileRequests       []FileRequest
+	ProvidedFiles      []FileDataHeader
 }
 
 type FileTransaction struct {
