@@ -36,13 +36,9 @@ go run main.go
 ### <br/>
 ### Create Wallet 
 ### http://localhost:8080/createWallet
-When a new user wants to create a wallet, the frontend will generate a password for them and send this password in JSON format to this handler. This handler will create a wallet with the password. A wallet address will be generated and open be ready for transactions. **User does not need to go back to login screen to log in the wallet will already be opened.**
+When a new user wants to create a wallet, the api will generate a 12 char password for them This handler will create a wallet with the password. A wallet address will be generated and open be ready for transactions. No JSON data is needed for input here.**User does not need to go back to login screen to log in the wallet will already be opened.**
 
-```
-{
-    "password": "password_here"
-}
-```
+
 
 ### Log In
 ### http://localhost:8080/login
@@ -101,3 +97,5 @@ Frontend will send a JSON data file to specify the address you want to send mone
 /Users/[username]/Library/Application Support/Btcctl/btcctl.conf
 </br>
 /Users/[username]/Library/Application Support/Btcwallet/btcwallet.conf
+
+### - If you already have a wallet, you cannot create another one. To create another wallet remove your existing one. For MacOS run: rm "/Users/[YOUR USERNAME]/Library/Application Support/Btcwallet/mainnet/wallet.db"
