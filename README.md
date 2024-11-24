@@ -88,6 +88,22 @@ Frontend will send a JSON data file to specify the address you want to send mone
 }
 ```
 
+### Get Transaction History
+### http://localhost:8080/getTransactionHistory
+Print the transaction history.
+</br>
+txid: ticket ID
+</br>
+time: time of the transaction
+</br>
+amount: amount of the transaction. if it is negative it means it was sent.
+</br>
+category: sent, recieved, generate (mined)
+</br>
+confirmations: the number of blocks mined after the block containing this information
+</br>
+
+
 ## Side Notes
 ### - If there are any issues with running the server, it may be because you do not have the binaries built. 
 ### - Remember to build in btcd, btcd/cmd/btcctl, and btcwallet directory.
