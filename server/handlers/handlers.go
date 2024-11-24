@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 	"strings"
+	"crypto/rand"
+	"math/big"
 
 	"github.com/lai-kevin/OrcaNet-Tuna/server/manager"
 )
@@ -34,30 +36,46 @@ func GetHello(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// GenerateRandomPassword generates a secure 12-character random password
+func GenerateRandomPassword(length int) (string, error) {
+	// Define the characters we can use in the password
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	var password strings.Builder
+	for i := 0; i < length; i++ {
+		// Generate a random index to pick a character from charset
+		randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			return "", fmt.Errorf("failed to generate random index: %v", err)
+		}
+		password.WriteByte(charset[randomIndex.Int64()])
+	}
+	return password.String(), nil
+}
+
+
 // CreateWallet handler for creating a new wallet and configuring the mining address
 func CreateWallet(w http.ResponseWriter, r *http.Request) {
-	var request struct {
-		Password string `json:"password"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+	// Step 1: Generate a random 12-character password
+	password, err := GenerateRandomPassword(12)
+	if err != nil {
+		http.Error(w, "Failed to generate password: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Step 1: Create the wallet
-	_, err := manager.CreateWallet(request.Password)
+	// Step 2: Create the wallet using the generated password
+	_, err = manager.CreateWallet(password)
 	if err != nil {
 		http.Error(w, "Failed to create wallet: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Step 2: Start btcwallet after creating the wallet
+	// Step 3: Start btcwallet after creating the wallet
 	if err := manager.StartWallet(); err != nil {
 		http.Error(w, "Failed to start btcwallet after wallet creation: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Step 3: Wait for 5 seconds to allow btcwallet to fully initialize
+	// Step 4: Wait for 3 seconds to allow btcwallet to fully initialize
 	time.Sleep(3 * time.Second)
 
 	// Step 5: Generate a new mining address
@@ -75,20 +93,78 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 
 	time.Sleep(3 * time.Second)
 
-	// Step 4: Unlock the wallet with the provided password
-	unlockCmd := fmt.Sprintf("walletpassphrase %s %d", request.Password, 60*60) // Unlock for 1 hour
+	// Step 7: Unlock the wallet with the generated password
+	unlockCmd := fmt.Sprintf("walletpassphrase %s %d", password, 60*60) // Unlock for 1 hour
 	if _, err := manager.CallBtcctlCmd(unlockCmd); err != nil {
 		http.Error(w, "Failed to unlock wallet: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	fmt.Println("Unlocking wallet after wallet creation")
 
+	// Step 8: Return the generated password and mining address
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{
 		"message":       "Wallet created and mining address configured successfully!",
+		"password":      password,
 		"miningAddress": newAddress,
 	})
 }
+
+// // CreateWallet handler for creating a new wallet and configuring the mining address
+// func CreateWallet(w http.ResponseWriter, r *http.Request) {
+// 	var request struct {
+// 		Password string `json:"password"`
+// 	}
+// 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+// 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	// Step 1: Create the wallet
+// 	_, err := manager.CreateWallet(request.Password)
+// 	if err != nil {
+// 		http.Error(w, "Failed to create wallet: "+err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	// Step 2: Start btcwallet after creating the wallet
+// 	if err := manager.StartWallet(); err != nil {
+// 		http.Error(w, "Failed to start btcwallet after wallet creation: "+err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	// Step 3: Wait for 5 seconds to allow btcwallet to fully initialize
+// 	time.Sleep(3 * time.Second)
+
+// 	// Step 5: Generate a new mining address
+// 	newAddress, err := manager.CallBtcctlCmd("getnewaddress")
+// 	if err != nil {
+// 		http.Error(w, "Failed to generate mining address: "+err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	// Step 6: Configure btcd to use this new address
+// 	if err := manager.ConfigureMiningAddress(newAddress); err != nil {
+// 		http.Error(w, "Failed to configure mining address: "+err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	time.Sleep(3 * time.Second)
+
+// 	// Step 4: Unlock the wallet with the provided password
+// 	unlockCmd := fmt.Sprintf("walletpassphrase %s %d", request.Password, 60*60) // Unlock for 1 hour
+// 	if _, err := manager.CallBtcctlCmd(unlockCmd); err != nil {
+// 		http.Error(w, "Failed to unlock wallet: "+err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
+// 	fmt.Println("Unlocking wallet after wallet creation")
+
+// 	w.WriteHeader(http.StatusCreated)
+// 	json.NewEncoder(w).Encode(map[string]string{
+// 		"message":       "Wallet created and mining address configured successfully!",
+// 		"miningAddress": newAddress,
+// 	})
+// }
 
 // Login handler for logging in an existing user and starting services
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -277,5 +353,77 @@ func SendToAddress(w http.ResponseWriter, r *http.Request) {
         "message": "Funds sent successfully!",
         "txid":    txid,
     })
+}
+
+
+// GetTransactionHistory retrieves and returns the transaction history of the node
+func GetTransactionHistory(w http.ResponseWriter, r *http.Request) {
+	// Call listtransactions command to get transaction history
+	cmd := "listtransactions"
+	output, err := manager.CallBtcctlCmd(cmd)
+	if err != nil {
+		http.Error(w, "Failed to retrieve transaction history: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Parse the output into a JSON structure
+	var transactions []map[string]interface{}
+	if err := json.Unmarshal([]byte(output), &transactions); err != nil {
+		http.Error(w, "Failed to parse transaction history: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Create a formatted response with the necessary information
+	var transactionDetails []map[string]interface{}
+	for _, tx := range transactions {
+		txDetails := map[string]interface{}{
+			"txid":         tx["txid"],
+			"time":         time.Unix(int64(tx["time"].(float64)), 0).Format(time.RFC3339),
+			"amount":       tx["amount"],
+			"category":     tx["category"],  // "send", "receive", or "generate" (mined)
+			"confirmations": tx["confirmations"],
+		}
+
+		transactionDetails = append(transactionDetails, txDetails)
+	}
+
+	// Send response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"transactions": transactionDetails,
+	})
+}
+
+// getTransactionAddresses retrieves the addresses involved in a given transaction using getrawtransaction
+func getTransactionAddresses(txid string) ([]string, error) {
+	// Call getrawtransaction to fetch detailed transaction information
+	cmd := fmt.Sprintf("getrawtransaction %s 1", txid) // verbose mode set to 1 to get detailed info
+	output, err := manager.CallBtcctlCmd(cmd)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get transaction details for txid %s: %v", txid, err)
+	}
+
+	// Parse the output into a JSON structure
+	var txDetails map[string]interface{}
+	if err := json.Unmarshal([]byte(output), &txDetails); err != nil {
+		return nil, fmt.Errorf("failed to parse transaction details for txid %s: %v", txid, err)
+	}
+
+	// Extract the addresses from the transaction details
+	var addresses []string
+	if vouts, ok := txDetails["vout"].([]interface{}); ok {
+		for _, vout := range vouts {
+			voutMap := vout.(map[string]interface{})
+			if scriptPubKey, exists := voutMap["scriptPubKey"].(map[string]interface{}); exists {
+				if addressesArray, ok := scriptPubKey["addresses"].([]interface{}); ok {
+					for _, address := range addressesArray {
+						addresses = append(addresses, address.(string))
+					}
+				}
+			}
+		}
+	}
+
+	return addresses, nil
 }
 
