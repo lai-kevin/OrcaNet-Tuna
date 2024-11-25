@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"context"
 	"encoding/gob"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -22,11 +21,6 @@ import (
 	"github.com/libp2p/go-libp2p/core/protocol"
 	ma "github.com/multiformats/go-multiaddr"
 )
-
-var fileHashToPath = make(map[string]string)   // map of file hashes to file paths on device
-var isFileHashProvided = make(map[string]bool) // true if file hash is provided by this node, else false
-var downloadStatus = make(map[string]bool)     // proceed with download if true, else pause download
-var lastDownloadStatus time.Time = time.Time{} // last time download status was updated
 
 // Create a stream to a target node
 func createStream(node host.Host, targetNodeId string, streamProtocol protocol.ID) (network.Stream, error) {
@@ -117,7 +111,24 @@ func receiveFileData(node host.Host) {
 			FileHash:         fileMetaData.FileHash,
 			FileMetaData:     fileMetaData,
 			DownloadProgress: 0.0,
+			DownloadSpeed:    0.0,
+			DownloadStart:    time.Now(),
+			RemainingTime:    "",
+			BytesDownloaded:  0,
 		}
+
+		// // Pause download if priority list is full, else update the priority list
+		// for !slices.Contains(downloadPriority, fileMetaData.RequestID) {
+		// 	if len(downloadPriority) < 4 {
+		// 		// Add request ID of oldest file request that isn't downloaded to download priority list
+		// 		for _, fileRequest := range fileRequests {
+		// 			if !fileRequest.Complete {
+		// 				downloadPriority = append(downloadPriority, fileRequest.RequestID)
+		// 				break
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 		file, err := os.Create(DOWNLOAD_DIRECTORY + "/" + fileMetaData.FileName)
 		if err != nil {
@@ -127,6 +138,12 @@ func receiveFileData(node host.Host) {
 		defer file.Close()
 
 		totalBytesRead := 0
+		startTime := time.Now()
+		lastUpdateTime := startTime
+		lastUpdateBytes := 0
+
+		updateInterval := time.Second * 1
+
 		for {
 			buffer := make([]byte, 1024)
 			bytesRead, err := stream.Read(buffer)
@@ -145,10 +162,42 @@ func receiveFileData(node host.Host) {
 				return
 			}
 
+			currentTime := time.Now()
 			totalBytesRead += bytesRead
-			ft := downloadHistory[fileMetaData.RequestID]
-			ft.DownloadProgress = float32(totalBytesRead) / float32(fileMetaData.FileSize)
-			downloadHistory[fileMetaData.RequestID] = ft
+
+			if currentTime.Sub(lastUpdateTime) >= updateInterval {
+				duration := currentTime.Sub(lastUpdateTime)
+				bytesReadSinceLastUpdate := totalBytesRead - lastUpdateBytes
+				ft := downloadHistory[fileMetaData.RequestID]
+				ft.BytesDownloaded = int64(totalBytesRead)
+				ft.DownloadSpeed = float32(bytesReadSinceLastUpdate) / float32(duration.Seconds())
+				ft.DownloadSpeed = ft.DownloadSpeed / (1024 * 1024) // convert to MB/s
+				ft.DownloadProgress = float32(totalBytesRead) / float32(fileMetaData.FileSize)
+				downloadHistory[fileMetaData.RequestID] = ft
+				lastUpdateTime = currentTime
+				lastUpdateBytes = totalBytesRead
+			}
+		}
+
+		ft := downloadHistory[fileMetaData.RequestID]
+		ft.DownloadProgress = 1.0
+		downloadHistory[fileMetaData.RequestID] = ft
+
+		// // Remove the request ID from the download priority list
+		// for i, requestID := range downloadPriority {
+		// 	if requestID == fileMetaData.RequestID {
+		// 		downloadPriority = append(downloadPriority[:i], downloadPriority[i+1:]...)
+		// 		break
+		// 	}
+		// }
+
+		// Make as complete in fileRequests
+		for i, fileRequest := range fileRequests {
+			if fileRequest.RequestID == fileMetaData.RequestID {
+				fileRequest.Complete = true
+				fileRequests[i] = fileRequest
+				break
+			}
 		}
 
 	})
@@ -412,10 +461,8 @@ func sendFileRequestToPeer(node host.Host, targetNodeId string, fileHash string,
 		RequesterID:           sourceID,
 		RequesterMultiAddress: sourceMultiAddress,
 		TimeSent:              time.Now(),
+		Complete:              false,
 	}
-
-	// Update the file request map
-	requestedFiles[fileHash] = fileRequest
 
 	// Write the file request to the stream
 	fileRequestBytes, err := json.Marshal(fileRequest)

@@ -8,13 +8,14 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p"
@@ -31,28 +32,33 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
+// Application state variables
+var SBU_ID string
+var DOWNLOAD_DIRECTORY = "downloads"
+var fileHashToPath = make(map[string]string)           // map of file hashes to file paths on device
+var isFileHashProvided = make(map[string]bool)         // true if file hash is provided by this node, else false
+var downloadStatus = make(map[string]bool)             // proceed with download if true, else pause download
+var lastDownloadStatus time.Time = time.Time{}         // last time download status was updated
+var metadataResponse = make(map[string]FileDataHeader) // fileHash -> metadata
+var downloadHistory = make(map[string]FileTransaction) // requestID -> transaction
+var fileRequests = []FileRequest{}
+var providedFiles = []FileDataHeader{}
+
 // Hard coded values to connect to TA provided relay node and bootstrap node
 const BOOTSTRAP_NODE_MULTIADDR = "/ip4/130.245.173.222/tcp/61000/p2p/12D3KooWQd1K1k8XA9xVEzSAu7HUCodC7LJB6uW5Kw4VwkRdstPE"
 const RELAY_NODE_MULTIADDR = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
 const DESKTOP_NODE_MULTIADDR = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN/p2p-circuit/p2p/12D3KooWS9VBsbpZPzpxsK6by9LzFUsW62fHHk3owJGHRKWy4KnX"
-
-var SBU_ID string
-
-var DOWNLOAD_DIRECTORY = "downloads"
 
 // Global context for the application
 var globalCtx context.Context
 
 var globalNode host.Host
 
-// File hash to file type mapping
-// This is used when a node is requesting a file and needs the file type for saving.
-// This map is updated when a file is requested from the network.
-var requestedFiles = make(map[string]FileRequest)
-
 type PeerInfo struct {
 	PeerID string `json:"peerID"`
 }
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func generatePrivateKeyFromSeed(seed string) (crypto.PrivKey, error) {
 	hash := sha256.Sum256([]byte(seed))
@@ -449,7 +455,7 @@ func handleInput(context context.Context, orcaDHT *dht.IpfsDHT, node host.Host) 
 			}
 
 		default:
-			fmt.Println("Expected GET, GET_PROVIDERS, PUT, PUT_PROVIDER, PROVIDE_FILE, PROVIDE_FILE_META, DOWNLOAD_FILE, DOWNLOAD_FILE_META")
+			//fmt.Println("Expected GET, GET_PROVIDERS, PUT, PUT_PROVIDER, PROVIDE_FILE, PROVIDE_FILE_META, DOWNLOAD_FILE, DOWNLOAD_FILE_META")
 		}
 	}
 }
@@ -471,12 +477,91 @@ func provideKey(ctx context.Context, dht *dht.IpfsDHT, key string) error {
 	return nil
 }
 
+func saveState() error {
+	state := AppState{
+		SBU_ID:             SBU_ID,
+		DOWNLOAD_DIRECTORY: DOWNLOAD_DIRECTORY,
+		FileHashToPath:     fileHashToPath,
+		IsFileHashProvided: isFileHashProvided,
+		DownloadStatus:     downloadStatus,
+		LastDownloadStatus: lastDownloadStatus,
+		MetadataResponse:   metadataResponse,
+		DownloadHistory:    downloadHistory,
+		FileRequests:       fileRequests,
+		ProvidedFiles:      providedFiles,
+	}
+
+	fmt.Print("State: ")
+	fmt.Println(state)
+
+	file, err := os.Create("state" + SBU_ID + ".json")
+	if err != nil {
+		return fmt.Errorf("error occured while creating state file: %v", err)
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	err = encoder.Encode(state)
+	if err != nil {
+		return fmt.Errorf("error occured while encoding state: %v", err)
+	}
+
+	return nil
+}
+
+func loadState() error {
+	file, err := os.Open("state" + SBU_ID + ".json")
+	if err != nil {
+		return fmt.Errorf("error occured while opening state file: %v", err)
+	}
+	defer file.Close()
+
+	var state AppState
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&state)
+	if err != nil {
+		return fmt.Errorf("error occured while decoding state: %v", err)
+	}
+
+	SBU_ID = state.SBU_ID
+	DOWNLOAD_DIRECTORY = state.DOWNLOAD_DIRECTORY
+	fileHashToPath = state.FileHashToPath
+	isFileHashProvided = state.IsFileHashProvided
+	downloadStatus = state.DownloadStatus
+	lastDownloadStatus = state.LastDownloadStatus
+	metadataResponse = state.MetadataResponse
+	downloadHistory = state.DownloadHistory
+	fileRequests = state.FileRequests
+	providedFiles = state.ProvidedFiles
+
+	return nil
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Expected SBU ID")
 		return
 	}
 	SBU_ID = os.Args[1]
+
+	// Initialize application state
+	fileHashToPath = make(map[string]string)
+	isFileHashProvided = make(map[string]bool)
+	downloadStatus = make(map[string]bool)
+	lastDownloadStatus = time.Time{}
+	metadataResponse = make(map[string]FileDataHeader)
+	downloadHistory = make(map[string]FileTransaction)
+	fileRequests = []FileRequest{}
+	providedFiles = []FileDataHeader{}
+
+	// Load state from file
+	_, err := os.ReadFile("state" + SBU_ID + ".json")
+	if err != nil {
+		fmt.Println("State file not found: ", err)
+		fmt.Println("Starting without state file")
+	} else {
+		loadState()
+	}
 
 	node, orcaDHT, err := createNode(dht.ModeServer)
 	if err != nil {
