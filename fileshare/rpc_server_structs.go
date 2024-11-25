@@ -26,6 +26,9 @@ type ProvideFileArgs struct {
 type GetNodeInfoArgs struct {
 }
 
+type GetUpdatesArgs struct {
+}
+
 type StopProvidingFileArgs struct {
 	FileHash string `json:"file_hash"`
 }
@@ -73,6 +76,17 @@ type GetNodeInfoReply struct {
 	Providing []FileDataHeader `json:"providing"`
 }
 
+type GetUpdatesReply struct {
+	Success        bool              `json:"success"`
+	WalletID       string            `json:"wallet_id"`
+	PeerID         string            `json:"peer_id"`
+	MultiAddr      string            `json:"multi_addr"`
+	Status         string            `json:"status"`
+	PrivateIP      bool              `json:"private_ip"`
+	Providing      []FileDataHeader  `json:"providing"`
+	RequestedFiles []FileRequest     `json:"requested_files"`
+	Downloads      []FileTransaction `json:"downloads"`
+}
 type StopProvidingFileReply struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`

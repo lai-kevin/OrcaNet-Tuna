@@ -8,9 +8,7 @@ The purpose of this utility/package is to handle the distributed file sharing be
 - Downloading Files by Hash
 - Requesting Metadata by Hash
 - Pausing/Resuming Downloads
-- Queing Downloads by Priority
 - Download Time Estimation
-- Obtaining Network Statistics of Providers of a File
 
 ## Installation
 1. Clone the repository:
@@ -25,10 +23,14 @@ The purpose of this utility/package is to handle the distributed file sharing be
     ```sh
     go mod tidy
     ```
+4. Build image:
+    ```sh
+    docker build -t fileshare:v<version> .
+    ```
 
 ## Usage
-1. Start the application:
+1. Start a container using the image:
     ```sh
-    go run . <SBU_ID>
+    docker run -p 8081:1234 fileshare:<version> 111111111
     ```
-2. Make requests to `http://localhost:1234/rpc`. See more in the postman doc.
+2. Make requests to `http://host.docker.internal:8081/rpc`. See more in the postman doc.
