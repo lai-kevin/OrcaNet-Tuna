@@ -43,7 +43,7 @@ const Files = () => {
 
 
   const {user, searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads,setFileToRemove,fileToRemove,  setSearchResultsFound, setFileToDownload, dummyFiles,setDummyFiles} = useContext(AppContext);
-  const [downloadHistory, setDownloadHistory] = useState(sampleData);// move to a global app context in the future?
+  const [downloadHistory, setDownloadHistory] = useState([]);// move to a global app context in the future?
   // const [proxyHistory, setProxyHistory] = useState([]);this should probably somewhere else now that we know what it is
 
   const [fileToUpload, setFileToUpload] = useState(null);
@@ -56,8 +56,6 @@ const Files = () => {
 
 
   const handleProvideFile = async () => {
-    const historyResponse = await getHistory([]);
-    console.log(historyResponse);
     const shareResponse = await uploadFileRPC([{file_path: fileToUpload.name, price: fileToUpload.price}]);
     console.log(shareResponse);
     
@@ -69,13 +67,28 @@ const Files = () => {
       //Success is a key in the return object
       //do our error here
     }
-
     setSearchResultsFound(true);
     if(fileMetaData !== undefined){
       setFileToDownload(fileMetaData);
     }
+  }
+  const handleSettingHistory = async () =>{
+    //leave it open to extracting other history we might want to render
+    let curUserHistory = await getHistory([]);
+    let downloadHistory = curUserHistory.result.download_history;
+    setDownloadHistory(downloadHistory);//can try inserting the Time Sent as needed from the requested files list
+
 
   }
+  //UseEffect hook to re request download history when switching tabs
+  useEffect(()=>{
+    //make a request and set the download history as needed
+    if(activeTab === "Downloads"){
+      handleSettingHistory();
+    }
+    //make cases for the rest
+  },[activeTab]);
+
 
   //UseEffect hook that currently deals with adding the "upload" to the list of uploads in the global context once a fileToUpload has been selected
   //uploads list is used by Files.js to render cards of uploads
@@ -254,7 +267,7 @@ const Files = () => {
             <p>{name}</p>
             <p style = {{color: "#9b9b9b"}} >{hashId}</p>
           </div>
-          <div>{size}  <p style = {{color: "#9b9b9b"}}>{timestamp.toDateString()}</p></div>
+          <div>{size}  <p style = {{color: "#9b9b9b"}}>{"DateFiller"}</p></div>
         </div>
   
       );
@@ -266,7 +279,7 @@ const Files = () => {
           <p>{name}</p>
           <p style = {{color: "#9b9b9b"}} >{hashId}</p>
         </div>
-        <div> {size} <p style = {{color: "#9b9b9b"}}>{timestamp.toDateString()}</p></div>
+        <div> {size} <p style = {{color: "#9b9b9b"}}>{"DateFiller"}</p></div>
       </div>
 
     );
@@ -336,12 +349,12 @@ const Files = () => {
         return downloadHistory.map(file =>{
           return(
             <FileCard
-              key = {file.hashId}
-              type = {file.type}
-              name = {file.name}
-              hashId = {file.hashId}
-              size = {file.size}
-              timestamp={file.timestamp}
+              key = {file.FileHash}
+              type = {file.FileMetaData.FileExtension}
+              name = {file.FileMetaData.FileName}
+              hashId = {file.FileHash}
+              size = {file.FileMetaData.FileSize}
+              timestamp={new Date()}
             />
           )
         });
