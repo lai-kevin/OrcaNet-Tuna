@@ -190,7 +190,7 @@ func UpdateBtcdConfigWithMiningAddr(address string) error {
 	}
 
 	// Construct the path to btcd.conf within the btcd directory
-	configPath := filepath.Join(rootPath, "btcd", "btcd.conf")
+	configPath := filepath.Join(rootPath, "btcd", "sample-btcd.conf")
 
 	// Read the current btcd.conf content
 	content, err := os.ReadFile(configPath)
@@ -232,7 +232,7 @@ func GetMiningAddressFromConfig() (string, error) {
 	}
 
 	// Construct the path to btcd.conf within the btcd directory
-	configPath := filepath.Join(rootPath, "btcd", "btcd.conf")
+	configPath := filepath.Join(rootPath, "btcd", "sample-btcd.conf")
 
 	// Read the btcd.conf file
 	data, err := os.ReadFile(configPath)
