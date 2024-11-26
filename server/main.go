@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/rs/cors"
 	"github.com/lai-kevin/OrcaNet-Tuna/server/handlers"
 	"github.com/lai-kevin/OrcaNet-Tuna/server/manager"
 
@@ -30,30 +31,41 @@ func main() {
 	// Handle graceful shutdown for the OrcaNet service
 	handleGracefulShutdown()
 
+	corsOptions := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"}, // Explicitly specify allowed origins
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"}, // Allowed HTTP methods
+		AllowedHeaders:   []string{"Content-Type", "Authorization"}, // Allowed request headers
+		AllowCredentials: true, // Allow credentials (e.g., cookies)
+	})
+
+	handler := corsOptions.Handler(http.DefaultServeMux)
+
 	// Start the HTTP server
 	const serverAddr = ":8080"
 	log.Printf("Server starting on %s...\n", serverAddr)
 
-	if err := http.ListenAndServe(serverAddr, nil); err != nil {
+	if err := http.ListenAndServe(serverAddr, handler); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
 
 // setupRoutes defines the HTTP routes for the API
 func setupRoutes() {
-	http.HandleFunc("/", handlers.GetRoot)
-	http.HandleFunc("/hello", handlers.GetHello)
-	http.HandleFunc("/createWallet", handlers.CreateWallet)
-	http.HandleFunc("/login", handlers.Login)
-	http.HandleFunc("/getMiningAddress", handlers.GetMiningAddress)
-	http.HandleFunc("/getNewAddress", handlers.GetNewAddress)
-	http.HandleFunc("/getBalance", handlers.GetBalance)
-	http.HandleFunc("/mine", handlers.Mine)
-	http.HandleFunc("/sendToAddress", handlers.SendToAddress)
-	http.HandleFunc("/getTransactionHistory", handlers.GetTransactionHistory)
-	// http.HandleFunc("/getPeerInfo", handlers.GetPeerInfo)
-	// http.HandleFunc("/getBlockchainInfo", handlers.GetBlockchainInfo)
-
+    // Define the routes directly using http.HandleFunc
+    http.HandleFunc("/", handlers.GetRoot)
+    http.HandleFunc("/hello", handlers.GetHello)
+    http.HandleFunc("/createWallet", handlers.CreateWallet)
+    http.HandleFunc("/login", handlers.Login)
+	http.HandleFunc("/logOut", handlers.Logout)
+	http.HandleFunc("/retrieveInfo", handlers.RetriveInfo)
+    http.HandleFunc("/getMiningAddress", handlers.GetMiningAddress)
+    http.HandleFunc("/getNewAddress", handlers.GetNewAddress)
+    http.HandleFunc("/getBalance", handlers.GetBalance)
+    http.HandleFunc("/mine", handlers.Mine)
+    http.HandleFunc("/sendToAddress", handlers.SendToAddress)
+    http.HandleFunc("/getTransactionHistory", handlers.GetTransactionHistory)
+    // http.HandleFunc("/getPeerInfo", handlers.GetPeerInfo)
+    // http.HandleFunc("/getBlockchainInfo", handlers.GetBlockchainInfo)
 }
 
 // handleGracefulShutdown listens for termination signals and shuts down services gracefully
