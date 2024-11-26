@@ -103,6 +103,16 @@ category: sent, recieved, generate (mined)
 confirmations: the number of blocks mined after the block containing this information
 </br>
 
+---------------------------------------------------------------
+## Docker File
+### If you are using Docker file: </br>
+### 1. Download the Docker desktop application </br>
+### 2. Open it and ensure it is running. </br>
+### 3. Navigate to the project directory and run the following commands:</br>
+```
+docker build -t myapi .
+docker run =p 8080:8080 myapi
+```
 
 ## Side Notes
 ### - If there are any issues with running the server, it may be because you do not have the binaries built. 
