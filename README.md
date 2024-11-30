@@ -111,17 +111,21 @@ confirmations: the number of blocks mined after the block containing this inform
 ### 3. Navigate to the project directory and run the following commands:</br>
 ```
 docker build -t myapi .
-docker run =p 8080:8080 myapi
+docker run -p 8080:8080 myapi
 ```
 
 ## Side Notes
 ### - If there are any issues with running the server, it may be because you do not have the binaries built. 
 ### - Remember to build in btcd, btcd/cmd/btcctl, and btcwallet directory.
-### - Ensure you have the btcd.conf, btcwallet.conf, and btcctl.conf files. You may need to manually copy the .conf files and paste them in your computer's following directories:
+### - Ensure you have the btcd.conf, btcwallet.conf, and btcctl.conf files. You may need to manually copy the .conf files and paste them in your computer's following directories: </br>
+
 /Users/[username]/Library/Application Support/Btcd/btcd.conf
 </br>
 /Users/[username]/Library/Application Support/Btcctl/btcctl.conf
 </br>
 /Users/[username]/Library/Application Support/Btcwallet/btcwallet.conf
-
-### - If you already have a wallet, you cannot create another one. To create another wallet remove your existing one. For MacOS run: rm "/Users/[YOUR USERNAME]/Library/Application Support/Btcwallet/mainnet/wallet.db"
+</br>
+### - If you already have a wallet, you cannot create another one. To create another wallet remove your existing one. For MacOS run: </br>
+```
+rm "/Users/[YOUR USERNAME]/Library/Application Support/Btcwallet/mainnet/wallet.db"
+ ```
