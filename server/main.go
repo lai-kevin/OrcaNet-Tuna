@@ -51,6 +51,9 @@ func setupRoutes() {
 	http.HandleFunc("/mine", handlers.Mine)
 	http.HandleFunc("/sendToAddress", handlers.SendToAddress)
 	http.HandleFunc("/getTransactionHistory", handlers.GetTransactionHistory)
+	http.HandleFunc("/logout", handlers.Logout)
+	http.HandleFunc("/shutdown", handlers.Shutdown)
+	http.HandleFunc("/deleteWallet", handlers.DeleteWallet) 
 	// http.HandleFunc("/getPeerInfo", handlers.GetPeerInfo)
 	// http.HandleFunc("/getBlockchainInfo", handlers.GetBlockchainInfo)
 

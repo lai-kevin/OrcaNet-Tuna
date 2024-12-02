@@ -8,6 +8,9 @@ import (
 	"strings"
 	"crypto/rand"
 	"math/big"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/lai-kevin/OrcaNet-Tuna/server/manager"
 )
@@ -223,6 +226,30 @@ func Login(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(map[string]string{"message": "Logged in successfully, services are running."})
 }
 
+// Logout locks the wallet and stops the btcwallet process when the user logs out
+func Logout(w http.ResponseWriter, r *http.Request) {
+	// Step 1: Call the walletlock command to lock the wallet
+	cmd := "walletlock"
+	_, err := manager.CallBtcctlCmd(cmd)
+	if err != nil {
+		// If the walletlock command fails, return an error to the user
+		http.Error(w, "Failed to lock wallet: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Step 2: Stop the btcwallet service (but keep btcd running)
+	if err := manager.StopWallet(); err != nil {
+		http.Error(w, "Failed to stop btcwallet: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Step 3: Respond with a confirmation message indicating the wallet is locked and btcwallet has stopped
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Wallet locked and btcwallet stopped successfully!",
+	})
+}
+
 // GetNewAddress generates and returns a new wallet address
 func GetNewAddress(w http.ResponseWriter, r *http.Request) {
 	// Call getnewaddress command
@@ -427,3 +454,54 @@ func getTransactionAddresses(txid string) ([]string, error) {
 	return addresses, nil
 }
 
+func Shutdown(w http.ResponseWriter, r *http.Request) {
+
+	// Step 1: Stop the btcwallet service
+	if err := manager.StopWallet(); err != nil {
+		http.Error(w, "Failed to stop btcwallet: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Step 2: Stop OrcaNet (btcd)
+	if err := manager.StopOrcaNet(); err != nil {
+		http.Error(w, "Failed to stop OrcaNet (btcd): "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Step 3: Gracefully terminate the services (Sending SIGINT)
+	stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
+
+	// Send SIGINT to simulate the shutdown signal
+	go func() {
+		stopChan <- os.Interrupt // Simulate SIGINT to terminate processes
+	}()
+
+	// Step 4: Forcefully kill the processes if they don't shut down gracefully
+	go func() {
+		time.Sleep(5 * time.Second) // Give some time for graceful shutdown
+		if err := manager.KillProcesses(); err != nil {
+			fmt.Println("Error while forcefully killing processes:", err)
+		}
+	}()
+
+	// Step 5: Exit the main program after shutdown
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "Shutdown initiated. Stopping services...")
+
+	// Exit the program, ensuring everything is stopped
+	os.Exit(0)
+}
+
+// DeleteWallet handler for deleting the wallet
+func DeleteWallet(w http.ResponseWriter, r *http.Request) {
+	// Call the DeleteWallet function from manager.go
+	if err := manager.DeleteWallet(); err != nil {
+		http.Error(w, "Failed to delete wallet: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with success message
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "Wallet deleted successfully!")
+}
