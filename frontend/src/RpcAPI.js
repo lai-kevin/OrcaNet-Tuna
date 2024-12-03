@@ -1,5 +1,7 @@
 import axios from "axios";
 
+//'http://localhost:1234/rpc' old route
+// http://host.docker.internal:8081/rpc
 const rpcClient = axios.create({
   baseURL: 'http://localhost:1234/rpc',
   headers: {
@@ -85,3 +87,16 @@ export const getFileProvidersWMetaData = async (params) =>{
 //params should be: [{"file_hash" : "HASH"}]
 export const stopProvidingRPC = (params) =>
   makeRPCRequest('FileShareService.StopProvidingFile', params);
+
+
+//params can be: []
+export const getUpdatesFromGoNode = (params) =>
+  makeRPCRequest('FileShareService.GetUpdates', params);//has downloads, and providing field
+
+//params are : [{request_id: reqIdNum}]
+export const pauseDownloadFileRPC = (params) => 
+  makeRPCRequest('FileShareService.PauseDownload',params)
+
+//params are : [{request_id: reqIdNum}]
+export const resumeDownloadFileRPC = (params) => 
+  makeRPCRequest('FileShareService.ResumeDownload',params)

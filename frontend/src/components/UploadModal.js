@@ -4,6 +4,7 @@
 import { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { LiaDownloadSolid } from "react-icons/lia";
+import { stopProvidingRPC } from "../RpcAPI";
 
 
 const CancelUploadModal = () =>{
@@ -14,11 +15,20 @@ const CancelUploadModal = () =>{
         setErrorMsg("");
     }
 
+    const stopProviding = async () => {
+      //gonna actually handle removing from ui on front end cuz dialing to self is sketchy
+      let stopProvidingRes = await stopProvidingRPC([{file_hash: fileToRemove.hashId}]);
+      if(stopProvidingRes.result.success == true){
+        const updatedHistory = uploadHistory.filter((upload) => upload.hashId !== fileToRemove.hashId);
+        setUploadHistory([...updatedHistory]);  
+      }
+      
+      setFileToRemove(null);
+    }
+
     const handleRemove = () => {
       if(!fileToRemove.downloaders){
-        const updatedDownloads = uploadHistory.filter((upload) => upload.hashId !== fileToRemove.hashId);
-        setUploadHistory([...updatedDownloads]);
-        setFileToRemove(null);
+        stopProviding();
       }
       else{
         setErrorMsg("The file you wish to stop serving is currently being downloaded by " + fileToRemove.downloaders.length + " users.")
@@ -35,7 +45,7 @@ const CancelUploadModal = () =>{
           {errMsg &&  <div style={{color: "red", fontWeight: "800"}}><p>{errMsg}</p> <p>All transactions related to the above file must be complete prior to removal.</p></div>}
           <br/>
           <div style={{ display: "flex", gap: "10px" }}>
-            <button className="primary_button" onClick={handleRemove}>Stop Sharing</button>
+            <button className="primary_button" onClick={handleRemove}>Stop Providing</button>
             <button className="primary_button" onClick={handleClose}>Cancel</button>
           </div>
         </div>

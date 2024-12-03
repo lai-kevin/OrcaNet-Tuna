@@ -53,7 +53,7 @@ export function AppContextProvider(props){
     const [fileToDownload,setFileToDownload] = useState("");
     const [fileToRemove,setFileToRemove] = useState(null);
     const [downloadOpen, setDownloadOpen] = useState(false);
-    const [uploadHistory, setUploadHistory] = useState([sampleUpload]); //currently storing apps "uploads" here in this global context for demo purposes as there is no real data
+    const [uploadHistory, setUploadHistory] = useState([]); //currently storing apps "uploads" here in this global context for demo purposes as there is no real data
     const [downloads, setDownloads] = useState([]);
     const [proxy, setProxy] = useState(false);
     const [server, setServer] = useState("--")
