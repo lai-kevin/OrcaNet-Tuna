@@ -10,6 +10,7 @@ import { SiEnvoyproxy } from "react-icons/si";
 import { HiOutlineXMark } from "react-icons/hi2";
 import { DownloadTableExcel } from 'react-export-table-to-excel';
 import { AppContext } from './AppContext';
+import * as Wallet from "../WalletAPI"
 const AccountContent = ({mode}) => {
     return(
      <div className = "account">
@@ -19,7 +20,8 @@ const AccountContent = ({mode}) => {
     )
 };
 const Profile = ({mode})=>{
-    const {user} = useContext(AppContext);
+    const {user, setUser} = useContext(AppContext);
+    const [bal, setBalance] = useState(user.balance);
     const [qr, setQr] = useState("close")
     const handleQr = ()=>{
         setQr(prevState =>(prevState === "open" ? "close": "open"))
@@ -41,6 +43,21 @@ const Profile = ({mode})=>{
             document.removeEventListener('mousedown', out);
         };
     }, []);
+    // useEffect(() => {
+    //     const fetchBalance = async () => {
+    //       try {
+    //         const balance = await Wallet.balance(); 
+    //         setBalance(balance); 
+    //         setUser(prev => ({
+    //           ...prev,
+    //           balance: balance
+    //         }));
+    //       } catch (error) {
+    //         console.error("Failed to fetch balance:", error); 
+    //       }
+    //     };
+    //     fetchBalance(); 
+    //   }, []);
     return(
         <div className='profile'>
             <h3 id="profile_title">Wallet</h3>

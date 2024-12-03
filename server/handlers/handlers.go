@@ -10,7 +10,15 @@ import (
 	"math/big"
 
 	"github.com/lai-kevin/OrcaNet-Tuna/server/manager"
+	"github.com/google/uuid"
 )
+type Session struct {
+    Password string   
+    ExpiresAt     time.Time 
+}
+
+// Stores the sessions
+var sessionDB = map[string]Session{} 
 
 // GetRoot returns a welcome message and blockchain info
 func GetRoot(w http.ResponseWriter, r *http.Request) {
@@ -169,7 +177,8 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 // Login handler for logging in an existing user and starting services
 func Login(w http.ResponseWriter, r *http.Request) {
     var request struct {
-        Password string `json:"password"`
+        Password  string `json:"password"`
+		RememberMe bool   `json:"rememberMe"`
     }
     if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
         http.Error(w, "Invalid request payload", http.StatusBadRequest)
@@ -186,14 +195,23 @@ func Login(w http.ResponseWriter, r *http.Request) {
     time.Sleep(3 * time.Second) // Allow wallet some time to initialize
     fmt.Println("Going to unlock wallet")
 
+	// create a session token
+	token := uuid.New().String()
+	duration := 60 * 60  
+	exp:= time.Now().Add(1 * time.Hour)                 
+	if request.RememberMe {
+		exp = time.Now().Add(24 * time.Hour) // 24 hours 
+		duration = 24 * 60 * 60   
+	}
+
     // Step 2: Unlock the wallet with the provided password
-    unlockCmd := fmt.Sprintf("walletpassphrase %s %d", request.Password, 60*60) // Unlock for 1 hour
+    unlockCmd := fmt.Sprintf("walletpassphrase %s %d", request.Password, duration) 
     if _, err := manager.CallBtcctlCmd(unlockCmd); err != nil {
         fmt.Println("Error: Failed to unlock wallet -", err)
         http.Error(w, "Failed to unlock wallet: "+err.Error(), http.StatusUnauthorized)
         return 
     }
-
+	
     // Step 3: Ensure mining address is configured
     miningAddr, err := manager.GetMiningAddressFromConfig()
     if err != nil || miningAddr == "" {
@@ -203,6 +221,138 @@ func Login(w http.ResponseWriter, r *http.Request) {
     }
     fmt.Println("Retrieved mining address from config:", miningAddr)
 
+	
+    // Step 4: Restart btcd (OrcaNet) with the retrieved mining address
+    if err := manager.StopOrcaNet(); err != nil {
+        fmt.Println("Error: Failed to stop OrcaNet -", err)
+        http.Error(w, "Failed to stop btcd: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+	time.Sleep(3 * time.Second)
+
+    if err := manager.StartOrcaNet(miningAddr); err != nil {
+        fmt.Println("Error: Failed to start btcd -", err)
+        http.Error(w, "Failed to start btcd with mining address: "+err.Error(), http.StatusInternalServerError)
+        return 
+    }
+              
+	if request.RememberMe {
+		sessionDB[token] = Session{
+			ExpiresAt:     exp,
+			Password: request.Password,
+		}  
+	}
+	// set session cookie
+	http.SetCookie(w, &http.Cookie{
+        Name:     "session_token",
+        Value:    token,
+        Expires:  exp,
+        HttpOnly: true,  
+        Path:     "/",
+    })
+	// Step 5: Retrieve transaction history
+	txHistoryOutput, err := manager.CallBtcctlCmd("listtransactions")
+	if err != nil {
+		fmt.Println("Error: Failed to retrieve transaction history -", err)
+		http.Error(w, "Failed to retrieve transaction history: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var transactions []map[string]interface{}
+	if err := json.Unmarshal([]byte(txHistoryOutput), &transactions); err != nil {
+		fmt.Println("Error: Failed to parse transaction history -", err)
+		http.Error(w, "Failed to parse transaction history: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Step 6: Retrieve wallet balance
+	balance, err := manager.CallBtcctlCmd("getbalance")
+	if err != nil {
+		fmt.Println("Error: Failed to retrieve balance -", err)
+		http.Error(w, "Failed to retrieve balance: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Step 7: Respond to the client with login success, mining address, balance, and transaction history
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":       "Logged in successfully, services are running.",
+		"miningAddress": miningAddr,
+		"balance":       balance,
+		"transactions":  transactions,
+	})
+
+    // // Step 5: If all steps succeed, respond to the client indicating a successful login
+    // w.WriteHeader(http.StatusOK)
+    // //json.NewEncoder(w).Encode(map[string]string{"message": "Logged in successfully, services are running."})
+	// json.NewEncoder(w).Encode(map[string]string{
+	// 	"message":       "Logged in successfully, services are running.",
+	// 	"miningAddress": miningAddr,
+	// 	"balance": 
+	// })
+}
+
+// clears the cookies during logout
+func Logout(w http.ResponseWriter, r *http.Request) {
+    http.SetCookie(w, &http.Cookie{
+        Name:     "session_token",
+        Value:    "",
+        Expires:  time.Now().Add(-1 * time.Hour), 
+        HttpOnly: true,
+        Path:     "/",
+    })
+    w.WriteHeader(http.StatusOK)
+    w.Write([]byte("Logged out"))
+}
+
+// get the user's info when Remember Me is checked
+func RetriveInfo(w http.ResponseWriter, r *http.Request) {
+	// Get the cookie from request
+	cookie, err := r.Cookie("session_token")
+	if err != nil {
+        http.Error(w, "Error getting cookie", http.StatusBadRequest)
+        return
+    }
+	//check if the session exists
+	session, exists := sessionDB[cookie.Value]
+    if !exists || session.ExpiresAt.Before(time.Now()) {
+        http.Error(w, "Expired session token", http.StatusUnauthorized)
+        return
+    }
+
+    // Step 1: Start btcwallet if needed
+    if err := manager.StartWallet(); err != nil {
+        fmt.Println("Error: Failed to start wallet -", err)
+        http.Error(w, "Failed to start wallet. Please create a wallet first.", http.StatusUnauthorized)
+        return 
+    }
+
+    time.Sleep(3 * time.Second) // Allow wallet some time to initialize
+    fmt.Println("Going to unlock wallet")
+
+    password := session.Password // retrieve the password
+	duration := session.ExpiresAt.Sub(time.Now()) // calculate the time left
+
+    // Step 2: Unlock the wallet with the provided password
+    unlockCmd := fmt.Sprintf("walletpassphrase %s %d", password, duration) 
+    if _, err := manager.CallBtcctlCmd(unlockCmd); err != nil {
+        fmt.Println("Error: Failed to unlock wallet -", err)
+        http.Error(w, "Failed to unlock wallet: "+err.Error(), http.StatusUnauthorized)
+        return 
+    }
+	
+    // Step 3: Ensure mining address is configured
+    miningAddr, err := manager.GetMiningAddressFromConfig()
+    if err != nil || miningAddr == "" {
+        fmt.Println("Error: Mining address not configured.")
+        http.Error(w, "Mining address not configured. Please create a wallet first.", http.StatusUnauthorized)
+        return 
+    }
+    fmt.Println("Retrieved mining address from config:", miningAddr)
+
+	
     // Step 4: Restart btcd (OrcaNet) with the retrieved mining address
     if err := manager.StopOrcaNet(); err != nil {
         fmt.Println("Error: Failed to stop OrcaNet -", err)
@@ -218,9 +368,38 @@ func Login(w http.ResponseWriter, r *http.Request) {
         return 
     }
 
-    // Step 5: If all steps succeed, respond to the client indicating a successful login
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(map[string]string{"message": "Logged in successfully, services are running."})
+    // Step 5: Retrieve transaction history
+	txHistoryOutput, err := manager.CallBtcctlCmd("listtransactions")
+	if err != nil {
+		fmt.Println("Error: Failed to retrieve transaction history -", err)
+		http.Error(w, "Failed to retrieve transaction history: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var transactions []map[string]interface{}
+	if err := json.Unmarshal([]byte(txHistoryOutput), &transactions); err != nil {
+		fmt.Println("Error: Failed to parse transaction history -", err)
+		http.Error(w, "Failed to parse transaction history: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Step 6: Retrieve wallet balance
+	balance, err := manager.CallBtcctlCmd("getbalance")
+	if err != nil {
+		fmt.Println("Error: Failed to retrieve balance -", err)
+		http.Error(w, "Failed to retrieve balance: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Step 7: Respond to the client with login success, mining address, balance, and transaction history
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":       "Logged in successfully, services are running.",
+		"miningAddress": miningAddr,
+		"balance":       balance,
+		"transactions":  transactions,
+	})
 }
 
 // GetNewAddress generates and returns a new wallet address

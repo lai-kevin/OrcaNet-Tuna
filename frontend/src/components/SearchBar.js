@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useContext } from "react";
 import { NavLink, useLocation} from 'react-router-dom';
 import { AppContext } from "./AppContext";
 import { useMode } from './Mode';
+import * as Wallet from "../WalletAPI"
 const SearchBar = () => {
     const { user, setUser, setSearchResultsFound, setFileToDownload, dummyFiles, setDownloadOpen } = useContext(AppContext);
     const [open, setOpen] = useState("close");
@@ -74,6 +75,13 @@ export const DropMenu = ({handleDropDown})=>{
     localStorage.removeItem('currentUser');
     localStorage.removeItem('rem');
     localStorage.removeItem('time');
+    Wallet.logOut()
+    .then(() => {
+        console.log("Logged out successfully");
+    })
+    .catch((error) => {
+        console.log(error.message);
+    });
     }
     return(
       <div ref={menu} className="menu">
@@ -161,7 +169,14 @@ const Exit =({setOpen})=>{
     localStorage.removeItem('currentUser');
     localStorage.removeItem('rem');
     localStorage.removeItem('time');
-  }
+    Wallet.logOut()
+    .then(() => {
+        console.log("Logged out successfully");
+    })
+    .catch((error) => {
+        console.log(error.message);
+    });
+    }
   const handleNo =()=>{
     setOpen(false);
   }
