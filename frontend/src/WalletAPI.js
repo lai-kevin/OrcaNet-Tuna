@@ -5,9 +5,11 @@ import axios from "axios";
  export const generate = async() =>{
     try{
         const req = await axios.post("http://localhost:8080/createWallet", {})
+        console.log(req.data)
         return req.data
     }
     catch(error){
+        console.log(error)
         throw error
     }
 };

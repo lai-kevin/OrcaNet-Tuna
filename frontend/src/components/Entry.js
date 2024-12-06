@@ -242,13 +242,11 @@ const Register=({handleLoginPage, setPage})=>{
     const[current, setCurrent] = useState("first")
     const[data, setData] = useState(null)
     const[err, setErr] = useState({message: "", present:false, type:""})
+    const[pass, setPass] = useState("")
     const {mode} = useMode();
     const {setUser} = useContext(AppContext);
     const handleSwitch = (p)=>{
         setCurrent(p);
-        // setTimeout(() => {
-        //    setUpKey();
-        // }, 3000); 
         Wallet.generate().then((result) => {
             const userData ={
                 walletID: result.miningAddress,
@@ -260,6 +258,7 @@ const Register=({handleLoginPage, setPage})=>{
             };
             const addr = result.miningAddress;
             localStorage.setItem(addr, "light")
+            setPass(result.password)
             setData(userData)
         })
         .catch((error) => {
@@ -364,7 +363,7 @@ const Register=({handleLoginPage, setPage})=>{
                 <div className='info_container'>
                     <ul className='info_list'>
                         <li style={{ color: mode === "dark" ? "black" : "black" }}>Wallet Address:  <button type="button" id="copy" onClick={()=>handleCopy(data.walletID)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br><span id="w">{data.walletID}</span></li>
-                        <li style={{ color: mode === "dark" ? "black" : "black" }}>Password:  <button type="button" id="copy" onClick={()=>handleCopy(data.key)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br> <span id="private_key">{data.key}</span></li>
+                        <li style={{ color: mode === "dark" ? "black" : "black" }}>Password:  <button type="button" id="copy" onClick={()=>handleCopy(pass)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br> <span id="private_key">{pass}</span></li>
                     </ul>
                     <button id="log" onClick={() => setUser(data)}> Login </button>
                 </div>

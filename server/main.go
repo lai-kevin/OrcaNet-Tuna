@@ -56,7 +56,6 @@ func setupRoutes() {
     http.HandleFunc("/hello", handlers.GetHello)
     http.HandleFunc("/createWallet", handlers.CreateWallet)
     http.HandleFunc("/login", handlers.Login)
-	http.HandleFunc("/logOut", handlers.Logout)
 	http.HandleFunc("/retrieveInfo", handlers.RetriveInfo)
     http.HandleFunc("/getMiningAddress", handlers.GetMiningAddress)
     http.HandleFunc("/getNewAddress", handlers.GetNewAddress)
@@ -64,6 +63,9 @@ func setupRoutes() {
     http.HandleFunc("/mine", handlers.Mine)
     http.HandleFunc("/sendToAddress", handlers.SendToAddress)
     http.HandleFunc("/getTransactionHistory", handlers.GetTransactionHistory)
+	http.HandleFunc("/logout", handlers.Logout)
+	http.HandleFunc("/shutdown", handlers.Shutdown)
+	http.HandleFunc("/deleteWallet", handlers.DeleteWallet) 
     // http.HandleFunc("/getPeerInfo", handlers.GetPeerInfo)
     // http.HandleFunc("/getBlockchainInfo", handlers.GetBlockchainInfo)
 }

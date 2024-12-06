@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"time"
 	"github.com/creack/pty"
+	"os/user"
+	"runtime"
 )
 
 var orcaNetCmd *exec.Cmd
@@ -111,6 +113,7 @@ func StopOrcaNet() error {
 }
 
 
+
 // StartWallet starts the btcwallet service
 func StartWallet() error {
 	if walletCmd != nil && walletCmd.Process != nil {
@@ -157,7 +160,26 @@ func StartWallet() error {
 	return nil
 }
 
+func StopWallet() error {
+	if walletCmd != nil && walletCmd.Process != nil {
+		// Attempt to gracefully stop btcwallet
+		if err := walletCmd.Process.Signal(os.Interrupt); err != nil {
+			return fmt.Errorf("failed to stop btcwallet: %v", err)
+		}
 
+		// Wait for the process to exit and check for errors
+		err := walletCmd.Wait()
+		if err != nil {
+			return fmt.Errorf("btcwallet did not shut down cleanly: %v", err)
+		}
+
+		fmt.Println("btcwallet stopped.")
+		walletCmd = nil // Reset walletCmd to indicate btcwallet is no longer running
+	} else {
+		return fmt.Errorf("btcwallet is not running.")
+	}
+	return nil
+}
 
 // ConfigureMiningAddress stops btcd, updates btcd.conf with a new mining address, and restarts btcd
 func ConfigureMiningAddress(address string) error {
@@ -190,7 +212,7 @@ func UpdateBtcdConfigWithMiningAddr(address string) error {
 	}
 
 	// Construct the path to btcd.conf within the btcd directory
-	configPath := filepath.Join(rootPath, "btcd", "btcd.conf")
+	configPath := filepath.Join(rootPath, "btcd", "sample-btcd.conf")
 
 	// Read the current btcd.conf content
 	content, err := os.ReadFile(configPath)
@@ -232,7 +254,7 @@ func GetMiningAddressFromConfig() (string, error) {
 	}
 
 	// Construct the path to btcd.conf within the btcd directory
-	configPath := filepath.Join(rootPath, "btcd", "btcd.conf")
+	configPath := filepath.Join(rootPath, "btcd", "sample-btcd.conf")
 
 	// Read the btcd.conf file
 	data, err := os.ReadFile(configPath)
@@ -296,6 +318,42 @@ func CreateWallet(password string) (string, error) {
 
 	fmt.Println("Wallet created successfully with automated inputs.")
 	return "", nil
+}
+
+// DeleteWallet deletes the wallet database (wallet.db) based on the OS
+func DeleteWallet() error {
+	// Get the current user's home directory
+	user, err := user.Current()
+	if err != nil {
+		return fmt.Errorf("failed to get current user: %v", err)
+	}
+
+	var walletPath string
+
+	// Determine the wallet path based on the operating system
+	switch runtime.GOOS {
+	case "darwin": // macOS
+		walletPath = filepath.Join(user.HomeDir, "Library", "Application Support", "Btcwallet", "mainnet", "wallet.db")
+	case "linux": // Linux
+		walletPath = filepath.Join(user.HomeDir, ".btcwallet", "mainnet", "wallet.db")
+	case "windows": // Windows
+		walletPath = filepath.Join(user.HomeDir, "AppData", "Roaming", "Btcwallet", "mainnet", "wallet.db")
+	default:
+		return fmt.Errorf("unsupported OS: %v", runtime.GOOS)
+	}
+
+	// Check if the wallet file exists
+	if _, err := os.Stat(walletPath); os.IsNotExist(err) {
+		return fmt.Errorf("wallet file does not exist at path: %s", walletPath)
+	}
+
+	// Attempt to delete the wallet file
+	if err := os.Remove(walletPath); err != nil {
+		return fmt.Errorf("failed to delete wallet at path %s: %v", walletPath, err)
+	}
+
+	fmt.Println("Wallet deleted successfully.")
+	return nil
 }
 
 func CallBtcctlCmd(cmdStr string) (string, error) {
@@ -375,4 +433,25 @@ func ParseBalanceAndAmount(balanceStr, amountStr string) (float64, float64, erro
     }
 
     return balance, amount, nil
+}
+
+// KillProcesses forcefully kills both btcd and btcwallet processes
+func KillProcesses() error {
+	// Kill btcd process
+	if orcaNetCmd != nil && orcaNetCmd.Process != nil {
+		if err := orcaNetCmd.Process.Kill(); err != nil {
+			return fmt.Errorf("failed to kill btcd process: %v", err)
+		}
+		fmt.Println("Killed btcd process.")
+	}
+
+	// Kill btcwallet process
+	if walletCmd != nil && walletCmd.Process != nil {
+		if err := walletCmd.Process.Kill(); err != nil {
+			return fmt.Errorf("failed to kill btcwallet process: %v", err)
+		}
+		fmt.Println("Killed btcwallet process.")
+	}
+
+	return nil
 }
