@@ -66,6 +66,7 @@ func setupRoutes() {
 	http.HandleFunc("/logout", handlers.Logout)
 	http.HandleFunc("/shutdown", handlers.Shutdown)
 	http.HandleFunc("/deleteWallet", handlers.DeleteWallet) 
+	http.HandleFunc("/track", handlers.TrackCPU) 
     // http.HandleFunc("/getPeerInfo", handlers.GetPeerInfo)
     // http.HandleFunc("/getBlockchainInfo", handlers.GetBlockchainInfo)
 }

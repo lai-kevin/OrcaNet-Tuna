@@ -8,10 +8,6 @@ import { AppContext } from './AppContext';
 import { GoDownload } from "react-icons/go";
 import * as Wallet from '../WalletAPI';
 
-const bip39 = require('bip39');
-const { HDKey } = require('ethereum-cryptography/hdkey');
-const hash = require('hash.js')
-
 const Entry = () =>{
     const [page, setPage] = useState('login')
     const[effect, setEffect] = useState(false);
@@ -62,37 +58,18 @@ const Recover = ({setPage})=>{
     const[curr, setCurr] = useState("recover")
     const[phrase, setPhrase] = useState("")
     const[key,setKey] = useState("")
+    const [confirm, setConfirm] = useState(false)
     const {mode} = useMode();
-    const [err, setErr] = useState({message: "", present:false})
-    const verify=(e)=>{
-        e.preventDefault();
-        let p = phrase.trim();
-        if (p === ""){
-            setErr({message:"^Field can't be empty", present:true});
-            return
-        }
-        let pk=""
-        Object.keys(localStorage).some(key => {
-            const item = JSON.parse(localStorage.getItem(key));
-            if(item.phrase === phrase){
-                pk=item.privateKey;
-                return true;
-            }
-            return false;
-        });
-        if(pk===""){
-            setErr({message: "Account not found", present:true})
-        }
-        else{
-            setKey(pk);
-            setCurr("success");
-        }
+    const handleYes=()=>{
+        Wallet.deleteAccount().then((result)=>{
+            setCurr("success")
+        })
+        .catch((error)=>{
+           setCurr("Error")
+        })
     }
-    const handleInput=(e)=>{
-        setPhrase(e.target.value);
-        if (err.present) {
-            setErr({ message: "", present: false });
-        }
+    const handleNo=()=>{
+        setConfirm(false)
     }
     const change =()=>{
         setPage("login");
@@ -102,25 +79,45 @@ const Recover = ({setPage})=>{
     };
     return(
         <div id = "recover_page">
-        <h2 id="head" style={{ color: mode === "dark" ? "black" : "black" }}>Recover</h2>
+        <h2 id="head" style={{ color: mode === "dark" ? "black" : "black" }}>Delete Account</h2>
         {curr ==="recover" && (<>
-            <form onSubmit={verify}>
-            <input type="text" id="phrase" value={phrase} onChange={handleInput} placeholder='Enter 12-word phrase'></input><br></br>
-            {err.present && (<p id="err1">{err.message}</p>)}
-            </form>
-            <button type="submit" id="button" onClick={verify} > Recover</button>
+            <button type="submit" id="button" onClick={()=>setConfirm(true)} > Delete</button>
             <div id="bottom_buttons">
                 <button type="submit" id="button3" onClick={()=>setPage("login")}> Login</button>
                 <button type="submit" id="button4" onClick={()=>setPage("register")}> Register</button>
             </div>
             </>
          )}
+         {confirm &&(
+                <div id = "container1">
+                    <div id="content3">
+                        <h3>Are you sure you want to delete your account? You will lose all your coins.</h3>
+                        <div id="items">
+                            <button id="yes2" onClick={handleYes}> Yes </button>
+                            <button id="No2" onClick={handleNo}> No </button>
+                        </div>
+                </div>
+               </div>
+         )}
+          {curr=== "Error" &&(
+                <div id = "container1">
+                    <div id="content3">
+                        <h3>Error encountered when deleting account. Please try again.</h3>
+                        <div id="items">
+                            <button onClick={()=> setCurr("recover")} className= "ok_button1"> OK </button>
+                        </div>
+                </div>
+               </div>
+         )}
          {curr==="success" &&(
-            <div>
-                <h3 id="key_info_title">Your private key: <button type="button" id="copy" onClick={()=>handleCopy(key)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button></h3><br></br>
-                <span id="info_key">{key}</span>
-                <button type="submit" id="button1" onClick={change}>Go to Login</button>
+            <div id = "container1">
+            <div id="content3">
+                <h3>Account deleted successfully. You can register a new account now.</h3>
+                <div id="items">
+                    <button onClick={()=>setPage("register")} className= "ok_button1"> OK </button>
+                </div>
             </div>
+         </div>
          )}
        </div>
     )
@@ -149,7 +146,7 @@ const Login=({handleRegPage, setPage})=>{
                 const userData ={
                     walletID: result.miningAddress,
                     balance: result.balance, 
-                    transactions:[],
+                    transactions: result.transactions,
                     fileHistory:[],
                     servedHistory:[], // the clients that it served before  
                     proxied:[], // the peers that user proxied
@@ -181,7 +178,7 @@ const Login=({handleRegPage, setPage})=>{
             const userData ={
                 walletID: result.miningAddress,
                 balance: result.balance, 
-                transactions:[],
+                transactions:result.transactions,
                 fileHistory:[],
                 servedHistory:[], // the clients that it served before  
                 proxied:[], // the peers that user proxied
@@ -210,7 +207,7 @@ const Login=({handleRegPage, setPage})=>{
             <input type="text" id="key" value={input} onChange={handleInput} placeholder='Enter Password'></input><br></br>
             {err.present && (<p id="err">{err.message}</p>)}
             <input type="checkbox" id="remember" checked={rem} onChange={() => setRem(!rem)}/> Remember Me
-            {/* <a onClick={()=>setPage('recover')}id="recover">Forgot key?</a> */}
+            <a onClick={()=>setPage('recover')}id="recover">Forgot key?</a>
          </form>
          <button type="submit" id="log_button" onClick={check}> Login</button>
          <p className ="redirect" style={{ color: mode === "dark" ? "black" : "black" }}>Don't have an account? <a id="signup" onClick={handleRegPage}>Signup</a></p>
@@ -308,7 +305,7 @@ const Register=({handleLoginPage, setPage})=>{
     // };
     
     const save = () => {
-        const content = `Wallet Address:\t${data.walletID}\nKey: ${data.key}`;
+        const content = `Wallet Address:\t${data.walletID}\nKey: ${pass}`;
         const blob = new Blob([content], { type: "text/plain" });
         const link = document.createElement("a");
         link.download = "LoginCredentials.txt";

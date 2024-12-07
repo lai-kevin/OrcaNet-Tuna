@@ -13,6 +13,10 @@
   padding: 20px;             
   margin-bottom: -50px;;
 }
+#x1{
+ margin-left: -450px;
+ margin-top:-10px;
+}
 .top {
   display: flex;          
   align-items: center; 
@@ -586,6 +590,26 @@
   justify-content: space-between;
   border-radius: 5px;
   max-height: 500px;
+  width: 500px;
+  margin-left:50px;
+  text-align: center;
+}
+#content3{
+  background-color: white;
+  padding: 35px;
+  justify-content: space-between;
+  border-radius: 5px;
+  max-height: 500px;
+  width: 800px;
+  margin-left:50px;
+  text-align: center;
+}
+#content4{
+  background-color: white;
+  padding: 35px;
+  justify-content: space-between;
+  border-radius: 5px;
+  max-height: 800px;
   width: 500px;
   margin-left:50px;
   text-align: center;
@@ -1598,6 +1622,21 @@
   margin-top:30px;
 
 }
+#con{
+  background-color: #007bffa9;
+  height:35px;
+  width:100px;
+  border-radius:5px;
+  margin-top:30px;
+  margin-left: 20px;
+
+}
+#amount{
+  width:150px;
+  height:35px;
+  margin-left:50px;
+
+}
 #price_inner{
   justify-content: center;
   padding:10px;
@@ -1685,6 +1724,22 @@
   height:35px;
   width:100px;
   border-radius:5px;
+}
+#mine{
+  background-color: #007bffa9;
+  height:35px;
+  width:100px;
+  border-radius:5px;
+  margin-top: 47px;
+  margin-left: 50px;
+}
+#mine1{
+  background-color: #007bffa9;
+  height:35px;
+  width:200px;
+  border-radius:5px;
+  margin-top: 47px;
+  margin-left: 50px;
 }
 #bottom_table{
   overflow-y: auto;

@@ -54,6 +54,7 @@ export const balance = async() =>{
 
 export const mine = async(coins) =>{
     try{
+        console.log(coins)
         const req = await axios.post("http://localhost:8080/mine", {
             num_blocks: coins
         })
@@ -92,7 +93,7 @@ export const retrieve = async() =>{
 //logOut
 export const logOut = async() =>{
     try{
-        const req = await axios.get("http://localhost:8080/logOut")
+        const req = await axios.get("http://localhost:8080/logout")
         return req.data
     }
     catch(error){
@@ -106,6 +107,28 @@ export const reenter = async(key) =>{
         const token = localStorage.getItem("currentUser");
         const req = await axios.get("http://localhost:8080/retrieveInfo", {withCredentials: "include"}
         )
+        return req.data
+    }
+    catch(error){
+        throw error
+    }
+};
+
+// delete account 
+export const deleteAccount = async(key) =>{
+    try{
+        const req = await axios.get("http://localhost:8080/deleteWallet")
+        return req.data
+    }
+    catch(error){
+        throw error
+    }
+};
+
+//track cpu
+export const track = async() =>{
+    try{
+        const req = await axios.get("http://localhost:8080/track")
         return req.data
     }
     catch(error){

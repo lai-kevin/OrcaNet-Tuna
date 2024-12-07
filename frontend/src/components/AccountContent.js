@@ -20,9 +20,10 @@ const AccountContent = ({mode}) => {
     )
 };
 const Profile = ({mode})=>{
-    const {user, setUser} = useContext(AppContext);
-    const [bal, setBalance] = useState(user.balance);
+    const {user, setUser, mining} = useContext(AppContext);
     const [qr, setQr] = useState("close")
+    const [open, setOpen] = useState(false)
+    const [view, setView] = useState(false)
     const handleQr = ()=>{
         setQr(prevState =>(prevState === "open" ? "close": "open"))
     }
@@ -43,21 +44,20 @@ const Profile = ({mode})=>{
             document.removeEventListener('mousedown', out);
         };
     }, []);
-    // useEffect(() => {
-    //     const fetchBalance = async () => {
-    //       try {
-    //         const balance = await Wallet.balance(); 
-    //         setBalance(balance); 
-    //         setUser(prev => ({
-    //           ...prev,
-    //           balance: balance
-    //         }));
-    //       } catch (error) {
-    //         console.error("Failed to fetch balance:", error); 
-    //       }
-    //     };
-    //     fetchBalance(); 
-    //   }, []);
+    console.log(mining)
+    useEffect(() => {
+        const fetchBalance = async () => {
+          try {
+            const bal = await Wallet.balance(); 
+            setUser((prev) => {
+                return { ...prev, balance: bal.balance};
+              });
+          } catch (error) {
+            console.error("Failed to fetch balance:", error); 
+          }
+        };
+        fetchBalance(); 
+      }, []);
     return(
         <div className='profile'>
             <h3 id="profile_title">Wallet</h3>
@@ -75,17 +75,204 @@ const Profile = ({mode})=>{
                 <h4 id ="wID">Balance: </h4>
                 <span id = "coins" style={{ color: mode === "dark" ? "white" : "black" }}>{user.balance}</span>
                 <span id = "type" style={{ color: mode === "dark" ? "white" : "black" }}>OrcaCoins</span>
+                {!mining && (<button type="button" id ="mine" onClick={()=>setOpen(true)}> Mine Coins </button>)}
+                {mining && (<button type="button" id ="mine1" onClick={()=>setView(true)}> View Mining Progress </button>)}
+            </div>
+            {open && (<MineMenu setOpen={setOpen}/>)}
+            {view && (<Progress setView = {setView}/>)}
+        </div>
+    )
+}
+const MineMenu=({setOpen})=>{
+    const [curr, setCurr] = useState("first")
+    const[amount, setAmount] = useState("")
+    const [mess, setMess] = useState("")
+    const[err, setErr] = useState(false)
+    const {setMining, setBlocks, setTime} = useContext(AppContext)
+    const exit = () => {
+        setOpen(false);
+    };
+    const handleInput=(e)=>{
+        setAmount(e.target.value);
+    }
+    const handleConfirm = (e)=>{
+        e.preventDefault();
+        if(amount.trim() === ""){
+            setErr(true)
+            setMess("^This field can't be empty");
+            return
+        }
+        if (/^\d+$/.test(amount)) {
+            setErr(false);
+            setMess(""); 
+            const actual = parseInt(amount, 10);
+
+            setBlocks(actual)
+
+            // intitate the mining process
+            setCurr("second")
+            setMining(true)
+
+            // save the time started mining
+            setTime(new Date())
+         
+            Wallet.mine(actual).then(()=>{
+                setMining(false)
+                setBlocks(0)
+                setTime("")
+            })
+            .catch((error)=>{
+                setCurr("error"); 
+                setTime("")
+                setBlocks(0)
+            })
+            setTimeout(() => {
+                setCurr("third")
+            }, 10000); 
+        } else {
+            setErr(true);
+            setMess("^This field must be a whole number");
+        }
+    }
+    const handleClick =()=>{
+        setCurr("first")
+        setMining(false)
+    }
+    const handleClick1 =()=>{
+        setOpen(false)
+    }
+    return(
+        <div id = "container1">
+            <div id="content4">
+                {curr==="first" &&(<><button id="x1" onClick={exit}><HiOutlineXMark size="20"/></button>
+                <h3>How many blocks would you like to mine?</h3>
+                <input type="text" id="amount" value={amount} onChange={handleInput} placeholder='Enter an amount'></input>
+                <span style={{color: "blue", size:"20px", marginLeft:"10px"}}>Blocks</span>
+                <button id="con" type ="submit" onClick={handleConfirm}>Confirm</button>
+                {err && (<p style={{color:"red", marginLeft:"100px"}}>{mess}</p>)}
+                </>)}
+                {curr==="error" &&(
+                    <>
+                    <h3>Error encountered in mining. Please try again.</h3>
+                    <button onClick={handleClick} className= "ok_button1"> OK </button>
+                    </>
+                )}
+                {curr==="second" && (
+                    <>
+                    <h3>Starting Mining Process...</h3>
+                    <div className="spinner-container">
+                        <div className="spinner" />
+                    </div>
+                    </>
+                )}
+                {curr==="third" && (
+                    <>
+                        <h3>Mining Process successfully started in background</h3>
+                        <button onClick={handleClick1} className= "ok_button1"> OK </button>
+                    </>
+                )}
+            </div>
+        </div>
+    )
+}
+const Box = ({stat, info, c, mode}) => {
+    return (
+      <div className={`${mode === 'dark' ? 'box-dark' : 'box-light'}`}>
+        <p className="info">{info}</p>
+        <h3 className="stat" style={{color:c}} >{stat}</h3>
+      </div>
+    );
+};
+const Progress =({setView})=>{
+    const {time, blocks, mining} = useContext(AppContext)
+    const [elasped, setElasped] = useState("00:00:00")
+    const [cpu, setCpu]= useState("0.0%")
+    const exit = () => {
+        setView(false);
+    };
+    useEffect(() => {
+        setElasped(calculate());
+        const interval = setInterval(() => {
+            setElasped(calculate());
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+    useEffect(() => {
+        const fetchusage = async () => {
+            try {
+                const response = await Wallet.track();  
+                const data = await response.usage
+                setCpu(data);  
+            } catch (error) {
+                setCpu("0.0%"); 
+            }
+        };
+        fetchusage();
+        const interval = setInterval(fetchusage, 1000);  
+        return () => clearInterval(interval);
+    }, []);
+    const calculate =()=>{
+        let x = Date.now()
+        let y = time
+        let diff = x - y
+        let seconds = Math.floor(diff / 1000) % 60;
+        let minutes = Math.floor(diff / (1000 * 60)) % 60;
+        let hours = Math.floor(diff / (1000 * 60 * 60));
+
+        let result = [ String(hours).padStart(2, '0'), String(minutes).padStart(2, '0'),String(seconds).padStart(2, '0'),].join(':');
+        return result
+    }
+    const handleClick =()=>{
+        setView(false)
+    }
+    return(
+        <div id = "container1">
+            <div id="content4">
+               {mining &&(<>
+                <button id="x1" onClick={exit}><HiOutlineXMark size="20"/></button>
+                    <h3>Current Mining status</h3>
+                    <div>
+                        <Box info = {"Time Elasped"} stat = {elasped}></Box>
+                        <Box info = {"Num of blocks requested"} stat = {blocks}></Box>
+                        <Box info = {"CPU usage"} stat = {cpu}></Box>
+                    </div>
+                </>)}
+                {!mining && (
+                    <>
+                        <h3>Finished Mining</h3>
+                        <button onClick={handleClick} className= "ok_button1"> OK </button>
+                    </>
+                )}
             </div>
         </div>
     )
 }
 const Transaction = ({mode})=>{
-    const {user} = useContext(AppContext);
+    const {user, setUser} = useContext(AppContext);
     const [click, setClick] = useState(false);
+    const [trans, setTrans] = useState(user.transactions)
     const info =[{id:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"down", Spent:"0.25", Earned:0},
         {id:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"up", Spent: 0, Earned:"2.25"}
     ]
-    let current = [ ...info, ...user.transactions]
+    useEffect(() => {
+        const fetchtransaction = async () => {
+            try {
+                const response = await Wallet.retrieve();  
+                setUser(prev => {
+                    const updated = {
+                        ...prev,
+                        transactions: response.transactions
+                    };
+                    return updated;
+                });
+                setTrans(response.transactions)
+            } catch (error) {}
+        };
+        fetchtransaction();
+        const interval = setInterval(fetchtransaction, 20000);  
+        return () => clearInterval(interval);
+    }, []);
+    let current = [ ...info, ...trans]
     const download = () => {
         const fields =["id", "from", "to", "time", "status", "size", "Type", "Spent", "Earned"]
         const names =["TXID", "From", "To", "Time", "Status", "Size", "Type", "Spent", "Earned"]
@@ -114,11 +301,12 @@ const Transaction = ({mode})=>{
     )
 }
 const TransactionTable=({mode, setClick})=> {
-    const {user} = useContext(AppContext);
+    const {user, setUser} = useContext(AppContext);
+    const [trans, setTrans] = useState(user.transactions)
     const info =[{id:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"Download", Spent:"0.25", Earned:0},
         {id:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"Upload", Spent: 0, Earned:"2.25"}
     ]
-    let current = [ ...info, ...user.transactions]
+    let current = [ ...info, ...trans]
     console.log(current);
     const [sort, setSort] = useState("")
     const [curr, setCurr] = useState(current);
@@ -126,8 +314,26 @@ const TransactionTable=({mode, setClick})=> {
         setClick(false);
     };
     useEffect(() => {
+        const fetchtransaction = async () => {
+            try {
+                const response = await Wallet.retrieve();  
+                setUser(prev => {
+                    const updated = {
+                        ...prev,
+                        transactions: response.transactions
+                    };
+                    return updated;
+                });
+                setTrans(response.transactions)
+            } catch (error) {}
+        };
+        fetchtransaction();
+        const interval = setInterval(fetchtransaction, 20000);  
+        return () => clearInterval(interval);
+    }, []);
+    useEffect(() => {
         const updateCurr = () => {
-          let current = [ ...info, ...user.transactions]
+          let current = [ ...info, ...trans]
           let filteredList = current
           if (sort === "Latest") {
             filteredList.sort((a, b) => new Date(b.time) - new Date(a.time));
@@ -191,15 +397,15 @@ const TransactionTable=({mode, setClick})=> {
                 <tbody>
                     {curr.map((item, index) => (
                         <tr key={index}>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.id}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.txid}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.from}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.to}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.time}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.status}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Type === "Upload" ? (<FaArrowUp style={{ color: 'green' }} />) : item.Type === "Download" ? (<FaArrowDown style={{ color: 'red' }} />) : (<SiEnvoyproxy style={{ color: 'grey' }} />)}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.size}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Earned === 0 ? "---": item.Earned}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Spent=== 0 ?"---" : item.Spent}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.amount > 0 ? item.amount : "---"}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Spent < 0 ? item.amount : "---"}</td>
                         </tr>
                     ))}   
             </tbody>

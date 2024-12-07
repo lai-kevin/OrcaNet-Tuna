@@ -11,6 +11,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"os/exec"
+	"strconv"
 
 	"github.com/lai-kevin/OrcaNet-Tuna/server/manager"
 	"github.com/google/uuid"
@@ -582,11 +584,10 @@ func GetTransactionHistory(w http.ResponseWriter, r *http.Request) {
 		txDetails := map[string]interface{}{
 			"txid":         tx["txid"],
 			"time":         time.Unix(int64(tx["time"].(float64)), 0).Format(time.RFC3339),
-			"amount":       tx["amount"],
+			"amount":       tx["amount"],       
 			"category":     tx["category"],  // "send", "receive", or "generate" (mined)
 			"confirmations": tx["confirmations"],
 		}
-
 		transactionDetails = append(transactionDetails, txDetails)
 	}
 
@@ -680,4 +681,43 @@ func DeleteWallet(w http.ResponseWriter, r *http.Request) {
 	// Respond with success message
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "Wallet deleted successfully!")
+}
+
+func getUsage() (string, error) {
+	cmd := exec.Command("sh", "-c", "ps aux | grep btcd | grep -v grep")
+	output, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	var total float64
+	l := strings.Split(string(output), "\n")
+	for _, line := range l {
+		if strings.Contains(line, "btcd") {
+			section := strings.Fields(line)
+			if len(section) > 2 {
+				cpu, err := strconv.ParseFloat(section[2], 64)
+				if err == nil {
+					total += cpu
+				}
+			}
+		}
+	}
+	if total == 0 {
+		return "", fmt.Errorf("processes found")
+	}
+	return fmt.Sprintf("%.2f%%", total), nil
+}
+
+// retrieve the cpu usage
+func TrackCPU(w http.ResponseWriter, r *http.Request) {
+    usage, err := getUsage()
+    if err != nil {
+        http.Error(w, "Can't get CPU Usage", http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "usage": usage,  
+    })
 }
