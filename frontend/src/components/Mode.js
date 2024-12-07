@@ -1,30 +1,18 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { AppContext } from './AppContext';
 export const Mode = createContext();
 
-export const ModeProvider = ({ children, user, setUser}) => {
-  const [mode, setMode] = useState(user ===null ? "light" : user.mode);
-  if(user!==null){
-  console.log(user.mode);
-  }
+export const ModeProvider = ({ children}) => {
+  const {user, setUser} = useContext(AppContext);
+  const [mode, setMode] = useState(user ===null ? "light" : localStorage.getItem(user.walletID));
   useEffect(() => {
-
+    console.log(user)
     if (user) {
-      setMode(user.mode); 
+      setMode(localStorage.getItem(user.walletID)); 
     }
   }, [user]);
   const update = (newMode) => {
-    const prevData = JSON.parse(localStorage.getItem(user.privateKey));
-
-    const updated = {
-      ...prevData,
-      mode: newMode
-    };
-
-    localStorage.setItem(user.privateKey, JSON.stringify(updated));
-    setUser((prevUser) => ({
-      ...prevUser,
-      mode: newMode,
-    }));
+    localStorage.setItem(user.walletID, newMode);
   };
   const chooseLight = () => {
     setMode("light");

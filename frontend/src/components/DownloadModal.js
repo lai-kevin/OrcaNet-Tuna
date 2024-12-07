@@ -3,10 +3,11 @@ import { AppContext } from "./AppContext";
 import { LiaDownloadSolid } from "react-icons/lia";
 import { FaArrowDown } from "react-icons/fa";
 import { FaCircle } from "react-icons/fa";
+import { getFileRPC } from "../RpcAPI";
 
 
-const DownloadModal = ({user}) =>{
-    const {fileToDownload, setDownloadOpen, setSearchResultsFound, setFileToDownload,downloads,setDownloads,setUploadHistory,uploadHistory,dummyFiles,setDummyFiles} = useContext(AppContext);
+const DownloadModal = () =>{
+    const {user, fileToDownload, setDownloadOpen, setSearchResultsFound, setFileToDownload,downloads,setDownloads,setUploadHistory,uploadHistory,dummyFiles,setDummyFiles} = useContext(AppContext);
     const [activeStep, setActiveStep] = useState(0); //0 is choosing a provider, 1 is the confirm 
     const [selectedProvider, setSelectedProvider] = useState("--");
     const [errorMsg,setErrorMsg] = useState("");
@@ -25,8 +26,14 @@ const DownloadModal = ({user}) =>{
         setDownloadOpen(false)
         setErrorMsg("");
       }
+    
+    const handleDownloadState = async ()=> {
+      //preemptivvely adding this here so that i can in the future have a react hook trigger after rpc call is completed
+      await getFileRPC([{file_hash: selectedProvider.FileHash, peer_id: selectedProvider.PeerID }])
+    }
 
     const handleDownload = () => {
+      handleDownloadState();
         let file = fileToDownload;
         if(becomeProvider){
           //add it to their uploads
@@ -85,7 +92,7 @@ const DownloadModal = ({user}) =>{
         file.index = downloads.length;
         file.progress = Math.random() * (100 - 10) + 10;
         file.priority = downloads.length + 1; //set the priority. By default is the lowest possible priority of all the ongoing downloads
-        setDownloads([...downloads,file]);
+        // setDownloads([...downloads,file]);
         setFileToDownload(null);
         setSelectedProvider("--");//maybe figure out if this would be nice to have somewhere else
         setActiveStep(0);        
@@ -121,19 +128,26 @@ const DownloadModal = ({user}) =>{
     const generateListProviders = () =>{
       return fileToDownload.providers.map((provider) =>{
         return(
-        <tr key = {provider.id} onClick={()=> provider.status !== "offline" && setSelectedProvider(provider)} style={{
+      //   <tr key = {provider.id} onClick={()=> provider.status !== "offline" && setSelectedProvider(provider)} style={{
+      //     backgroundColor: (selectedProvider.id === provider.id) ? '#d3d3d3' : 'white', 
+      //     cursor: provider.status === "offline" ? 'not-allowed' : 'pointer',
+      //     opacity: provider.status === "offline" ? 0.5 : 1
+          
+      // }}
+      //   className="provider-row"
+      // >
+        <tr key = {provider.id} onClick={()=> setSelectedProvider(provider)} style={{
           backgroundColor: (selectedProvider.id === provider.id) ? '#d3d3d3' : 'white', 
-          cursor: provider.status === "offline" ? 'not-allowed' : 'pointer',
-          opacity: provider.status === "offline" ? 0.5 : 1
+          cursor: 'pointer',
           
       }}
         className="provider-row"
       >
-          <td>{(provider.status === "online") ? <FaCircle style={{color: "green"}} /> : <FaCircle style={{color: "red"}}/>}</td>
+          {/* <td>{(provider.status === "online") ? <FaCircle style={{color: "green"}} /> : <FaCircle style={{color: "red"}}/>}</td> */}
           <td>{provider.id}</td>
-          <td>{provider.price}</td>
-          <td>{String(provider.timestamp)}</td>
-          <td>{provider.downloads}</td>
+          {/* <td>{provider.price}</td> */}
+          {/* <td>{String(provider.timestamp)}</td> */}
+          {/* <td>{provider.downloads}</td> */}
         </tr>
         );
       });
@@ -146,7 +160,7 @@ const DownloadModal = ({user}) =>{
         return (
           <div className="modal">
             <div className="modal_content">
-              <p>We sucessfully found the following file: {fileToDownload.name + " " + fileToDownload.size}</p>
+              <p>We sucessfully found the following file: {fileToDownload.name + " " + fileToDownload.size + " MB"}</p>
               <br/>
               <p>Select a provider from the following list of providers</p>
               <br/>
@@ -154,11 +168,11 @@ const DownloadModal = ({user}) =>{
                 <table id = "providers_table">
                   <thead>
                     <tr>
-                      <th>Status</th>
+                      {/* <th>Status</th> */}
                       <th>File Provider</th>
-                      <th>Price (OrcaCoins)</th>
-                      <th>Timestamp</th>
-                      <th>Downloads <FaArrowDown style={{color: 'red'}}/></th>                    
+                      {/* <th>Price (OrcaCoins)</th> */}
+                      {/* <th>Timestamp</th> */}
+                      {/* <th>Downloads <FaArrowDown style={{color: 'red'}}/></th>                     */}
                     </tr>
                   </thead>
                   <tbody>
@@ -180,11 +194,11 @@ const DownloadModal = ({user}) =>{
         return(
         <div className="modal">
           <div className="modal_content">
-            <p>Would you like to download the following file: {fileToDownload.name + " " + fileToDownload.size}</p>
+            <p>Would you like to download the following file: {fileToDownload.name + " " + (fileToDownload.size/ (1024 * 1024)).toFixed(2) + " MB"}</p>
             <br/>
             <p>From: {selectedProvider.id}</p>
             <br/>
-            <p>Price: {selectedProvider.price} OrcaCoins</p>
+            {/* <p>Price: {selectedProvider.price} OrcaCoins</p> */}
             <br/>
 
             <input id="ch" type="checkbox" 

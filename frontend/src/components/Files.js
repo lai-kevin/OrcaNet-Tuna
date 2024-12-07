@@ -17,7 +17,8 @@ import { AppContext } from "./AppContext";
 import DownloadModal from "./DownloadModal";
 import CancelUploadModal from "./UploadModal";
 import DownloadFinishedPopUp from "./PopUp";
-import SearchBar from "./SearchBar";
+import {getFileMetaDataRPC, getFileProviders, getFileProvidersWMetaData, getHistory, getUpdatesFromGoNode, pauseDownloadFileRPC, resumeDownloadFileRPC, stopDownloadingFileRPC, uploadFileRPC} from "../RpcAPI"
+
 const bip39 = require('bip39');
 const { HDKey } = require('ethereum-cryptography/hdkey');
 
@@ -28,7 +29,7 @@ function randomTimestamp() {
 }
 
 
-const Files = ({user}) => {
+const Files = () => {
   let sampleData = [{type: "image",name: "Screenshot 2025-02-18 211342",hashId: "zxcasd2lajnf5aoiuanfna1kjzx",size: "1 MB",timestamp: randomTimestamp()},
     {type: "image",name: "my_social_security_number.png",hashId: "as13dncx,jvkbvskh4sf",size: "1 MB", timestamp: randomTimestamp() },
     {type: "pdf",name: "tuna_recipes.pdf",hashId: "ascn123kcadsxvh14boadab",size: "124 MB",timestamp: randomTimestamp() },
@@ -41,8 +42,8 @@ const Files = ({user}) => {
   const location = useLocation();
 
 
-  const {searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads,setFileToRemove,fileToRemove,  setSearchResultsFound, setFileToDownload, dummyFiles,setDummyFiles} = useContext(AppContext);
-  const [downloadHistory, setDownloadHistory] = useState(sampleData);// move to a global app context in the future?
+  const {user, searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads,setFileToRemove,fileToRemove,  setSearchResultsFound, setFileToDownload, dummyFiles,setDummyFiles} = useContext(AppContext);
+  const [downloadHistory, setDownloadHistory] = useState([]);// move to a global app context in the future?
   // const [proxyHistory, setProxyHistory] = useState([]);this should probably somewhere else now that we know what it is
 
   const [fileToUpload, setFileToUpload] = useState(null);
@@ -53,36 +54,81 @@ const Files = ({user}) => {
   const [popUpOpen,setPopUpOpen] = useState(false);
   const [downloadFinished, setDownloadFinished] = useState(false); //set to true for demo purposes
 
+
+  const handleProvideFile = async () => {
+    const shareResponse = await uploadFileRPC([{file_path: fileToUpload.name, price: fileToUpload.price}]);
+    let newFileHash = shareResponse.result.file_hash;
+    let newFile = {
+      type: "file",
+      name: fileToUpload.name,
+      hashId: newFileHash,
+      size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
+      price: fileToUpload.price,
+      timestamp: new Date()
+    } 
+
+    setUploadHistory([...uploadHistory,newFile]);
+    setFileToUpload(null);
+    console.log(shareResponse);
+    
+  }
+  const handleGetFileMetaData = async (hashId) => {
+    //gets providers
+    const fileMetaData = await getFileProvidersWMetaData([{"file_hash" : hashId}]);
+    if(fileMetaData.success === false){
+      //Success is a key in the return object
+      //do our error here
+    }
+    setSearchResultsFound(true);
+    if(fileMetaData !== undefined){
+      setFileToDownload(fileMetaData);
+    }
+  }
+  const handleSettingHistory = async () =>{
+    //leave it open to extracting other history we might want to render
+    let curUserHistory = await getHistory([]);
+    let downloadHistory = curUserHistory.result.download_history;
+    setDownloadHistory(downloadHistory);//can try inserting the Time Sent as needed from the requested files list
+
+
+  }
+  const handleSettingCurrentDownloads = async () => {
+    let curUpdates = await getUpdatesFromGoNode([]);
+    let curDownloads = curUpdates.result.downloads
+    setDownloads(curDownloads)
+  }
+
+  //UseEffect hook to re request download history when switching tabs
+  useEffect(()=>{
+    //make a request and set the download history as needed
+    if(activeTab === "Downloads"){
+      handleSettingHistory();
+    }
+
+    //Got my foot up on the gas but somebody gotta do it
+    if(activeTab === "Current Downloads"){
+      handleSettingCurrentDownloads();
+      const intervalId = setInterval(() => {
+        handleSettingCurrentDownloads();
+      }, 500);
+
+      return () => clearInterval(intervalId);
+    }
+
+    //make cases for the rest
+  },[activeTab]);
+
+
   //UseEffect hook that currently deals with adding the "upload" to the list of uploads in the global context once a fileToUpload has been selected
   //uploads list is used by Files.js to render cards of uploads
   //No real format for this just filler hash key generated, name, and size for display purposes
   useEffect(()=>{
     if(fileToUpload != null){
-      const phrase = bip39.generateMnemonic(128);
-      const seed = bip39.mnemonicToSeedSync(phrase);
-      const childKey = HDKey.fromMasterSeed(seed).derive("m/44'/0'/0'");
-      const privateKey = Array.from(childKey.privateKey).map(byte => byte.toString(16).padStart(2, '0')).join('');
-    let newFile = {
-      type: "file",
-      name: fileToUpload.name,
-      hashId: privateKey,
-      size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
-      price: fileToUpload.price,
-      timestamp: fileToUpload.timestamp
-    } 
-    let fileForDummyFiles = {
-      type: "file",
-      name: fileToUpload.name,
-      hashId: privateKey,
-      size: (fileToUpload.size / (1024 * 1024)).toFixed(2) + " MB",
-      providers: [{id: user.walletID, price: fileToUpload.price, timestamp: new Date(), downloads: 0 , status: "online"}]
-    }
-      setUploadHistory([...uploadHistory,newFile]);
-      setDummyFiles([...dummyFiles, fileForDummyFiles]);
-      setFileToUpload(null);
+      handleProvideFile();
     }
 
   },[fileToUpload]);
+  
 
   const handlePopUp = () => {
     setPopUpOpen(prevState => (prevState ===true ? false : true ))
@@ -104,12 +150,11 @@ const Files = ({user}) => {
   const handleSearch = (event) => {
       event.preventDefault(); // Prevent the default form submission behavior i hate forms ;-; 
       let fullSearchText = searchInput;
-      let file = dummyFiles.find((file) => file.hashId === fullSearchText);
+      handleGetFileMetaData(fullSearchText);
+
+      // let file = dummyFiles.find((file) => file.hashId === fullSearchText);
       event.target.value = ""; // this should clear it after clicking
-      setSearchResultsFound(true);
-      if(file !== undefined){
-        setFileToDownload(file);
-      }
+      
   }
 
   const handleSort = (event) => {
@@ -128,8 +173,17 @@ const Files = ({user}) => {
     }
     if (curSort === "A-Z"){
       sortedList = sortedList.sort((a, b) =>{
-        const nameA = a.name.toUpperCase(); 
-        const nameB = b.name.toUpperCase(); 
+        let nameA;
+        let nameB;
+        if(activeTab === "Downloads" || activeTab === "Current Downloads"){
+          nameA = a.FileMetaData.FileName.toUpperCase();
+          nameB = b.FileMetaData.FileName.toUpperCase();
+        }
+        else{
+          nameA = a.name.toUpperCase();
+          nameB = b.name.toUpperCase();
+        }
+
         if (nameA < nameB) {
           return -1;
         }
@@ -144,8 +198,16 @@ const Files = ({user}) => {
     }
     if(curSort === "Z-A"){
       sortedList = sortedList.sort((a, b) =>{
-        const nameA = a.name.toUpperCase(); 
-        const nameB = b.name.toUpperCase(); 
+        let nameA;
+        let nameB;
+        if(activeTab === "Downloads" || activeTab === "Current Downloads"){
+          nameA = a.FileMetaData.FileName.toUpperCase();
+          nameB = b.FileMetaData.FileName.toUpperCase();
+        }
+        else{
+          nameA = a.name.toUpperCase();
+          nameB = b.name.toUpperCase();
+        }
         if (nameA < nameB) {
           return 1;
         }
@@ -228,6 +290,7 @@ const Files = ({user}) => {
   
       );
     }
+    size = (size / (1024 * 1024)).toFixed(2) + " MB";
     return(
       <div className = "fileCard">
         <div style = {{display: 'flex', alignItems: "center"}}><FileIcon style={{ width: '40%', height: '40%' }}/> </div>
@@ -241,26 +304,33 @@ const Files = ({user}) => {
     );
 
   }
-  
+  const handlePauseAsync = async(requestId,setStatus) =>{
+    await pauseDownloadFileRPC([{request_id: requestId}]);
+    setStatus("paused")
+  }
+  const handleResumeAsync = async(requestId,setStatus) =>{
+    await resumeDownloadFileRPC([{request_id: requestId}])
+    setStatus("downloading")
+  }
 
-  const FileCardDownload = ({type,name,hashId,size,status,index,progress}) =>{
+  const FileCardDownload = ({type,name,hashId,requestId,size,status,progress}) =>{
     //Variation of file cards meant for displaying files downloading
     //additional rendering for pause, resume, and cancel buttons based on status of download
     let FileIcon = LuFile; //image , folder, .pdf/.txt/everything else 
-
+    const [curStatus, setCurStatus] = useState(status);
     //OMG this is disgusting but its quick maybe I will move the cards to their own file
     const handlePause = () => {
-      let updatedDownloads = downloads.map((download) => download.hashId === hashId ? {...download, status: "paused"}: download);
-      setDownloads([...updatedDownloads]);
+      handlePauseAsync(requestId,setCurStatus);
     }
     const handleResume = () => {
-      const updatedDownloads = downloads.map((download) => download.hashId === hashId ? {...download, status: "downloading"}: {...download,status : "paused"});
-      setDownloads([...updatedDownloads]);
+      handleResumeAsync(requestId,setCurStatus);
     }
     const handleCancel = () => {
-      const updatedDownloads = downloads.filter((download) => download.hashId !== hashId);
-      setDownloads([...updatedDownloads]);
+
     }
+    useEffect(()=>{
+      setCurStatus("downloading");
+    },[])
 
 
     if(type === "image"){ 
@@ -270,14 +340,14 @@ const Files = ({user}) => {
       FileIcon = LuFolder;
     }
     let buttons = <></>;
-    if(status === "downloading"){
+    if(curStatus === "downloading"){
       buttons = <div> <button className="primary_button" onClick={handleCancel}><MdOutlineCancel/></button> <button className="primary_button" onClick={handlePause}><LuPause/></button> </div>
     }
-    if(status === "paused"){
+    if(curStatus === "paused"){
       buttons = <div> <button className="primary_button" onClick={handleCancel}><MdOutlineCancel/></button> <button className="primary_button" onClick={handleResume}><LuPlay/></button> </div>
     }
     //Might need to take into account possible key confliction when rendering if lets say a person queues the same file for download again
-    let progressBarColor = status === "paused" ? "#9b9b9b" : "#4CAF50";
+    let progressBarColor = curStatus === "paused" ? "#9b9b9b" : "#4CAF50";
     return(
       <div className = "fileCard">
         <div style = {{display: 'flex', alignItems: "center"}}><FileIcon style={{ width: '40%', height: '40%' }}/> </div>
@@ -287,7 +357,7 @@ const Files = ({user}) => {
           <div className="progress-bar-container">
           <div 
             className="progress-bar" 
-            style={{width: `${progress}%`, backgroundColor: progressBarColor }}
+            style={{width: `${progress*100}%`, backgroundColor: progressBarColor }}
           ></div>
         </div>
         </div>
@@ -302,15 +372,17 @@ const Files = ({user}) => {
 
     switch(activeTab){
       case "Downloads":
+        let i = 0;
         return downloadHistory.map(file =>{
+          i++;
           return(
             <FileCard
-              key = {file.hashId}
-              type = {file.type}
-              name = {file.name}
-              hashId = {file.hashId}
-              size = {file.size}
-              timestamp={file.timestamp}
+              key = {i+ "."+file.FileHash}
+              type = {file.FileMetaData.FileExtension}
+              name = {file.FileMetaData.FileName}
+              hashId = {file.FileHash}
+              size = {file.FileMetaData.FileSize}
+              timestamp={new Date()}
             />
           )
         });
@@ -333,18 +405,26 @@ const Files = ({user}) => {
         });
 
       case "Current Downloads":
+        let j = 0;
         return downloads.map(file =>{
-          return(
-            <FileCardDownload
-              key = {file.status + file.hashId}
-              type = {file.type}
-              name = {file.name}
-              hashId = {file.hashId}
-              size = {file.size}
-              status = {file.status}
-              progress={file.progress}
-            />
-          )
+          j++;
+          if(file.DownloadProgress != 1){
+            return(
+              <FileCardDownload
+                key = {j +"." +file.RequestID + file.FileHash}
+                type = {file.FileMetaData.FileExtension}
+                name = {file.FileMetaData.FileName}
+                hashId = {file.FileHash}
+                requestId = {file.RequestID}
+                size = {file.FileMetaData.FileSize}
+                status = {file.DownloadSpeed === 0 ? "paused" : "downloading"}
+                progress={file.DownloadProgress}
+              />
+            )
+          }
+          else{
+            return <></>;
+          } 
         });
       default:
         return downloadHistory.map(file =>{

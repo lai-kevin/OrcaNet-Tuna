@@ -36,35 +36,44 @@ export function AppContextProvider(props){
     }
 
     let peers = [
-        { id: 0, location: "142.168.1.1", Price: 1, wallet:"1FfmbHfnpaZjKFvyi1okTjJJusN455paPH" },
-        { id: 1, location: "15.0.0.1", Price: 2 , wallet:"1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v"},
-        { id: 2, location: "122.16.0.1", Price: 1 , wallet:"1BoatSLRHtKNngkdXEeobR76b53LETtpyT"},
-        { id: 3, location: "102.0.2.1", Price: 3 , wallet:"1Ez69SnzzmePmZX3WpEzMKTrcBF2gpNQ55"},
-        { id: 4, location: "203.0.113.1", Price: 0.5 , wallet:"1PzP1eP5QGefi2DMPTfTL5SLmv7DivfNa"},
-        { id: 5, location: "198.51.100.1", Price: 0.5, wallet:"1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp" },
-        { id: 6, location: "191.168.1.100",  Price: 4, wallet:"1A8JiWcwvpY7tAopUkSnGuEYHmzGYfZPiq" },
-        { id: 7, location: "14.0.1.1",  Price: 2, wallet:"1dice97ECuByXAvqXpaYzSaQuPVvrtmz6" },
-        { id: 8, location: "182.16.1.1",  Price: 3 , wallet:"1G5RHZgLA9ppp8SEpGG58CRvzYHsYuTfAy"},
-        { id: 9, location: "162.168.2.1", Price: 1, wallet:"1LuckyR1fFHEsXYyx5QK4UFzv3PEAepPMK"},
+        { id: 0, ip: "142.168.1.1", location: "California, USA", Price: 1, wallet:"1FfmbHfnpaZjKFvyi1okTjJJusN455paPH" },
+        { id: 1, ip: "15.0.0.1", location:  "Illinois, USA", Price: 2, wallet:"1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v"},
+        { id: 2, ip: "122.16.0.1", location: "New York, USA", Price: 1 , wallet:"1BoatSLRHtKNngkdXEeobR76b53LETtpyT"},
+        { id: 3, ip: "102.0.2.1", location: "Michigan, USA", Price: 3 , wallet:"1Ez69SnzzmePmZX3WpEzMKTrcBF2gpNQ55"},
+        { id: 4, ip: "203.0.113.1", location: "New York, USA", Price: 0.5 , wallet:"1PzP1eP5QGefi2DMPTfTL5SLmv7DivfNa"},
+        { id: 5, ip: "198.51.100.1", location: "New York, USA", Price: 0.5, wallet:"1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp" },
+        { id: 6, ip: "191.168.1.100", location: "Wisconsin, USA",  Price: 4, wallet:"1A8JiWcwvpY7tAopUkSnGuEYHmzGYfZPiq" },
+        { id: 7, ip: "14.0.1.1",  location: "Ohio, USA", Price: 2, wallet:"1dice97ECuByXAvqXpaYzSaQuPVvrtmz6" },
+        { id: 8, ip: "182.16.1.1",  location:  "New Jersey, USA", Price: 3 , wallet:"1G5RHZgLA9ppp8SEpGG58CRvzYHsYuTfAy"},
+        { id: 9, ip: "162.168.2.1", location: "New York, USA", Price: 1, wallet:"1LuckyR1fFHEsXYyx5QK4UFzv3PEAepPMK"},
     ];
-
+    const [user, setUser] = useState(null);
     const [dummyFiles,setDummyFiles] = useState(sampleFiles);
     const [searchResultsFound,setSearchResultsFound] = useState(false);
     const [fileToDownload,setFileToDownload] = useState("");
     const [fileToRemove,setFileToRemove] = useState(null);
     const [downloadOpen, setDownloadOpen] = useState(false);
-    const [uploadHistory, setUploadHistory] = useState([sampleUpload]); //currently storing apps "uploads" here in this global context for demo purposes as there is no real data
+    const [uploadHistory, setUploadHistory] = useState([]); //currently storing apps "uploads" here in this global context for demo purposes as there is no real data
     const [downloads, setDownloads] = useState([]);
     const [proxy, setProxy] = useState(false);
     const [server, setServer] = useState("--")
-    const [proxyHistory, setProxyHistory] = useState([]);
+    const [proxyHistory, setProxyHistory] = useState([]); // combination of both the client and server requests
     const [total, setTotal] = useState(0);
     const [proxyPrice, setproxyPrice] = useState(0)
-    const [serverHistory, setServerHistory] = useState([])
+    const [serverHistory, setServerHistory] = useState([]) //client requests
+    const [ownHistory, setOwnHistory] = useState([]) // store all the requests made by user
     const [stop, setStop] = useState([])
+    const [rem, setRem] = useState(false)
+    const [isProgressing, setIsProgressing] = useState(false);
+    const [mining, setMining] = useState(false)
+    const [time, setTime] = useState("")
+    const [blocks, setBlocks] = useState(0)
+
     return(
         <AppContext.Provider value = {
             {
+            user, setUser,
+            ownHistory, setOwnHistory,
             searchResultsFound,setSearchResultsFound,
             fileToDownload,setFileToDownload,
             fileToRemove,setFileToRemove,
@@ -79,7 +88,12 @@ export function AppContextProvider(props){
             serverHistory, setServerHistory,
             stop, setStop,
             dummyFiles, setDummyFiles,
-            peers
+            peers,
+            rem, setRem,
+            isProgressing, setIsProgressing,
+            mining, setMining,
+            time, setTime,
+            blocks, setBlocks
             }}
             >
             {props.children}
