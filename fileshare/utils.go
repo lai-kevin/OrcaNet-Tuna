@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 
@@ -128,4 +129,103 @@ func connectAndPauseRequestFromPeer(requestID string, status bool) error {
 	}
 
 	return nil
+}
+
+func sendCoinToAddress(miningAddress string, amount float32) error {
+	url := "http://localhost:8080/sendToAddress"
+	method := "GET"
+
+	payload := strings.NewReader(fmt.Sprintf(`{
+		"address": "%s",
+		"amount": "%.2f"
+	}`, miningAddress, amount))
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, payload)
+
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	var result map[string]string
+	if err = json.Unmarshal(body, &result); err != nil {
+		return err
+	}
+
+	if result["message"] != "Funds sent successfully!" {
+		log.Println("Sent coin to address: ", miningAddress)
+		return nil
+	} else {
+		return fmt.Errorf("Error sending coin: %s", result["message"])
+	}
+}
+
+func checkBalance() (string, error) {
+	url := "http://localhost:8080/getBalance"
+	method := "GET"
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, nil)
+
+	if err != nil {
+		return "", err
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var result map[string]string
+	if err = json.Unmarshal(body, &result); err != nil {
+		return "", err
+	}
+
+	log.Println("Got Balance:", result["balance"])
+	return result["balance"], nil
+}
+
+func getMiningAddress() (string, error) {
+	url := "http://localhost:8080/getMiningAddress"
+	method := "GET"
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, nil)
+
+	if err != nil {
+		return "", err
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var result map[string]string
+	if err = json.Unmarshal(body, &result); err != nil {
+		return "", err
+	}
+
+	log.Println("Got Mining address:", result["miningAddress"])
+	return result["miningAddress"], nil
 }

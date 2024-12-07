@@ -11,7 +11,6 @@ import (
 	"io"
 	"log"
 	"os"
-	fp "path/filepath"
 	"strings"
 	"time"
 
@@ -289,7 +288,6 @@ func receiveFileMetaData(node host.Host) {
 			return
 		}
 
-		metadataResponse[fileMetaData.FileHash] = fileMetaData
 		log.Printf("Metadata received: %v", fileMetaData)
 
 	})
@@ -495,22 +493,12 @@ func sendFileToPeer(node host.Host, targetNodeId, filepath string, filehash stri
 	}
 	defer file.Close()
 
-	fileInfo, err := file.Stat()
-	if err != nil {
-		return fmt.Errorf("sendFileToPeer: %v", err)
-	}
+	var fileMetaData FileDataHeader
 
-	fileExt := fp.Ext(filepath)
-
-	fileMetaData := FileDataHeader{
-		FileName:      fileInfo.Name(),
-		FileSize:      fileInfo.Size(),
-		FileHash:      filehash,
-		FileExtension: fileExt,
-		Multiaddress:  node.Addrs()[0].String(),
-		PeerID:        node.ID().String(),
-		price:         0.0,
-		RequestID:     requestID,
+	for i := 0; i < len(providedFiles); i++ {
+		if providedFiles[i].FileHash == filehash {
+			fileMetaData = providedFiles[i]
+		}
 	}
 
 	encoder := gob.NewEncoder(stream)
@@ -563,23 +551,12 @@ func sendFileMetaDataToPeer(node host.Host, targetNodeId, filepath string, fileh
 		return fmt.Errorf("sendFileMetaDataToPeer:  %v", err)
 	}
 
-	fileInfo, err := os.Stat(filepath)
-	if err != nil {
-		return fmt.Errorf("sendFileToPeer: %v", err)
-	}
+	var fileMetaData FileDataHeader
 
-	fileSize := fileInfo.Size()
-	fileName := fileInfo.Name()
-	fileExt := fp.Ext(filepath)
-
-	fileMetaData := FileDataHeader{
-		FileName:      fileName,
-		FileSize:      fileSize,
-		FileHash:      filehash,
-		FileExtension: fileExt,
-		Multiaddress:  node.Addrs()[0].String(),
-		PeerID:        node.ID().String(),
-		price:         0.0, // TODO: Add price to file metadata
+	for i := 0; i < len(providedFiles); i++ {
+		if providedFiles[i].FileHash == filehash {
+			fileMetaData = providedFiles[i]
+		}
 	}
 
 	encoder := gob.NewEncoder(stream)
