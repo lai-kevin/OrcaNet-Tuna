@@ -544,6 +544,11 @@ func main() {
 	}
 	SBU_ID = os.Args[1]
 
+	// Create download directory if it does not exist
+	if err := os.Mkdir(DOWNLOAD_DIRECTORY, 0755); err != nil {
+		fmt.Println("Error creating download directory: ", err)
+	}
+
 	// Initialize application state
 	fileHashToPath = make(map[string]string)
 	isFileHashProvided = make(map[string]bool)
