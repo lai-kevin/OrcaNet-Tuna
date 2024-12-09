@@ -72,13 +72,11 @@ type GetNodeInfoReply struct {
 	PeerID    string           `json:"peer_id"`
 	MultiAddr string           `json:"multi_addr"`
 	Status    string           `json:"status"`
-	WalletID  string           `json:"wallet_id"`
 	Providing []FileDataHeader `json:"providing"`
 }
 
 type GetUpdatesReply struct {
 	Success        bool              `json:"success"`
-	WalletID       string            `json:"wallet_id"`
 	PeerID         string            `json:"peer_id"`
 	MultiAddr      string            `json:"multi_addr"`
 	Status         string            `json:"status"`
