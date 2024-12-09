@@ -61,6 +61,7 @@ export const mine = async(coins) =>{
         return req.data
     }
     catch(error){
+        console.log(error)
         throw error
     }
 };
@@ -102,9 +103,8 @@ export const logOut = async() =>{
 };
 
 //retreive the session data 
-export const reenter = async(key) =>{
+export const reenter = async() =>{
     try{
-        const token = localStorage.getItem("currentUser");
         const req = await axios.get("http://localhost:8080/retrieveInfo", {withCredentials: "include"}
         )
         return req.data
@@ -135,3 +135,5 @@ export const track = async() =>{
         throw error
     }
 };
+
+

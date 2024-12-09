@@ -68,6 +68,7 @@ export function AppContextProvider(props){
     const [mining, setMining] = useState(false)
     const [time, setTime] = useState("")
     const [blocks, setBlocks] = useState(0)
+    const [enter, setEnter] = useState(false)
 
     return(
         <AppContext.Provider value = {
@@ -93,7 +94,8 @@ export function AppContextProvider(props){
             isProgressing, setIsProgressing,
             mining, setMining,
             time, setTime,
-            blocks, setBlocks
+            blocks, setBlocks,
+            enter, setEnter
             }}
             >
             {props.children}

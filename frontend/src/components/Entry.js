@@ -1,13 +1,20 @@
 import { GiWhaleTail } from 'react-icons/gi';
 import { useState, useEffect, useContext } from 'react';
 import { Rings } from 'react-loader-spinner';
-import bs58check from 'bs58check'
 import { FaRegCopy } from 'react-icons/fa';
 import { useMode } from './Mode';
 import { AppContext } from './AppContext';
 import { GoDownload } from "react-icons/go";
 import * as Wallet from '../WalletAPI';
 
+const startDocker = async (id) => {
+    try {
+      const output = await window.electron.ipcRenderer.invoke('start-docker', id);
+      console.log(output);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+};
 const Entry = () =>{
     const [page, setPage] = useState('login')
     const[effect, setEffect] = useState(false);
@@ -29,7 +36,7 @@ const Entry = () =>{
     return(
         <div className="login">
             <div id="title_container">
-                <GiWhaleTail style={{fontSize: '120px', color:"blue", marginLeft: '500px'}}/>
+                <GiWhaleTail style={{fontSize: '120px', color:"blue"}}/>
                 <h1 id ="title" style={{ color: mode === "dark" ? "black" : "black" }}>OrcaNet</h1>
             </div>
             {page ==="recover" && <Recover setPage ={setPage}/>}
@@ -62,6 +69,7 @@ const Recover = ({setPage})=>{
     const {mode} = useMode();
     const handleYes=()=>{
         Wallet.deleteAccount().then((result)=>{
+            localStorage.clear();
             setCurr("success")
         })
         .catch((error)=>{
@@ -104,7 +112,7 @@ const Recover = ({setPage})=>{
                     <div id="content3">
                         <h3>Error encountered when deleting account. Please try again.</h3>
                         <div id="items">
-                            <button onClick={()=> setCurr("recover")} className= "ok_button1"> OK </button>
+                            <button onClick={()=> {setCurr("recover"); setConfirm(false)}} className= "ok_button1"> OK </button>
                         </div>
                 </div>
                </div>
@@ -126,11 +134,11 @@ const Login=({handleRegPage, setPage})=>{
     const [input, setInput] = useState("")
     const [verify, setVerify] = useState(false)
     const [get, setGet] = useState(false)
-    const [e, setE] = useState("Loggin In")
+    const [e, setE] = useState("Logging In")
     const [restart, setRestart] = useState(false)
     const {mode} = useMode();
     const [err, setErr] = useState({message: "", present:false})
-    const {rem, setRem, user, setUser} = useContext(AppContext);
+    const {rem, setRem, user, setUser, setEnter, enter} = useContext(AppContext);
     const handleInput=(e)=>{
         setInput(e.target.value);
         if (err.present) {
@@ -141,25 +149,31 @@ const Login=({handleRegPage, setPage})=>{
         const checked = localStorage.getItem('rem') === 'true';
         if (checked) {
             setGet(true)
-            Wallet.reenter()
-            .then((result) => {
-                const userData ={
-                    walletID: result.miningAddress,
-                    balance: result.balance, 
-                    transactions: result.transactions,
-                    fileHistory:[],
-                    servedHistory:[], // the clients that it served before  
-                    proxied:[], // the peers that user proxied
-                };
-                setUser(userData);
-                setRem(checked);
-                setGet(false)
-            })
-            .catch(() => {
-                setE("Session Expired")
-                localStorage.removeItem("rem");
-                setRestart(true)
-            });
+            setTimeout(() => {
+                Wallet.reenter()
+                .then((result) => {
+                    startDocker(localStorage.getItem("id"))
+                    const userData ={
+                        walletID: result.miningAddress,
+                        peer: localStorage.getItem("id"),
+                        balance: result.balance, 
+                        transactions: result.transactions,
+                        fileHistory:[],
+                        servedHistory:[], // the clients that it served before  
+                        proxied:[], // the peers that user proxied
+                    };
+                    setUser(userData);
+                    setEnter(true);
+                    setRem(checked);
+                    setGet(false)
+                })
+                .catch(() => {
+                    setE("Session Expired")
+                    localStorage.removeItem("rem");
+                    setRestart(true)
+                });
+                
+            }, 5000);
         } else {
             localStorage.removeItem("rem");
       }
@@ -175,10 +189,12 @@ const Login=({handleRegPage, setPage})=>{
         }
         Wallet.enter({password: key, rem: rem}).then((result) => {
             setVerify(false);
+            startDocker(localStorage.getItem("id"))
             const userData ={
                 walletID: result.miningAddress,
+                peer: localStorage.getItem("id"),
                 balance: result.balance, 
-                transactions:result.transactions,
+                transactions: result.transactions!==null ? result.transactions : [],
                 fileHistory:[],
                 servedHistory:[], // the clients that it served before  
                 proxied:[], // the peers that user proxied
@@ -191,6 +207,7 @@ const Login=({handleRegPage, setPage})=>{
                 localStorage.setItem("rem", false);
             }
             setUser(userData);
+            setEnter(true);
           })
           .catch((error) => {
             setVerify(false)
@@ -239,29 +256,17 @@ const Register=({handleLoginPage, setPage})=>{
     const[current, setCurrent] = useState("first")
     const[data, setData] = useState(null)
     const[err, setErr] = useState({message: "", present:false, type:""})
+    const[e, setE] = useState({message: "", present:false, type:""})
     const[pass, setPass] = useState("")
     const {mode} = useMode();
-    const {setUser} = useContext(AppContext);
-    const handleSwitch = (p)=>{
-        setCurrent(p);
-        Wallet.generate().then((result) => {
-            const userData ={
-                walletID: result.miningAddress,
-                balance: 0, // for demo purposes
-                transactions:[],
-                fileHistory:[],
-                servedHistory:[], // the clients that it served before  
-                proxied:[], // the peers that user proxied
-            };
-            const addr = result.miningAddress;
-            localStorage.setItem(addr, "light")
-            setPass(result.password)
-            setData(userData)
-        })
-        .catch((error) => {
-            setCurrent("first")
-            setErr({message:"Wallet Already Exists. Please Login.", present:true});
-        });
+    const {setUser, setEnter} = useContext(AppContext);
+    const [input, setInput] = useState("")
+    const[id, setId] = useState("")
+    const handleInput=(e)=>{
+        setInput(e.target.value);
+        if (err.present) {
+            setE({ message: "", present: false });
+        }
     }
     useEffect(() => {
         if (data) {
@@ -272,38 +277,6 @@ const Register=({handleLoginPage, setPage})=>{
         navigator.clipboard.writeText(item)
     };
 
-    // this is just a temperary way we are generating the keys. All these will be generated by the crypto wallet API
-    // const setUpKey = async() => {
-    //     // const phrase = bip39.generateMnemonic(128);
-    //     // const seed = bip39.mnemonicToSeedSync(phrase);
-    //     setCurrent('third')
-    //     setTimeout(()=>{
-    //         // const childKey = HDKey.fromMasterSeed(seed).derive("m/44'/0'/0'");
-    //         // const privateKey = Array.from(childKey.privateKey).map(byte => byte.toString(16).padStart(2, '0')).join('');
-    //         // const publicKey = Array.from(childKey.publicKey).map(byte => byte.toString(16).padStart(2, '0')).join('');
-    //         // const sha = hash.sha256().update(childKey.publicKey).digest();
-    //         // const publicKeyHash = hash.ripemd160().update(sha).digest();  
-    //         // const pub = Buffer.from(publicKeyHash, 'hex');
-    //         // const payload = Buffer.concat([Buffer.from([0x00]), pub]);
-    //         // const id = bs58check.encode(payload);
-    //         const userData ={
-    //             // privateKey: privateKey,
-    //             // phrase:phrase,
-    //             // publicKey: publicKey,
-    //             // publicKeyHash: publicKeyHash,
-    //             walletID: id,
-    //             balance: 100, // for demo purposes
-    //             transactions:[],
-    //             fileHistory:[],
-    //             servedHistory:[], // the clients that it served before  
-    //             proxied:[], // the peers that user proxied
-    //             mode: "light"
-    //         };
-    //         setData(userData);
-    //         // localStorage.setItem(privateKey, JSON.stringify(userData));
-    // }, 3000)
-    // };
-    
     const save = () => {
         const content = `Wallet Address:\t${data.walletID}\nKey: ${pass}`;
         const blob = new Blob([content], { type: "text/plain" });
@@ -317,20 +290,67 @@ const Register=({handleLoginPage, setPage})=>{
         setErr({message: "", present:false, type:""})
         setPage("login")
     }
-    // const handleClick1=()=>{
-    //     setErr({message: "", present:false, type:""})
-    //     setPage("register")
-    // }
+    const handleConfirm=(e)=>{
+        e.preventDefault();
+        const key = input.trim();
+        if (key == ""){
+            setE({message:"^Field can't be empty", present:true});
+            return
+        }
+        if(key.length!==9) {
+            setE({message:"^Field must be 9 digits long", present:true});
+            return
+        }
+        else if (!(/^\d+$/.test(key))) {
+            setE({message:"^Field must be all digits", present:true});
+            return
+        }
+
+        // pass all the checks
+        setId(key)
+        startDocker(key)
+        setCurrent("third")
+        Wallet.generate().then((result) => {
+            const userData ={
+                walletID: result.miningAddress,
+                peer: key,
+                balance: 0, // for demo purposes
+                transactions:[],
+                fileHistory:[],
+                servedHistory:[], // the clients that it served before  
+                proxied:[], // the peers that user proxied
+            };
+            const addr = result.miningAddress;
+            localStorage.setItem(addr, "light")
+            localStorage.setItem("id", key)
+            setPass(result.password)
+            setData(userData)
+        })
+        .catch((error) => {
+            setCurrent("first")
+            setErr({message:"Wallet Already Exists. Please Login.", present:true});
+        });
+    }
     return(
         <div>
             {current === "first" &&
             (<div className = "register_page">
                 <h3 className="welcome" style={{ color: mode === "dark" ? "black" : "black" }}>Let's Set Up Your Crypto Wallet!</h3>
-                <button id="log_button" onClick={() => handleSwitch("second")}> Continue</button>
+                <button id="log_button" onClick={() => setCurrent("second")}> Continue</button>
                 <p className ="redirect1" style={{ color: mode === "dark" ? "black" : "black" }}>Have an account? <a id="signup" onClick={handleLoginPage}>Login</a></p>
                 </div>
             )}
             {current === "second" &&
+            (<div className = "register_page">
+                <div id="input_field">
+                <label id = "sbu">Enter your SBU ID:</label>
+                <input type="text" id="key" value={input} onChange={handleInput} placeholder='SBU ID'></input>
+                </div>
+                {e.present && (<p id="err">{e.message}</p>)}
+                <button id="log_button" onClick={handleConfirm}> Continue</button>
+                </div>
+            )}
+            {current === "third" &&
             (<div className = "register_page">
                 <h3 className="welcome2" style={{ color: mode === "dark" ? "black" : "black" }}>Generating your wallet...</h3>
                 <div className='loading_container'>
@@ -347,7 +367,8 @@ const Register=({handleLoginPage, setPage})=>{
                </div>
             )}
             {/* {err.present && err.type== "2" (
-                <div id = "container1">
+                <div 
+                id = "container1">
                     <div id="content1">
                         <h3>{err.message}</h3>
                         <button onClick={handleClick1}> OK </button>
@@ -356,13 +377,15 @@ const Register=({handleLoginPage, setPage})=>{
             )} */}
             {current === "fourth" && (
                 <div className = "register_page">
+                <div id="b">
                 <button id= "save" onClick={save}><GoDownload size={18}/>Save Credentials</button>
+                </div>
                 <div className='info_container'>
                     <ul className='info_list'>
                         <li style={{ color: mode === "dark" ? "black" : "black" }}>Wallet Address:  <button type="button" id="copy" onClick={()=>handleCopy(data.walletID)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br><span id="w">{data.walletID}</span></li>
                         <li style={{ color: mode === "dark" ? "black" : "black" }}>Password:  <button type="button" id="copy" onClick={()=>handleCopy(pass)}><FaRegCopy style={{ width: '100%', height: '100%', background: 'transparent'}}/></button><br></br> <span id="private_key">{pass}</span></li>
                     </ul>
-                    <button id="log" onClick={() => setUser(data)}> Login </button>
+                    <button id="log" onClick={() => {setUser(data); setEnter(true);}}> Login </button>
                 </div>
             </div>
             )}

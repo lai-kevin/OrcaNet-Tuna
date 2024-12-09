@@ -8,7 +8,8 @@ import { FaArrowUp } from "react-icons/fa";
 import { FaArrowDown } from "react-icons/fa";
 import { SiEnvoyproxy } from "react-icons/si";
 import { HiOutlineXMark } from "react-icons/hi2";
-import { DownloadTableExcel } from 'react-export-table-to-excel';
+import { GiMining } from "react-icons/gi";
+import { FaCoins } from "react-icons/fa";
 import { AppContext } from './AppContext';
 import * as Wallet from "../WalletAPI"
 const AccountContent = ({mode}) => {
@@ -94,6 +95,9 @@ const MineMenu=({setOpen})=>{
     };
     const handleInput=(e)=>{
         setAmount(e.target.value);
+        if(err){
+            setErr(false)
+        }
     }
     const handleConfirm = (e)=>{
         e.preventDefault();
@@ -115,20 +119,25 @@ const MineMenu=({setOpen})=>{
 
             // save the time started mining
             setTime(new Date())
-         
+            const timeoutId = setTimeout(() => {
+                setCurr("third");
+            }, 10000);
+
             Wallet.mine(actual).then(()=>{
                 setMining(false)
                 setBlocks(0)
                 setTime("")
+                setAmount("")
             })
             .catch((error)=>{
+               setTimeout(() => {
+                clearTimeout(timeoutId);
                 setCurr("error"); 
                 setTime("")
+                setAmount("")
                 setBlocks(0)
+                }, 2000);
             })
-            setTimeout(() => {
-                setCurr("third")
-            }, 10000); 
         } else {
             setErr(true);
             setMess("^This field must be a whole number");
@@ -145,7 +154,7 @@ const MineMenu=({setOpen})=>{
         <div id = "container1">
             <div id="content4">
                 {curr==="first" &&(<><button id="x1" onClick={exit}><HiOutlineXMark size="20"/></button>
-                <h3>How many blocks would you like to mine?</h3>
+                <h3 style={{ color: "black"}}>How many blocks would you like to mine?</h3>
                 <input type="text" id="amount" value={amount} onChange={handleInput} placeholder='Enter an amount'></input>
                 <span style={{color: "blue", size:"20px", marginLeft:"10px"}}>Blocks</span>
                 <button id="con" type ="submit" onClick={handleConfirm}>Confirm</button>
@@ -153,13 +162,13 @@ const MineMenu=({setOpen})=>{
                 </>)}
                 {curr==="error" &&(
                     <>
-                    <h3>Error encountered in mining. Please try again.</h3>
+                    <h3 style={{ color: "black"}}> Error encountered in mining. Please try again.</h3>
                     <button onClick={handleClick} className= "ok_button1"> OK </button>
                     </>
                 )}
                 {curr==="second" && (
                     <>
-                    <h3>Starting Mining Process...</h3>
+                    <h3 style={{ color: "black"}}>Starting Mining Process...</h3>
                     <div className="spinner-container">
                         <div className="spinner" />
                     </div>
@@ -167,7 +176,7 @@ const MineMenu=({setOpen})=>{
                 )}
                 {curr==="third" && (
                     <>
-                        <h3>Mining Process successfully started in background</h3>
+                        <h3 style={{ color: "black"}}>Mining Process successfully started in background</h3>
                         <button onClick={handleClick1} className= "ok_button1"> OK </button>
                     </>
                 )}
@@ -178,8 +187,8 @@ const MineMenu=({setOpen})=>{
 const Box = ({stat, info, c, mode}) => {
     return (
       <div className={`${mode === 'dark' ? 'box-dark' : 'box-light'}`}>
-        <p className="info">{info}</p>
-        <h3 className="stat" style={{color:c}} >{stat}</h3>
+        <p className="info" style={{ color: "black"}}>{info}</p>
+        <h3 className="stat" style={{color:"black"}} >{stat}</h3>
       </div>
     );
 };
@@ -230,11 +239,11 @@ const Progress =({setView})=>{
             <div id="content4">
                {mining &&(<>
                 <button id="x1" onClick={exit}><HiOutlineXMark size="20"/></button>
-                    <h3>Current Mining status</h3>
+                    <h3 style={{ color: "black"}}>Current Mining status</h3>
                     <div>
-                        <Box info = {"Time Elasped"} stat = {elasped}></Box>
-                        <Box info = {"Num of blocks requested"} stat = {blocks}></Box>
-                        <Box info = {"CPU usage"} stat = {cpu}></Box>
+                        <Box style={{ color: "black"}} info = {"Time Elasped"} stat = {elasped}></Box>
+                        <Box style={{ color: "black"}} info = {"Num of blocks requested"} stat = {blocks}></Box>
+                        <Box style={{ color: "black"}} info = {"CPU usage"} stat = {cpu}></Box>
                     </div>
                 </>)}
                 {!mining && (
@@ -251,34 +260,53 @@ const Transaction = ({mode})=>{
     const {user, setUser} = useContext(AppContext);
     const [click, setClick] = useState(false);
     const [trans, setTrans] = useState(user.transactions)
-    const info =[{id:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"down", Spent:"0.25", Earned:0},
-        {id:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"up", Spent: 0, Earned:"2.25"}
+    const info =[{txid:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"down", Spent:"0.25", Earned:0},
+        {txid:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"up", Spent: 0, Earned:"2.25"}
     ]
     useEffect(() => {
         const fetchtransaction = async () => {
             try {
                 const response = await Wallet.retrieve();  
+                console.log(response.transactions)
                 setUser(prev => {
                     const updated = {
                         ...prev,
-                        transactions: response.transactions
+                        transactions: response.transactions!==null ? response.transactions : []
                     };
                     return updated;
                 });
-                setTrans(response.transactions)
+                setTrans(response.transactions!==null ? response.transactions : [])
             } catch (error) {}
         };
         fetchtransaction();
         const interval = setInterval(fetchtransaction, 20000);  
         return () => clearInterval(interval);
     }, []);
+    console.log(trans)
     let current = [ ...info, ...trans]
+    console.log(current)
     const download = () => {
-        const fields =["id", "from", "to", "time", "status", "size", "Type", "Spent", "Earned"]
+        const fields =["txid", "from", "to", "time", "status", "size", "Type", "Spent", "Earned"]
         const names =["TXID", "From", "To", "Time", "Status", "Size", "Type", "Spent", "Earned"]
         const headers = names.join(",") + "\n";
-        const rows = current.map(row => 
-            fields.map(field => row[field]).join(",")
+        const rows = current.map(row =>
+            fields.map(field => {
+              if (field === "status") {
+                // Default status to "Completed" if missing
+                return row[field] ?? "Completed";
+              } else if (field === "Spent") {
+                const amount = row["amount"];
+                if (amount !== undefined) {
+                  return amount < 0 ? Math.abs(amount) : "---"; 
+                }
+              } else if (field === "Earned") {
+                const amount = row["amount"];
+                if (amount !== undefined) {
+                  return amount > 0 ? Math.abs(amount) :"---"; 
+                }
+              }
+              return row[field] ?? "---";
+            }).join(",")
           ).join("\n");
         const blob = new Blob([headers + rows], { type: "text/csv" });
         const link = document.createElement("a");
@@ -303,8 +331,8 @@ const Transaction = ({mode})=>{
 const TransactionTable=({mode, setClick})=> {
     const {user, setUser} = useContext(AppContext);
     const [trans, setTrans] = useState(user.transactions)
-    const info =[{id:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"Download", Spent:"0.25", Earned:0},
-        {id:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"Upload", Spent: 0, Earned:"2.25"}
+    const info =[{txid:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"Download", Spent:"0.25", Earned:0},
+        {txid:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"Upload", Spent: 0, Earned:"2.25"}
     ]
     let current = [ ...info, ...trans]
     console.log(current);
@@ -317,14 +345,15 @@ const TransactionTable=({mode, setClick})=> {
         const fetchtransaction = async () => {
             try {
                 const response = await Wallet.retrieve();  
+                console.log(response.transactions)
                 setUser(prev => {
                     const updated = {
                         ...prev,
-                        transactions: response.transactions
+                        transactions: response.transactions!==null ? response.transactions : []
                     };
                     return updated;
                 });
-                setTrans(response.transactions)
+                setTrans(response.transactions!==null ? response.transactions : [])
             } catch (error) {}
         };
         fetchtransaction();
@@ -398,14 +427,22 @@ const TransactionTable=({mode, setClick})=> {
                     {curr.map((item, index) => (
                         <tr key={index}>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.txid}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.from}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.to}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.from || "---"}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.to || "---"}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.time}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.status}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Type === "Upload" ? (<FaArrowUp style={{ color: 'green' }} />) : item.Type === "Download" ? (<FaArrowDown style={{ color: 'red' }} />) : (<SiEnvoyproxy style={{ color: 'grey' }} />)}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.size}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.status || "Completed"}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Type === "Upload" ? (
+                                    <FaArrowUp style={{ color: "green" }} />
+                                ) : item.Type === "Download" ? (
+                                    <FaArrowDown style={{ color: "red" }} />
+                                ) : item.Type === "Proxy" ? (
+                                    <SiEnvoyproxy style={{ color: "grey" }} />
+                                ) : item.category === "generate" ? (
+                                    <GiMining style={{ color: "black" }} />
+                                ): <FaCoins style={{ color: "black" }} />}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.size || "---"}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.amount > 0 ? item.amount : "---"}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Spent < 0 ? item.amount : "---"}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.amount < 0 ? Math.abs(item.amount) : "---"}</td>
                         </tr>
                     ))}   
             </tbody>
