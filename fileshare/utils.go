@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/google/uuid"
@@ -228,4 +229,16 @@ func getMiningAddress() (string, error) {
 
 	log.Println("Got Mining address:", result["miningAddress"])
 	return result["miningAddress"], nil
+}
+
+func copyFromContainer(sourcePath, destPath string) error {
+	hostname, _ := os.Hostname()
+	cmd := exec.Command("docker", "cp", fmt.Sprintf("%s:%s", hostname, sourcePath), destPath)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to copy file from container: %s", string(output))
+	}
+
+	return nil
 }

@@ -182,14 +182,6 @@ func receiveFileData(node host.Host) {
 		ft.DownloadProgress = 1.0
 		downloadHistory[fileMetaData.RequestID] = ft
 
-		// // Remove the request ID from the download priority list
-		// for i, requestID := range downloadPriority {
-		// 	if requestID == fileMetaData.RequestID {
-		// 		downloadPriority = append(downloadPriority[:i], downloadPriority[i+1:]...)
-		// 		break
-		// 	}
-		// }
-
 		// Make as complete in fileRequests
 		for i, fileRequest := range fileRequests {
 			if fileRequest.RequestID == fileMetaData.RequestID {
@@ -197,6 +189,12 @@ func receiveFileData(node host.Host) {
 				fileRequests[i] = fileRequest
 				break
 			}
+		}
+
+		// Copy the file from the container to the host's download directory
+		err = copyFromContainer()
+		if err != nil {
+			log.Printf("Error copying file from container: %v", err)
 		}
 
 	})
