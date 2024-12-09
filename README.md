@@ -1,9 +1,9 @@
 # This is the README documentation for the btcd API
 
 ## Instructions
-## 1. If you are on a windows computer, please use a MacOS or Linux computer.
+## 1. *** If you are on a windows computer, please use a MacOS (preferred) or Linux computer. If not, there is a docker file and you should scroll to the bottom for instructions. ***
 
-## 2. When you have all the files run the following commands to build BTCD:
+## 2. When you have all the files, run the following commands to build BTCD:
 ```
 cd btcd
 go build
@@ -42,7 +42,7 @@ When a new user wants to create a wallet, the api will generate a 12 char passwo
 
 ### Log In
 ### http://localhost:8080/login
-If a user has an existing wallet, the frontend will ask for the password and send ths password in JSON format to the handler. It will then unlock the wallet if the password is correct.
+If a user has an existing wallet, the frontend will ask for the password and send ths password in JSON format to the handler. It starts the btcwallet process and it will then unlock the wallet if the password is correct.
 
 ```
 {
@@ -102,6 +102,20 @@ category: sent, recieved, generate (mined)
 </br>
 confirmations: the number of blocks mined after the block containing this information
 </br>
+</br>
+
+
+### Logout
+### http://localhost:8080/logout
+This handler will stop the wallet process and lock the wallet. BTCD will still be running. 
+
+### Shutdown
+### http://localhost:8080/shutdown
+Stops btcWallet, btcd, and sends a SIGINT to kill all processes.
+
+### Delete Wallet
+### http://localhost:8080/deleteWallet
+This handle is for if a person completely forgets their wallet password. 
 
 ---------------------------------------------------------------
 ## Docker File
@@ -117,7 +131,7 @@ docker run -p 8080:8080 myapi
 ## Side Notes
 ### - If there are any issues with running the server, it may be because you do not have the binaries built. 
 ### - Remember to build in btcd, btcd/cmd/btcctl, and btcwallet directory.
-### - Ensure you have the btcd.conf, btcwallet.conf, and btcctl.conf files. You may need to manually copy the .conf files and paste them in your computer's following directories: </br>
+### - Ensure you have the btcd.conf, btcwallet.conf, and btcctl.conf files. You may need to manually copy the .conf files and paste them in your computer's following directories (for MacOS): </br>
 
 /Users/[username]/Library/Application Support/Btcd/btcd.conf
 </br>
