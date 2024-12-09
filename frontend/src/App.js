@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate} from "react-router-dom";
 import "./stylesheets/App.css";
 import MainPage from "./components/MainPage.js";
 import Home from './components/Home';
@@ -15,12 +15,13 @@ import ProxyContent from "./components/ProxyContent.js";
 window.Buffer = Buffer;
 
 function AppRoutes() {
-  const { user } = useContext(AppContext); 
+  const { user} = useContext(AppContext);
 
   return (
     <Routes>
       <Route path="/" element={user ? <MainPage /> : <Entry />}>
-        <Route index element={<Home />} /> 
+        <Route index element={<Home />} />
+        <Route path="Home" element={<Home />} />
         <Route path="Files" element={<Files />} />
         <Route path="Proxy" element={<ProxyContent />} />
         <Route path="Settings" element={<Settings />} />
@@ -28,6 +29,7 @@ function AppRoutes() {
     </Routes>
   );
 }
+
 
 function App() {
   useEffect(() => {

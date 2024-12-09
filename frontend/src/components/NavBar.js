@@ -18,7 +18,7 @@ const Navbar = () => {
         <h1 id="title1">OrcaNet</h1>
       </div>
       <ul>
-        <li className={loc.pathname === '/'? 'active' : ''}>
+        <li className={(loc.pathname === '/' || loc.pathname === '/Home') ? 'active' : ''}>
           <NavLink to="/" >
             <div className="section">
               <FaHome className="icon" />

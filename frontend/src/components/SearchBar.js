@@ -5,6 +5,15 @@ import { NavLink, useLocation} from 'react-router-dom';
 import { AppContext } from "./AppContext";
 import { useMode } from './Mode';
 import * as Wallet from "../WalletAPI"
+
+const stopDocker = async () => {
+  try {
+    const output = await window.electron.ipcRenderer.invoke('stop-docker');
+    console.log(output);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
 const SearchBar = () => {
     const { user, setUser, setSearchResultsFound, setFileToDownload, dummyFiles, setDownloadOpen } = useContext(AppContext);
     const [open, setOpen] = useState("close");
@@ -46,7 +55,7 @@ const SearchBar = () => {
 };
 export const DropMenu = ({handleDropDown})=>{
   const menu = useRef(null);
-  const {user, stop, proxy, server, setUser, setServer, setProxy, setTotal, setStop, setproxyPrice, setRem, serverHistory, ownHistory, setProxyHistory, setOwnHistory, setServerHistory} = useContext(AppContext);
+  const {user, stop, proxy, server, setUser, setServer, setProxy, setTotal, setStop, setproxyPrice, setRem, serverHistory, ownHistory, setProxyHistory, setOwnHistory, setServerHistory, setTime, setMining, setBlocks} = useContext(AppContext);
   const {mode, chooseLight} = useMode();
   const [open, setOpen] = useState(false)
   const outside = (e)=>{
@@ -72,12 +81,16 @@ export const DropMenu = ({handleDropDown})=>{
     setProxyHistory([])
     setOwnHistory([])
     setServerHistory([])
+    stopDocker();
     localStorage.removeItem('currentUser');
     localStorage.removeItem('rem');
     localStorage.removeItem('time');
     Wallet.logOut()
     .then(() => {
         console.log("Logged out successfully");
+        setTime("")
+        setMining(false)
+        setBlocks(0)
     })
     .catch((error) => {
         console.log(error.message);
@@ -90,7 +103,7 @@ export const DropMenu = ({handleDropDown})=>{
           <p id ="actual_id" style={{ color: mode === "dark" ? "black" : "black" }}>{user.walletID}</p>
           </div>
         <ul className= "menu_list">
-        <NavLink to="/Settings"> View Profile</NavLink>
+        <NavLink to="/Settings" onClick={()=>{setOpen(false)}}> View Profile</NavLink>
         <NavLink to="/" id="log_out" onClick={handleLogOut}>Log Out</NavLink>
         </ul>
        {open && (<Exit setOpen={setOpen}/>)}
@@ -109,7 +122,7 @@ const formatTime = () => {
   return `${y}-${m}-${d} ${hr}:${min}:${sec}`;
 };
 const Exit =({setOpen})=>{
-  const {user, stop, proxy, server, setUser, setServer, setProxy, setTotal, setStop, setproxyPrice, setRem, serverHistory, ownHistory, setProxyHistory, setOwnHistory, setServerHistory} = useContext(AppContext);
+  const {user, stop, proxy, server, setUser, setServer, setProxy, setTotal, setStop, setproxyPrice, setRem, serverHistory, ownHistory, setProxyHistory, setOwnHistory, setServerHistory, setTime, setMining, setBlocks} = useContext(AppContext);
   const handleYes =()=>{
     const hist = Object.values(
       serverHistory.reduce((acc, item) => {
@@ -166,12 +179,16 @@ const Exit =({setOpen})=>{
     setProxyHistory([])
     setOwnHistory([])
     setServerHistory([])
+    stopDocker();
     localStorage.removeItem('currentUser');
     localStorage.removeItem('rem');
     localStorage.removeItem('time');
     Wallet.logOut()
     .then(() => {
         console.log("Logged out successfully");
+        setTime("")
+        setMining(false)
+        setBlocks(0)
     })
     .catch((error) => {
         console.log(error.message);
