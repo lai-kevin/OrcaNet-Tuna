@@ -192,7 +192,7 @@ func receiveFileData(node host.Host) {
 		}
 
 		// Copy the file from the container to the host's download directory
-		err = copyFromContainer(DOWNLOAD_DIRECTORY+"/"+fileMetaData.FileName, "~/Downloads/")
+		err = copyFromContainer("/"+DOWNLOAD_DIRECTORY+"/"+fileMetaData.FileName, "~/Downloads/")
 		if err != nil {
 			log.Printf("Error copying file from container: %v", err)
 		}
