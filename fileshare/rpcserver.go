@@ -94,7 +94,7 @@ func (s *FileShareService) GetFileMetaData(r *http.Request, args *GetFileMetaDat
 	}
 
 	timeout := time.After(10 * time.Second)
-	tick := time.Tick(500 * time.Millisecond)
+	tick := time.Tick(2 * time.Second)
 
 	for {
 		select {

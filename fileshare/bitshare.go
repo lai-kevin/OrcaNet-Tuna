@@ -288,6 +288,7 @@ func receiveFileMetaData(node host.Host) {
 			return
 		}
 
+		metadataResponse[fileMetaData.FileHash+fileMetaData.PeerID] = fileMetaData
 		log.Printf("Metadata received: %v", fileMetaData)
 
 	})
