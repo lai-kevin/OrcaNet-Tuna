@@ -539,12 +539,15 @@ func loadState() error {
 }
 
 func main() {
-	if len(os.Args) < 3 {
-		fmt.Println("Expected SBU ID and bootstrap MultiAddress")
+	if len(os.Args) < 2 {
+		fmt.Println("Expected SBU ID")
 		return
 	}
 	SBU_ID = os.Args[1]
-	BOOTSTRAP_NODE_MULTIADDR = os.Args[2]
+
+	if len(os.Args) == 3 {
+		BOOTSTRAP_NODE_MULTIADDR = os.Args[2]
+	}
 
 	// Create download directory if it does not exist
 	if err := os.Mkdir(DOWNLOAD_DIRECTORY, 0755); err != nil {
