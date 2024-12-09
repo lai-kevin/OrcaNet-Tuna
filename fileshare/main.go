@@ -45,7 +45,7 @@ var fileRequests = []FileRequest{}
 var providedFiles = []FileDataHeader{}
 
 // Hard coded values to connect to TA provided relay node and bootstrap node
-const BOOTSTRAP_NODE_MULTIADDR = "/ip4/130.245.173.222/tcp/61000/p2p/12D3KooWQd1K1k8XA9xVEzSAu7HUCodC7LJB6uW5Kw4VwkRdstPE"
+const BOOTSTRAP_NODE_MULTIADDR = "/ip4/130.245.173.222/tcp/61020/p2p/12D3KooWM8uovScE5NPihSCKhXe8sbgdJAi88i2aXT2MmwjGWoSX"
 const RELAY_NODE_MULTIADDR = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
 const DESKTOP_NODE_MULTIADDR = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN/p2p-circuit/p2p/12D3KooWS9VBsbpZPzpxsK6by9LzFUsW62fHHk3owJGHRKWy4KnX"
 
@@ -543,6 +543,11 @@ func main() {
 		return
 	}
 	SBU_ID = os.Args[1]
+
+	// Create download directory if it does not exist
+	if err := os.Mkdir(DOWNLOAD_DIRECTORY, 0755); err != nil {
+		fmt.Println("Error creating download directory: ", err)
+	}
 
 	// Initialize application state
 	fileHashToPath = make(map[string]string)

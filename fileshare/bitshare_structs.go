@@ -36,6 +36,7 @@ type FileDataHeader struct {
 	Multiaddress  string
 	PeerID        string
 	price         float32
+	miningAddress string
 	RequestID     string
 }
 
