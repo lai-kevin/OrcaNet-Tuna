@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/google/uuid"
@@ -231,14 +231,20 @@ func getMiningAddress() (string, error) {
 	return result["miningAddress"], nil
 }
 
-func copyFromContainer(sourcePath, destPath string) error {
-	hostname, _ := os.Hostname()
-	cmd := exec.Command("docker", "cp", fmt.Sprintf("%s:%s", hostname, sourcePath), destPath)
-
-	output, err := cmd.CombinedOutput()
+func copyFromContainer(sourcePath, filename string) error {
+	source, err := os.Open(sourcePath)
 	if err != nil {
-		return fmt.Errorf("failed to copy file from container: %s", string(output))
+		return err
 	}
+	defer source.Close()
 
-	return nil
+	destPath := filepath.Join("/"+DOWNLOAD_DIRECTORY, filename)
+	destination, err := os.Create(destPath)
+	if err != nil {
+		return err
+	}
+	defer destination.Close()
+
+	_, err = io.Copy(destination, source)
+	return err
 }
