@@ -72,13 +72,13 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 		*reply = GetFileReply{Success: false}
 	}
 
-	err = sendCoinToAddress(miningAddress, metadataResponse[args.FileHash+args.PeerID].price)
+	txid, err := sendCoinToAddress(miningAddress, metadataResponse[args.FileHash+args.PeerID].price)
 	if err != nil {
 		log.Printf("Failed to send currency to peer: %v\n", err)
 		*reply = GetFileReply{Success: false}
 	}
 
-	*reply = GetFileReply{Success: true, Message: "File dowloaded successfully", RequestID: requestID, FileHash: args.FileHash}
+	*reply = GetFileReply{Success: true, Message: "File dowloaded successfully", RequestID: requestID, FileHash: args.FileHash, Txid: txid}
 	saveState()
 	return nil
 }
@@ -237,6 +237,13 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 
 	fileExt := fp.Ext(filepath)
 
+	miningAddress, err := getMiningAddress()
+	log.Printf("Providing file %s with price %f\n", filepath, args.Price)
+
+	if err != nil {
+		log.Printf("Failed to get mining address: %v\n", err)
+	}
+
 	fileMetaData := FileDataHeader{
 		FileName:      fileInfo.Name(),
 		FileSize:      fileInfo.Size(),
@@ -244,8 +251,8 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 		FileExtension: fileExt,
 		Multiaddress:  globalNode.Addrs()[0].String(),
 		PeerID:        globalNode.ID().String(),
-		price:         float32(args.Price),
-		miningAddress: "",
+		Price:         float32(args.Price),
+		MiningAddress: miningAddress,
 	}
 
 	providedFiles = append(providedFiles, fileMetaData)
