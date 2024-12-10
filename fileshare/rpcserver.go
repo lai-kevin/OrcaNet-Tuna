@@ -153,7 +153,6 @@ func (s *FileShareService) GetNodeInfo(r *http.Request, args *GetNodeInfoArgs, r
 		PeerID:    globalNode.ID().String(),
 		MultiAddr: globalOrcaDHT.Host().Addrs()[0].String(),
 		Status:    "Online",
-		WalletID:  "462dfsg46hlgsdjgpo3i5nhdfgsdfg2354", //TODO: Implement wallet
 	}
 	saveState()
 	return nil
@@ -195,7 +194,6 @@ func (s *FileShareService) GetUpdates(r *http.Request, args *GetUpdatesArgs, rep
 
 	*reply = GetUpdatesReply{
 		Success:        true,
-		WalletID:       "462dfsg46hlgsdjgpo3i5nhdfgsdfg2354", //TODO: Implement wallet
 		PeerID:         globalNode.ID().String(),
 		MultiAddr:      globalOrcaDHT.Host().Addrs()[0].String(),
 		Status:         status,

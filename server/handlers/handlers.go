@@ -582,12 +582,20 @@ func GetTransactionHistory(w http.ResponseWriter, r *http.Request) {
 	var transactionDetails []map[string]interface{}
 	for _, tx := range transactions {
 		txDetails := map[string]interface{}{
-			"txid":         tx["txid"],
-			"time":         time.Unix(int64(tx["time"].(float64)), 0).Format(time.RFC3339),
-			"amount":       tx["amount"],       
-			"category":     tx["category"],  // "send", "receive", or "generate" (mined)
+			"txid":          tx["txid"],
+			"time":          time.Unix(int64(tx["time"].(float64)), 0).Format(time.RFC3339),
+			"amount":        tx["amount"],
+			"category":      tx["category"],  // "send", "receive", or "generate" (mined)
 			"confirmations": tx["confirmations"],
 		}
+
+		// Check if the transaction has an address and include it
+		if address, ok := tx["address"]; ok {
+			txDetails["address"] = address
+		} else {
+			txDetails["address"] = "N/A"  // If no address found, mark it as N/A
+		}
+
 		transactionDetails = append(transactionDetails, txDetails)
 	}
 
@@ -680,7 +688,7 @@ func DeleteWallet(w http.ResponseWriter, r *http.Request) {
 
 	// Respond with success message
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "Wallet deleted successfully!")
+	fmt.Fprintln(w, "Wallet deleted successfully.")
 }
 
 func getUsage() (string, error) {
