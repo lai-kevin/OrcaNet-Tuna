@@ -132,7 +132,7 @@ func connectAndPauseRequestFromPeer(requestID string, status bool) error {
 	return nil
 }
 
-func sendCoinToAddress(miningAddress string, amount float32) error {
+func sendCoinToAddress(miningAddress string, amount float32) (string, error) {
 	url := "http://localhost:8080/sendToAddress"
 	method := "GET"
 
@@ -145,31 +145,31 @@ func sendCoinToAddress(miningAddress string, amount float32) error {
 	req, err := http.NewRequest(method, url, payload)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 	req.Header.Add("Content-Type", "application/json")
 
 	res, err := client.Do(req)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	var result map[string]string
 	if err = json.Unmarshal(body, &result); err != nil {
-		return err
+		return "", err
 	}
 
 	if result["message"] != "Funds sent successfully!" {
 		log.Println("Sent coin to address: ", miningAddress)
-		return nil
+		return result["txid"], err
 	} else {
-		return fmt.Errorf("Error sending coin: %s", result["message"])
+		return "", fmt.Errorf("Error sending coin: %s", result["message"])
 	}
 }
 

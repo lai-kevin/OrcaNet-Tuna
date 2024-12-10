@@ -49,6 +49,7 @@ type GetFileReply struct {
 	Message   string `json:"message"`
 	RequestID string `json:"request_id"`
 	FileHash  string `json:"file_hash"`
+	Txid      string `json:"txid"`
 }
 
 type GetFileMetaDataReply struct {

@@ -72,13 +72,13 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 		*reply = GetFileReply{Success: false}
 	}
 
-	err = sendCoinToAddress(miningAddress, metadataResponse[args.FileHash+args.PeerID].price)
+	txid, err := sendCoinToAddress(miningAddress, metadataResponse[args.FileHash+args.PeerID].price)
 	if err != nil {
 		log.Printf("Failed to send currency to peer: %v\n", err)
 		*reply = GetFileReply{Success: false}
 	}
 
-	*reply = GetFileReply{Success: true, Message: "File dowloaded successfully", RequestID: requestID, FileHash: args.FileHash}
+	*reply = GetFileReply{Success: true, Message: "File dowloaded successfully", RequestID: requestID, FileHash: args.FileHash, Txid: txid}
 	saveState()
 	return nil
 }
