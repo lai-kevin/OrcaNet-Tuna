@@ -72,7 +72,7 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 		*reply = GetFileReply{Success: false}
 	}
 
-	txid, err := sendCoinToAddress(miningAddress, metadataResponse[args.FileHash+args.PeerID].price)
+	txid, err := sendCoinToAddress(miningAddress, metadataResponse[args.FileHash+args.PeerID].Price)
 	if err != nil {
 		log.Printf("Failed to send currency to peer: %v\n", err)
 		*reply = GetFileReply{Success: false}
