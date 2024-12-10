@@ -3,7 +3,7 @@ import { AppContext } from "./AppContext";
 import { LiaDownloadSolid } from "react-icons/lia";
 import { FaArrowDown } from "react-icons/fa";
 import { FaCircle } from "react-icons/fa";
-import { getFileRPC } from "../RpcAPI";
+import { getFileRPC, uploadFileRPC } from "../RpcAPI";
 
 
 const DownloadModal = () =>{
@@ -30,6 +30,7 @@ const DownloadModal = () =>{
     const handleDownloadState = async ()=> {
       //preemptivvely adding this here so that i can in the future have a react hook trigger after rpc call is completed
       await getFileRPC([{file_hash: selectedProvider.FileHash, peer_id: selectedProvider.PeerID }])
+      // await uploadFileRPC([{file_path: fileToDownload.f}])
     }
 
     const handleDownload = () => {
@@ -37,61 +38,64 @@ const DownloadModal = () =>{
         let file = fileToDownload;
         if(becomeProvider){
           //add it to their uploads
+          //IN PROGRESS PROVIDE A FILE POST DOWNLOAD
+          uploadFileRPC([{file_path: "downloads/"+fileToDownload.name, price:Number(price)}]);
           let fileForUploads = {...file};
           fileForUploads.price = Number(price);
           fileForUploads.timestamp = new Date();
-          let alreadyAdded = 0;
-          const updatedDummyFiles = dummyFiles.map(file => {
-            if (file.hashId === fileForUploads.hashId) {
-              const existingUserProviderIndex = file.providers.findIndex(provider => provider.id === user.walletID);
+          // uploadFileRPC();
+          let existingIndex = uploadHistory.findIndex(file => file.hashId === selectedProvider.FileHash); // might need to change this since i guess we want people to update their entries
+          // const updatedDummyFiles = dummyFiles.map(file => {
+          //   if (file.hashId === fileForUploads.hashId) {
+          //     const existingUserProviderIndex = file.providers.findIndex(provider => provider.id === user.walletID);
               
-              if (existingUserProviderIndex !== -1) {
-                // Update existing provider 
-                alreadyAdded = 1;
-                const updatedProviders = [...file.providers];
-                updatedProviders[existingUserProviderIndex] = {
-                  ...updatedProviders[existingUserProviderIndex],
-                  price: Number(price),
-                  timestamp: new Date(),
-                  status: "online"
-                  // Not going to reset the download count we will count it as a reregister
-                };
+          //     if (existingUserProviderIndex !== -1) {
+          //       // Update existing provider 
+          //       alreadyAdded = 1;
+          //       const updatedProviders = [...file.providers];
+          //       updatedProviders[existingUserProviderIndex] = {
+          //         ...updatedProviders[existingUserProviderIndex],
+          //         price: Number(price),
+          //         timestamp: new Date(),
+          //         status: "online"
+          //         // Not going to reset the download count we will count it as a reregister
+          //       };
                 
-                return {
-                  ...file,
-                  providers: updatedProviders
-                };
-              } else {
-                // Add new provider // the current user
-                return {
-                  ...file,
-                  providers: [
-                    ...file.providers,
-                    {
-                      id: user.walletID,
-                      price: Number(price),
-                      timestamp: new Date(),
-                      downloads: 0,
-                      status: "online"
-                    }
-                  ]
-                };
-              }
-            }
-            return file;
-          });
-          setDummyFiles([...updatedDummyFiles]);
-          if(alreadyAdded == 1){
+          //       return {
+          //         ...file,
+          //         providers: updatedProviders
+          //       };
+          //     } else {
+          //       // Add new provider // the current user
+          //       return {
+          //         ...file,
+          //         providers: [
+          //           ...file.providers,
+          //           {
+          //             id: user.walletID,
+          //             price: Number(price),
+          //             timestamp: new Date(),
+          //             downloads: 0,
+          //             status: "online"
+          //           }
+          //         ]
+          //       };
+          //     }
+          //   }
+          //   return file;
+          // });
+          // setDummyFiles([...updatedDummyFiles]);
+          if(existingIndex != -1){
             setUploadHistory([...uploadHistory]);
           }
           else{
             setUploadHistory([...uploadHistory,fileForUploads]);
           }
         }
-        file.status = "downloading";
-        file.index = downloads.length;
-        file.progress = Math.random() * (100 - 10) + 10;
-        file.priority = downloads.length + 1; //set the priority. By default is the lowest possible priority of all the ongoing downloads
+        // file.status = "downloading";
+        // file.index = downloads.length;
+        // file.progress = Math.random() * (100 - 10) + 10;
+        // file.priority = downloads.length + 1; //set the priority. By default is the lowest possible priority of all the ongoing downloads
         // setDownloads([...downloads,file]);
         setFileToDownload(null);
         setSelectedProvider("--");//maybe figure out if this would be nice to have somewhere else
@@ -160,7 +164,7 @@ const DownloadModal = () =>{
         return (
           <div className="modal">
             <div className="modal_content">
-              <p>We sucessfully found the following file: {fileToDownload.name + " " + fileToDownload.size + " MB"}</p>
+              <p>We sucessfully found the following file: {fileToDownload.name + " " + (fileToDownload.size/ (1024 * 1024)).toFixed(2) + " MB"}</p>
               <br/>
               <p>Select a provider from the following list of providers</p>
               <br/>

@@ -39,7 +39,7 @@ const CancelUploadModal = () =>{
         <div className="modal_content">
           <p>Would you like to stop serving the following file?</p>
           <br/>
-          <p>{fileToRemove.name}</p>
+          <p>{fileToRemove.name.split('/').pop()}</p>
           <p>{"hash ID: " + fileToRemove.hashId}</p>
           <p>{"Price: " + fileToRemove.price + " OrcaCoin"}</p>
           {errMsg &&  <div style={{color: "red", fontWeight: "800"}}><p>{errMsg}</p> <p>All transactions related to the above file must be complete prior to removal.</p></div>}

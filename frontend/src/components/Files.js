@@ -5,7 +5,7 @@ import { LuPlay } from "react-icons/lu";
 import { MdOutlineCancel } from "react-icons/md";
 import { LuPause } from "react-icons/lu";
 import { FaSearch } from "react-icons/fa";
-import { NavLink, useLocation} from 'react-router-dom';
+import { useLocation} from 'react-router-dom';
 import { GiInfo } from "react-icons/gi";
 
 
@@ -17,32 +17,13 @@ import { AppContext } from "./AppContext";
 import DownloadModal from "./DownloadModal";
 import CancelUploadModal from "./UploadModal";
 import DownloadFinishedPopUp from "./PopUp";
-import {getFileMetaDataRPC, getFileProviders, getFileProvidersWMetaData, getHistory, getUpdatesFromGoNode, pauseDownloadFileRPC, resumeDownloadFileRPC, stopDownloadingFileRPC, uploadFileRPC} from "../RpcAPI"
-
-const bip39 = require('bip39');
-const { HDKey } = require('ethereum-cryptography/hdkey');
-
-function randomTimestamp() {
-  const end = new Date();
-  const start = new Date(2023,0,1);
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-}
+import { getFileProvidersWMetaData, getHistory, getUpdatesFromGoNode, pauseDownloadFileRPC, resumeDownloadFileRPC, uploadFileRPC} from "../RpcAPI"
 
 
 const Files = () => {
-  let sampleData = [{type: "image",name: "Screenshot 2025-02-18 211342",hashId: "zxcasd2lajnf5aoiuanfna1kjzx",size: "1 MB",timestamp: randomTimestamp()},
-    {type: "image",name: "my_social_security_number.png",hashId: "as13dncx,jvkbvskh4sf",size: "1 MB", timestamp: randomTimestamp() },
-    {type: "pdf",name: "tuna_recipes.pdf",hashId: "ascn123kcadsxvh14boadab",size: "124 MB",timestamp: randomTimestamp() },
-    {type: "folder",name: "homework",hashId: "ascn123kcbxvh14boadab",size: "1MB",timestamp: randomTimestamp()},
-    {type: "mp3",name: "Lo_Siento_BB:/.mp3",hashId: "zxc5nksdhbvshba2315jhd",size: "124 MB",timestamp: randomTimestamp() },
-    {type: "text",name: "lyrics_for_my_next_mixtape.txt",hashId: "as1dzxc1239zxczvsfsfsd",size: "1 MB",timestamp: randomTimestamp()},
-    {type: "folder",name: "node_modules",hashId: "12zxaweqr3zc25zca;/';45",size: "50 MB", timestamp: randomTimestamp()}
-  ];
-
   const location = useLocation();
 
-
-  const {user, searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads,setFileToRemove,fileToRemove,  setSearchResultsFound, setFileToDownload, dummyFiles,setDummyFiles} = useContext(AppContext);
+  const {user, searchResultsFound,uploadHistory,setUploadHistory,downloads,setDownloads,setFileToRemove,fileToRemove,  setSearchResultsFound, setFileToDownload} = useContext(AppContext);
   const [downloadHistory, setDownloadHistory] = useState([]);// move to a global app context in the future?
   // const [proxyHistory, setProxyHistory] = useState([]);this should probably somewhere else now that we know what it is
 
@@ -68,6 +49,9 @@ const Files = () => {
     } 
 
     setUploadHistory([...uploadHistory,newFile]);
+    // const updatesRespond = await getUpdatesFromGoNode([]); //look at the list of prividing
+    // const listOfProvidedFiles = updatesRespond.result.providing;
+    // setUploadHistory(listOfProvidedFiles);
     setFileToUpload(null);
     console.log(shareResponse);
     
@@ -89,13 +73,16 @@ const Files = () => {
     let curUserHistory = await getHistory([]);
     let downloadHistory = curUserHistory.result.download_history;
     setDownloadHistory(downloadHistory);//can try inserting the Time Sent as needed from the requested files list
-
-
   }
   const handleSettingCurrentDownloads = async () => {
     let curUpdates = await getUpdatesFromGoNode([]);
     let curDownloads = curUpdates.result.downloads
     setDownloads(curDownloads)
+  }
+  const handleSettingUploads = async () =>{
+    // const updatesRespond = await getUpdatesFromGoNode([]); //look at the list of prividing
+    // const listOfProvidedFiles = updatesRespond.result.providing;
+    // setUploadHistory(listOfProvidedFiles);
   }
 
   //UseEffect hook to re request download history when switching tabs
@@ -114,6 +101,10 @@ const Files = () => {
 
       return () => clearInterval(intervalId);
     }
+    //set the list in the uploads lets hope it doesnt take long
+    if(activeTab === "Uploads"){
+      // handleSettingUploads();
+    }
 
     //make cases for the rest
   },[activeTab]);
@@ -125,6 +116,7 @@ const Files = () => {
   useEffect(()=>{
     if(fileToUpload != null){
       handleProvideFile();
+      //maybe set here the list of uploads or inside the handle provide file
     }
 
   },[fileToUpload]);
@@ -278,11 +270,12 @@ const Files = () => {
     }
 
     if(activeTab === "Uploads"){
+      let nameForUploads = name.split('/').pop();//only need this if im storing the names locally api uses an explicit file name
       return(
         <div className = "fileCard" onClick={HandleRemoveUpload} style={{cursor: 'pointer'}}>
           <div style = {{display: 'flex', alignItems: "center" }}><FileIcon style={{ width: '40%', height: '40%' }}/> </div>
           <div>
-            <p>{name}</p>
+            <p>{nameForUploads}</p>
             <p style = {{color: "#9b9b9b"}} >{hashId}</p>
           </div>
           <div>{size}  <p style = {{color: "#9b9b9b"}}>{timestamp.toDateString()}</p></div>
@@ -389,6 +382,10 @@ const Files = () => {
        
       
       case "Uploads":
+        //FileName
+        //FileSize
+        //FileHash
+        //^object format in the file response if we use the objets in update providing
         return uploadHistory.map(file =>{
           return(
             <FileCard
@@ -398,8 +395,8 @@ const Files = () => {
               hashId = {file.hashId}
               size = {file.size}
               price = {file.price}
-              downloaders={file.downloaders}
-              timestamp={file.timestamp}
+              downloaders={null}
+              timestamp={file.timestamp} //no longer used in the api nor file card
             />
           )
         });
@@ -408,7 +405,7 @@ const Files = () => {
         let j = 0;
         return downloads.map(file =>{
           j++;
-          if(file.DownloadProgress != 1){
+          if(file.DownloadProgress !== 1){
             return(
               <FileCardDownload
                 key = {j +"." +file.RequestID + file.FileHash}
