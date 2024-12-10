@@ -40,13 +40,13 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 	fileMetaData, exists := metadataResponse[args.FileHash+args.PeerID]
 	if !exists {
 		log.Printf("File price metadata does not exist for file hash %s and peer ID %s\n", args.FileHash, args.PeerID)
-		*reply = GetFileReply{Success: false}
+		*reply = GetFileReply{Success: false, Message: "File price metadata does not exist. Request file metadata first"}
 		return fmt.Errorf("file price metadata does not exist. Request file metadata first")
 	}
 
 	if balanceFloat32 < fileMetaData.Price {
 		log.Printf("Insufficient balance to download file: %v\n", err)
-		*reply = GetFileReply{Success: false}
+		*reply = GetFileReply{Success: false, Message: "Insufficient balance to download file"}
 	}
 
 	// Request file from peer
@@ -61,7 +61,7 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 	err = connectAndRequestFileFromPeer(args.FileHash, requestID, args.PeerID)
 	if err != nil {
 		log.Printf("Failed to get file: %v\n", err)
-		*reply = GetFileReply{Success: false}
+		*reply = GetFileReply{Success: false, Message: "Failed to get file. No response from peer"}
 		return err
 	}
 
