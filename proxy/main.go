@@ -29,16 +29,16 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv2/client"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/multiformats/go-multihash"
-	"github.com/rs/cors"
 )
 
 // ProxyClient struct to store proxy node info
 type ProxyClient struct {
-	Name       string `json:"name"`
-	IP         string `json:"ip"`
-	Port       string `json:"port"`
-	PricePerMB int    `json:"price_per_mb"`
-	IsMine     bool   `json:"is_mine"`
+	Name       string  `json:"name"`
+	IP         string  `json:"ip"`
+	Port       string  `json:"port"`
+	PricePerMB int     `json:"price_per_mb"`
+	IsMine     bool    `json:"is_mine"`
+	PeerId     peer.ID `json:"peer_id"`
 }
 
 // Constants for HTTP Proxy
@@ -52,7 +52,7 @@ const (
 var (
 	relay_node_addr = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
 	// bootstrap_node_addr = "/ip4/127.0.0.1/tcp/49574/12D3KooWH17Pwmfmqgf8UwRDEbg8xxC9AKowXrWicGnK9uyAAirr"
-	bootstrap_node_addr = "/ip4/130.245.173.221/tcp/6001/p2p/12D3KooWE1xpVccUXZJWZLVWPxXzUJQ7kMqN8UQ2WLn9uQVytmdA"
+	bootstrap_node_addr = "/ip4/130.245.173.222/tcp/61020/p2p/12D3KooWM8uovScE5NPihSCKhXe8sbgdJAi88i2aXT2MmwjGWoSX"
 	globalCtx           = context.Background() // Initialized here
 	node_id             = "114644332"          // give your SBU ID
 	// bootstrap_seed      = "random_string"
@@ -68,8 +68,8 @@ func NewProxyClientsTable() *ProxyClientsTable {
 
 }
 
-func (p *ProxyClientsTable) AddProxyClient(name, ip, port string, isMine bool) {
-	p.clients = append(p.clients, ProxyClient{Name: name, IP: ip, Port: port, IsMine: isMine})
+func (p *ProxyClientsTable) AddProxyClient(name, ip, port string, isMine bool, peerid peer.ID) {
+	p.clients = append(p.clients, ProxyClient{Name: name, IP: ip, Port: port, IsMine: isMine, PeerId: peerid})
 }
 
 func (p *ProxyClientsTable) ListProxies() {
@@ -326,6 +326,10 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT, node host.Host, proxyCli
 				"ip":     myProxy.IP,
 				"port":   myProxy.Port,
 			}
+			peerID := node.ID().String()
+
+			// Print the peer ID
+			fmt.Printf("Your peer ID is: %s\n", peerID)
 
 			providerRecordJSON, err := json.Marshal(providerRecord)
 			if err != nil {
@@ -353,7 +357,7 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT, node host.Host, proxyCli
 				fmt.Printf("Successfully advertised your proxy 'mine' in the DHT with key: %s\n", dhtKey)
 
 				log.Fatal(http.ListenAndServe(
-					":8080",
+					":8082",
 					http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						if r.Method == http.MethodConnect {
 							handleTunnel(w, r)
@@ -610,21 +614,116 @@ func GetProxy(ctx context.Context, dht *dht.IpfsDHT, proxyName string) (*ProxyCl
 // Main libp2p and DHT setup functions...
 // Including other parts from your existing code
 
+func chooseProxy(proxyClientsTable *ProxyClientsTable) {
+	print("in choose proxy")
+	proxyClientsTable.ListProxies()
+
+	fmt.Print("Choose a proxy by entering its number: ")
+	var choice int
+	fmt.Scan(&choice)
+
+	if choice < 1 || choice > len(proxyClientsTable.clients) {
+		fmt.Println("Invalid choice!")
+		return
+	}
+
+	selectedProxy := proxyClientsTable.clients[choice-1]
+	fmt.Printf("You selected proxy: %s (IP: %s, Port: %s)\n", selectedProxy.Name, selectedProxy.IP, selectedProxy.Port)
+
+	// Connect to the selected proxy
+	connectToProxy(selectedProxy)
+
+}
+
 // Function to create a new peer ID
-func createNewPeerID() (peer.ID, crypto.PrivKey, error) {
+func createNewPeerID() (peer.ID, error) {
 	// Generate a new private key (this will give a unique peer ID each time)
 	priv, _, err := crypto.GenerateKeyPair(crypto.Ed25519, 256)
 	if err != nil {
-		return "", nil, fmt.Errorf("failed to generate key pair: %v", err)
+		return "", fmt.Errorf("failed to generate key pair: %v", err)
 	}
 
 	// Generate the peer ID from the private key
 	peerID, err := peer.IDFromPublicKey(priv.GetPublic())
 	if err != nil {
-		return "", nil, fmt.Errorf("failed to generate peer ID: %v", err)
+		return "", fmt.Errorf("failed to generate peer ID: %v", err)
 	}
 
-	return peerID, priv, nil
+	return peerID, nil
+}
+
+func connectToProxy(proxy ProxyClient) {
+	fmt.Println("Comes to connect proxy function and starting proxy")
+
+	// Channel to signal server readiness
+	serverReady := make(chan struct{})
+
+	// Start the selected proxy server in a goroutine
+	go func() {
+		// HTTP handler logic for the proxy server
+		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Printf("Received request at proxy %s: %s %s\n", proxy.Name, r.Method, r.URL.String())
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Proxy server is running and handling requests!"))
+		})
+
+		// Notify that the server is ready after the listener starts
+		go func() {
+			serverReady <- struct{}{}
+		}()
+
+		// Start listening on the selected proxy's IP and Port
+		log.Println("Starting HTTP server on :8020")
+		err := http.ListenAndServe("8020", nil)
+		if err != nil {
+			fmt.Printf("Failed to start proxy server %s at %s: %v\n", proxy.Name, err)
+		}
+	}()
+
+	// Wait for server readiness
+	<-serverReady
+	fmt.Println("Proxy server is ready and running...")
+
+	// Simulate connection to the proxy
+	address := fmt.Sprintf("%s:%s", proxy.IP, proxy.Port)
+	fmt.Println("Attempting to connect to the proxy...")
+
+	// Retry connecting until successful (or for a limited number of retries)
+	var conn net.Conn
+	var err error
+	for retries := 0; retries < 5; retries++ {
+		conn, err = net.Dial("tcp", address)
+		if err == nil {
+			break
+		}
+		fmt.Println("Retrying connection to proxy...")
+		time.Sleep(1 * time.Second)
+	}
+
+	if err != nil {
+		fmt.Println("Failed to connect to proxy:", err)
+		return
+	}
+	defer conn.Close()
+	fmt.Printf("Successfully connected to proxy %s at %s\n", proxy.Name, address)
+
+	// Example: Sending a message to the proxy
+	message := "Hello from the client!"
+	_, err = conn.Write([]byte(message))
+	if err != nil {
+		fmt.Println("Failed to send data to proxy:", err)
+		return
+	}
+	fmt.Println("Message sent to proxy.")
+
+	// Optionally, read a response from the proxy
+	buffer := make([]byte, 1024)
+	n, err := conn.Read(buffer)
+	if err != nil {
+		fmt.Println("Failed to read from proxy:", err)
+		return
+	}
+	fmt.Printf("Received response from proxy: %s\n", string(buffer[:n]))
 }
 
 var (
@@ -695,18 +794,8 @@ func logRequest(reqDetails map[string]interface{}) {
 }
 
 func handleTunnel(w http.ResponseWriter, r *http.Request) {
-	log.Printf("COMES HERE??!!")
-
 	// Initialize byte counters
 	var clientToServerBytes, serverToClientBytes int64
-
-	// Log the request details (initially without bytes)
-	// logRequest(map[string]interface{}{
-	// 	"method":    r.Method,
-	// 	"url":       r.URL.String(),
-	// 	"headers":   r.Header,
-	// 	"timestamp": time.Now().UTC(),
-	// })
 
 	// Prepare log data
 	logData := map[string]interface{}{
@@ -831,11 +920,6 @@ func transfer(stats interface{}, dst, src net.Conn, dstConnStr, srcConnStr strin
 func main() {
 	// Initialize proxy clients table
 	proxyClientsTable := NewProxyClientsTable()
-	proxyClientsTable.AddProxyClient("proxy1", "142.168.1.1", "8081", false)
-	proxyClientsTable.AddProxyClient("proxy2", "122.16.0.1", "8082", false)
-	proxyClientsTable.AddProxyClient("proxy3", "203.0.113.1", "8083", false)
-	proxyClientsTable.AddProxyClient("proxy4", "198.51.100.1", "8084", false)
-	proxyClientsTable.AddProxyClient("mine", "127.0.0.1", "8080", true)
 
 	// Start libp2p logic
 	fmt.Println("Starting libp2p logic...")
@@ -852,40 +936,25 @@ func main() {
 	defer node.Close()
 	defer dht.Close()
 
-	// Initialize the node, connect to relay and bootstrap peers
+	// // Initialize the node, connect to relay and bootstrap peers
 	connectToPeer(node, relay_node_addr)     // Connect to relay node
 	makeReservation(node)                    // Make reservation on relay node
 	connectToPeer(node, bootstrap_node_addr) // Connect to bootstrap node
 
-	// Start peer exchange in a separate goroutine
+	// // Start peer exchange
 	go handlePeerExchange(node)
 
-	// Start the HTTP server in a separate goroutine
-	go startHTTPServer()
+	// Generate unique Peer IDs and private keys for proxies
+	peerID1, err := createNewPeerID()
+	peerID2, err := createNewPeerID()
 
-	// Handle user input and DHT operations
+	fmt.Printf("Your peer MINE: %s\n", node.ID().String())
+	fmt.Printf("Your peer ID1 is: %s\n", peerID1.String())
+	fmt.Printf("Your peer ID2 is: %s\n", peerID2.String())
+
+	proxyClientsTable.AddProxyClient("proxy1", "142.168.1.1", "8085", false, peerID1)
+	proxyClientsTable.AddProxyClient("proxy4", "127.0.0.1", "8084", false, peerID2)
+	proxyClientsTable.AddProxyClient("mine", "127.0.0.1", "8081", true, node.ID())
 	handleInput(ctx, dht, node, proxyClientsTable)
-}
 
-func startHTTPServer() {
-	// Define HTTP handler
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, Proxy!")
-	})
-
-	// Enable CORS for the frontend
-	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:3000"}, // Allow the frontend port
-		AllowedMethods: []string{"GET", "POST"},
-		AllowedHeaders: []string{"Content-Type"},
-	})
-
-	// Wrap the default HTTP handler with CORS middleware
-	handler := c.Handler(http.DefaultServeMux)
-
-	log.Println("Starting HTTP server on :8080")
-	err := http.ListenAndServe(":8080", handler)
-	if err != nil {
-		log.Fatal(err)
-	}
 }
