@@ -65,14 +65,7 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 		return err
 	}
 
-	// Send currency to peer
-	miningAddress, err := getMiningAddress()
-	if err != nil {
-		log.Printf("Failed to get mining address: %v\n", err)
-		*reply = GetFileReply{Success: false}
-	}
-
-	txid, err := sendCoinToAddress(miningAddress, metadataResponse[args.FileHash+args.PeerID].Price)
+	txid, err := sendCoinToAddress(fileMetaData.MiningAddress, metadataResponse[args.FileHash+args.PeerID].Price)
 	if err != nil {
 		log.Printf("Failed to send currency to peer: %v\n", err)
 		*reply = GetFileReply{Success: false}
@@ -238,7 +231,6 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 	fileExt := fp.Ext(filepath)
 
 	miningAddress, err := getMiningAddress()
-
 	if err != nil {
 		log.Printf("Failed to get mining address: %v\n", err)
 	}

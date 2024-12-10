@@ -222,6 +222,8 @@ func getMiningAddress() (string, error) {
 		return "", err
 	}
 
+	log.Println("Response Body:", string(body))
+
 	var result map[string]string
 	if err = json.Unmarshal(body, &result); err != nil {
 		return "", err
