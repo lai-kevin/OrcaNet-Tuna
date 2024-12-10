@@ -308,6 +308,7 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT, node host.Host, proxyCli
 				continue
 			}
 
+			fmt.Printf("Starting proxy '%s' with Peer ID %s on %s:%s...\n", myProxy.Name, myProxy.PeerId.String(), myProxy.IP, myProxy.Port)
 			dhtKey := "/orcanet/proxies/" + myProxy.IP
 
 			// Check if the key already exists in the DHT
@@ -332,6 +333,8 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT, node host.Host, proxyCli
 			fmt.Printf("Your peer ID is: %s\n", peerID)
 
 			providerRecordJSON, err := json.Marshal(providerRecord)
+			fmt.Printf("Your PROVIDER RECORD %s\n", providerRecordJSON)
+
 			if err != nil {
 				fmt.Printf("Failed to serialize provider record for 'mine': %v\n", err)
 				continue
@@ -339,6 +342,7 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT, node host.Host, proxyCli
 
 			// Put (overwrite) the record into the DHT
 			err = dht.PutValue(ctx, dhtKey, providerRecordJSON)
+
 			if err != nil {
 				fmt.Printf("Failed to advertise proxy '%s' in the DHT: %v\n", dhtKey, err)
 				continue
@@ -357,7 +361,7 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT, node host.Host, proxyCli
 				fmt.Printf("Successfully advertised your proxy 'mine' in the DHT with key: %s\n", dhtKey)
 
 				log.Fatal(http.ListenAndServe(
-					":8082",
+					":8081",
 					http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						if r.Method == http.MethodConnect {
 							handleTunnel(w, r)
@@ -401,7 +405,7 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT, node host.Host, proxyCli
 				}
 
 				// Construct a unique DHT key for each proxy
-				dhtKey := "/orcanet/proxies/" + proxy.IP
+				dhtKey := "/orcanet/proxies/" + proxy.IP + proxy.Port
 				// Check if the key already exists in the DHT
 				existingValue, err := dht.GetValue(ctx, dhtKey)
 				if err == nil && existingValue != nil {
@@ -587,6 +591,49 @@ func createNode(proxyClientsTable *ProxyClientsTable) (host.Host, *dht.IpfsDHT, 
 	// 	// }
 	// }()
 	return node, dhtRouting, nil
+}
+
+func createNode2(proxyClientsTable *ProxyClientsTable, node_id string) (host.Host, error) {
+	seed := []byte(node_id)
+	customAddr, err := multiaddr.NewMultiaddr("/ip4/0.0.0.0/tcp/0")
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse multiaddr: %w", err)
+	}
+
+	privKey, err := generatePrivateKeyFromSeed(seed)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	relayAddr, err := multiaddr.NewMultiaddr(relay_node_addr)
+	if err != nil {
+		log.Fatalf("Failed to create relay multiaddr: %v", err)
+	}
+
+	// Convert the relay multiaddress to AddrInfo
+	relayInfo, err := peer.AddrInfoFromP2pAddr(relayAddr)
+	if err != nil {
+		log.Fatalf("Failed to create AddrInfo from relay multiaddr: %v", err)
+	}
+
+	node, err := libp2p.New(
+		libp2p.ListenAddrs(customAddr),
+		libp2p.Identity(privKey),
+		libp2p.NATPortMap(),
+		libp2p.EnableNATService(),
+		libp2p.EnableAutoRelayWithStaticRelays([]peer.AddrInfo{*relayInfo}),
+		libp2p.EnableRelayService(),
+		libp2p.EnableHolePunching(),
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("Node multiaddresses:", node.Addrs())
+	fmt.Println("Node Peer ID:", node.ID())
+
+	return node, nil
 }
 
 // Function to get proxy details from the DHT
@@ -916,7 +963,6 @@ func transfer(stats interface{}, dst, src net.Conn, dstConnStr, srcConnStr strin
 	}
 	return bytesTransferred
 }
-
 func main() {
 	// Initialize proxy clients table
 	proxyClientsTable := NewProxyClientsTable()
@@ -926,6 +972,9 @@ func main() {
 
 	// Create the libp2p node
 	node, dht, err := createNode(proxyClientsTable)
+	node2, err := createNode2(proxyClientsTable, "113455924")
+	node3, err := createNode2(proxyClientsTable, "113455920")
+
 	if err != nil {
 		log.Fatalf("Failed to create node: %s", err)
 	}
@@ -936,25 +985,83 @@ func main() {
 	defer node.Close()
 	defer dht.Close()
 
-	// // Initialize the node, connect to relay and bootstrap peers
+	// Initialize the node, connect to relay and bootstrap peers
 	connectToPeer(node, relay_node_addr)     // Connect to relay node
 	makeReservation(node)                    // Make reservation on relay node
 	connectToPeer(node, bootstrap_node_addr) // Connect to bootstrap node
 
-	// // Start peer exchange
+	// Start peer exchange
 	go handlePeerExchange(node)
 
 	// Generate unique Peer IDs and private keys for proxies
-	peerID1, err := createNewPeerID()
-	peerID2, err := createNewPeerID()
+	// peerID1, err := createNewPeerID()
+	// if err != nil {
+	// 	log.Fatalf("Failed to generate Peer ID 1: %v", err)
+	// }
 
 	fmt.Printf("Your peer MINE: %s\n", node.ID().String())
-	fmt.Printf("Your peer ID1 is: %s\n", peerID1.String())
-	fmt.Printf("Your peer ID2 is: %s\n", peerID2.String())
+	fmt.Printf("Your peer ID1 is: %s\n", node2.ID())
+	fmt.Printf("Your peer ID2 is: %s\n", node3.ID())
 
-	proxyClientsTable.AddProxyClient("proxy1", "142.168.1.1", "8085", false, peerID1)
-	proxyClientsTable.AddProxyClient("proxy4", "127.0.0.1", "8084", false, peerID2)
+	// Add proxies to the table
+	proxyClientsTable.AddProxyClient("proxy1", "127.0.0.1", "8085", false, node2.ID())
+	proxyClientsTable.AddProxyClient("proxy2", "127.0.0.1", "8084", false, node3.ID())
 	proxyClientsTable.AddProxyClient("mine", "127.0.0.1", "8081", true, node.ID())
-	handleInput(ctx, dht, node, proxyClientsTable)
 
+	proxyPeerMap := map[string]peer.ID{
+		"proxy1": node2.ID(),
+		"proxy2": node3.ID(),
+		"mine":   node.ID(),
+	}
+
+	// Start all proxies except for "mine"
+	for _, proxy := range proxyClientsTable.clients {
+		if proxy.IsMine {
+			continue // Skip "mine"
+		}
+
+		go func(proxy ProxyClient) {
+			peerID, exists := proxyPeerMap[proxy.Name]
+			if !exists {
+				log.Printf("No Peer ID found for proxy '%s'\n", proxy.Name)
+				return
+			}
+			fmt.Printf("Starting proxy '%s' with Peer ID %s on %s:%s...\n", proxy.Name, peerID.String(), proxy.IP, proxy.Port)
+
+			providerRecord := map[string]interface{}{
+				"peerID": peerID.String(),
+				"ip":     proxy.IP,
+				"port":   proxy.Port,
+			}
+
+			providerRecordJSON, err := json.Marshal(providerRecord)
+			fmt.Printf("Your PROVIDER RECORD IN MAIN %s\n", providerRecordJSON)
+
+			if err != nil {
+				log.Printf("Failed to serialize provider record for '%s': %v\n", proxy.Name, err)
+				return
+			}
+
+			// Start the HTTP server for the proxy
+			fmt.Printf("Starting proxy '%s' on %s:%s...\n", proxy.Name, proxy.IP, proxy.Port)
+			log.Fatal(http.ListenAndServe(
+				proxy.IP+":"+proxy.Port,
+				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if r.Method == http.MethodConnect {
+						handleTunnel(w, r)
+					} else {
+						handleHTTP(w, r)
+					}
+				}),
+			))
+		}(proxy)
+	}
+
+	// Handle "mine" proxy (already in your code)
+	myProxy := proxyClientsTable.GetProxyClient("mine")
+	if myProxy == nil {
+		fmt.Println("No proxy with the name 'mine' found")
+		return
+	}
+	handleInput(ctx, dht, node, proxyClientsTable)
 }
