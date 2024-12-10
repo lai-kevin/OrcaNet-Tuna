@@ -47,32 +47,32 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 	if balanceFloat32 < fileMetaData.Price {
 		log.Printf("Insufficient balance to download file: %v\n", err)
 		*reply = GetFileReply{Success: false, Message: "Insufficient balance to download file"}
-	}
+	} else {
+		// Request file from peer
+		requestID := generateRequestID()
+		fileRequests = append(fileRequests, FileRequest{
+			RequestID:             requestID,
+			FileHash:              args.FileHash,
+			RequesterID:           globalNode.ID().String(),
+			RequesterMultiAddress: globalOrcaDHT.Host().Addrs()[0].String(),
+			TimeSent:              time.Now(),
+		})
+		err = connectAndRequestFileFromPeer(args.FileHash, requestID, args.PeerID)
+		if err != nil {
+			log.Printf("Failed to get file: %v\n", err)
+			*reply = GetFileReply{Success: false, Message: "Failed to get file. No response from peer"}
+			return err
+		}
 
-	// Request file from peer
-	requestID := generateRequestID()
-	fileRequests = append(fileRequests, FileRequest{
-		RequestID:             requestID,
-		FileHash:              args.FileHash,
-		RequesterID:           globalNode.ID().String(),
-		RequesterMultiAddress: globalOrcaDHT.Host().Addrs()[0].String(),
-		TimeSent:              time.Now(),
-	})
-	err = connectAndRequestFileFromPeer(args.FileHash, requestID, args.PeerID)
-	if err != nil {
-		log.Printf("Failed to get file: %v\n", err)
-		*reply = GetFileReply{Success: false, Message: "Failed to get file. No response from peer"}
-		return err
-	}
+		txid, err := sendCoinToAddress(fileMetaData.MiningAddress, metadataResponse[args.FileHash+args.PeerID].Price)
+		if err != nil {
+			log.Printf("Failed to send currency to peer: %v\n", err)
+			*reply = GetFileReply{Success: false}
+		}
 
-	txid, err := sendCoinToAddress(fileMetaData.MiningAddress, metadataResponse[args.FileHash+args.PeerID].Price)
-	if err != nil {
-		log.Printf("Failed to send currency to peer: %v\n", err)
-		*reply = GetFileReply{Success: false}
+		*reply = GetFileReply{Success: true, Message: "File dowloaded successfully", RequestID: requestID, FileHash: args.FileHash, Txid: txid}
+		saveState()
 	}
-
-	*reply = GetFileReply{Success: true, Message: "File dowloaded successfully", RequestID: requestID, FileHash: args.FileHash, Txid: txid}
-	saveState()
 	return nil
 }
 
