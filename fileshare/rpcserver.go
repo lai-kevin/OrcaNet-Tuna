@@ -44,7 +44,7 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 		return fmt.Errorf("file price metadata does not exist. Request file metadata first")
 	}
 
-	if balanceFloat32 < fileMetaData.price {
+	if balanceFloat32 < fileMetaData.Price {
 		log.Printf("Insufficient balance to download file: %v\n", err)
 		*reply = GetFileReply{Success: false}
 	}
@@ -238,7 +238,6 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 	fileExt := fp.Ext(filepath)
 
 	miningAddress, err := getMiningAddress()
-	log.Printf("Providing file %s with price %f\n", filepath, args.Price)
 
 	if err != nil {
 		log.Printf("Failed to get mining address: %v\n", err)
