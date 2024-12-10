@@ -5,6 +5,7 @@ const cors = require("cors");
 const localServerApp = express();
 const PORT = 8088;
 const fs = require('fs');
+const os = require('os');
 const { exec } = require('child_process');
 const axios = require('axios');
 
@@ -34,21 +35,21 @@ const automate = () => {
         console.error("Error checking running containers:", stderr);
         return;
       }
-      const running = stdout.trim();
 
+      const running = stdout.trim();
       if (running) {
         console.log(`Container is already running with ID: ${running}`);
-        containerId = running; 
+        containerId = running; // Save the container ID
         return;
       }
+
       exec('docker ps -a -q -f "ancestor=myapi"', (err, stdout, stderr) => {
         if (err) {
           console.error("Error checking existing containers:", stderr);
           return;
         }
 
-        const exist= stdout.trim();
-
+        const exist = stdout.trim();
         if (exist) {
           console.log(`Found stopped container with ID: ${exist}. Restarting...`);
           exec(`docker start ${exist}`, (err, stdout, stderr) => {
@@ -57,30 +58,18 @@ const automate = () => {
               return;
             }
             console.log(`Container "${exist}" started successfully.`);
-            containerId = exist; 
+            containerId = exist; // Save the container ID
           });
         } else {
-          console.log("No existing container found. Creating a new one...");
-          const com = [
-            'docker build -t myapi .',
-            'docker run -p 8080:8080 -d myapi'
-          ];
+          console.log("No existing container found. Running a new one...");
 
-          com.forEach((cmd, index) => {
-            exec(cmd, { cwd: path.join(__dirname, '..') }, (err, stdout, stderr) => {
-              if (err) {
-                console.error(`Error executing "${cmd}":`, err);
-                console.error('stderr:', stderr);
-              } else {
-                console.log(`Command "${cmd}" executed successfully:`);
-                console.log(stdout);
-
-                if (index === 1) {
-                  containerId = stdout.trim();
-                  console.log(`New container started with ID: ${containerId}`);
-                }
-              }
-            });
+          exec('docker run -p 8080:8080 -d myapi', { cwd: path.join(__dirname, '..') }, (err, stdout, stderr) => {
+            if (err) {
+              console.error("Error running Docker container:", stderr);
+              return;
+            }
+            containerId = stdout.trim(); // Save the container ID
+            console.log(`New container started with ID: ${containerId}`);
           });
         }
       });
@@ -90,78 +79,59 @@ const automate = () => {
 
 let containerName = null;
 let conId = null;
+const isWindows = os.platform() === 'win32'; 
+const downloadsPath = isWindows ? `${process.env.USERPROFILE}\\Downloads`: '~/Downloads'; 
+
 const automateFile = (id) => {
-  return new Promise((resolve, reject) => {
-    check(() => {
-      containerName = `fileshare-container-${id}`;
+  check(() => {
+    containerName = `fileshare-container-${id}`;
+    exec(`docker ps -q -f "name=${containerName}"`, (err, stdout, stderr) => {
+      if (err) {
+        console.log(`Error checking running containers: ${stderr}`);
+        return;
+      }
+      const running = stdout.trim();
 
-      exec(`docker ps -q -f "name=${containerName}"`, (err, stdout, stderr) => {
+      if (running) {
+        console.log(`Container is already running with ID: ${running}`);
+        conId = running;
+        console.log(`Container ${conId} is already running.`);
+        return;
+      }
+
+      exec(`docker ps -a -q -f "name=${containerName}"`, (err, stdout, stderr) => {
         if (err) {
-          reject(`Error checking running containers: ${stderr}`);
-          return;
-        }
-        const running = stdout.trim();
-
-        if (running) {
-          console.log(`Container is already running with ID: ${running}`);
-          conId = running;
-          resolve(`Container ${conId} is already running.`);
+          console.log(`Error checking existing containers: ${stderr}`);
           return;
         }
 
-        exec(`docker ps -a -q -f "name=${containerName}"`, (err, stdout, stderr) => {
-          if (err) {
-            reject(`Error checking existing containers: ${stderr}`);
-            return;
-          }
+        const exist = stdout.trim();
 
-          const exist = stdout.trim();
+        if (exist) {
+          console.log(`Found stopped container with ID: ${exist}. Restarting...`);
+          exec(`docker start ${exist}`, (err, stdout, stderr) => {
+            if (err) {
+              console.log(`Error starting container "${exist}": ${stderr}`);
+              return;
+            }
+            console.log(`Container "${exist}" started successfully.`);
+            conId = exist;
+          });
+        } else {
+          console.log("No existing container found. Creating a new one...");
 
-          if (exist) {
-            console.log(`Found stopped container with ID: ${exist}. Restarting...`);
-            exec(`docker start ${exist}`, (err, stdout, stderr) => {
-              if (err) {
-                reject(`Error starting container "${exist}": ${stderr}`);
-                return;
-              }
-              console.log(`Container "${exist}" started successfully.`);
-              conId = exist;
-              resolve(`Container "${conId}" started successfully.`);
-            });
-          } else {
-            console.log("No existing container found. Creating a new one...");
-            console.log("ID", id)
-            const com = [
-              `docker build -t fileshare:v1 .`,
-              `docker run -p 8081:1234 --name ${containerName} -v ~/Downloads:/downloads -d fileshare:v1 ${id}`
-            ];
-
-            com.forEach((cmd, index) => {
-              exec(cmd, { cwd: path.join(__dirname, '../fileshare') }, (err, stdout, stderr) => {
-                if (err) {
-                  reject(`Error executing "${cmd}": ${err}`);
-                  reject(stderr);
-                  return;
-                }
-
-                console.log(`Command "${cmd}" executed successfully:`);
-                console.log(stdout);
-
-                if (index === 1) {
-                  containerId = stdout.trim();
-                  console.log(`New container started with ID: ${conId} and name: ${containerName}`);
-                  resolve(`New container started with ID: ${conId} and name: ${containerName}`);
-                }
-              });
-            });
-          }
-        });
+          exec(`docker run -p 8081:1234 --name ${containerName} -v ${downloadsPath}:/downloads -d fileshare:v1 ${id}`, { cwd: path.join(__dirname, '../fileshare') }, (err, stdout, stderr) => {
+            if (err) {
+              console.error("Error running Docker container:", stderr);
+              return;
+            }
+            conId = stdout.trim();
+          });
+        }
       });
     });
   });
 };
-
-
 const terminate = () => {
   if (containerId) {
     const stop = `docker stop ${containerId}`;
@@ -200,7 +170,7 @@ function createWindow() {
     width: 2000,
     height: 1000,
     title: "OrcaNet Desktop App",
-    resizable:true,
+    resizable: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
@@ -321,4 +291,11 @@ app.on("window-all-closed", function () {
     terminateFile();
     app.quit();
   }
+});
+
+process.on("SIGINT", () => {
+  console.log("Caught interrupt signal (Ctrl+C). Cleaning up...");
+  terminate();
+  terminateFile();
+  app.quit();
 });

@@ -4,10 +4,32 @@ Instructions for running:
 
 1. After cloning the repository, open IDE (VS Code recommended) and navigate to the frontend folder 
 2. Run 'npm install'
-3. After successful installation, run 'npm start'
-4. The above step should open an Electron app and our OrcaNet interface
-5. To begin, click on Register and copy the private key
-6. Using the copied private key, login! 
+3. After successful installation:
+    1. Download the Docker desktop application
+    2. Ensure it is open and runnning
+    2. Navigate back to the project folder
+    ```
+    cd ..
+    ```
+    2. Build the docker image:
+    ```
+    docker build -t myapi .
+    ```
+    3. Navigate to the fileshare folder:
+    ```
+    cd fileshare
+    ```
+    4. Build the docker image:
+    ```
+    docker build -t fileshare:v1 .
+    ```
+4. Navigate to the frontend folder
+    ```
+    cd ..
+    ```
+5. Run "npm start"
+6. The above step should open an Electron app and our OrcaNet interface
+7. To begin, click on Register 
 
 To access some of the features as described in the design doc we have provided a few sample hashes that can be pasted into the search bar in the **Files** Tab to preview the workflow for downloading a file.
 ```

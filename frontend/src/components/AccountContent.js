@@ -217,7 +217,7 @@ const Progress =({setView})=>{
             }
         };
         fetchusage();
-        const interval = setInterval(fetchusage, 1000);  
+        const interval = setInterval(fetchusage, 500);  
         return () => clearInterval(interval);
     }, []);
     const calculate =()=>{
@@ -305,6 +305,12 @@ const Transaction = ({mode})=>{
                   return amount > 0 ? Math.abs(amount) :"---"; 
                 }
               }
+              else if (field === "From"){
+                return row["address"] ? row["category"] === "receive": row["category"] === "generate" ?  "---" : user.walletID;
+              }
+              else if (field === "To"){
+                return row["address"] ? row["category"] === "spent": row["category"] === "generate" ?  "---" : user.walletID;
+             }
               return row[field] ?? "---";
             }).join(",")
           ).join("\n");
