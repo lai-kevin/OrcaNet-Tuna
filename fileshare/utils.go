@@ -134,7 +134,7 @@ func connectAndPauseRequestFromPeer(requestID string, status bool) error {
 }
 
 func sendCoinToAddress(miningAddress string, amount float32) (string, error) {
-	url := "http://localhost:8080/sendToAddress"
+	url := "http://host.docker.internal:8080/sendToAddress"
 	method := "GET"
 
 	payload := strings.NewReader(fmt.Sprintf(`{
@@ -156,6 +156,10 @@ func sendCoinToAddress(miningAddress string, amount float32) (string, error) {
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != http.StatusOK {
+		return "", errors.New("failed to send coin: " + res.Status)
+	}
+
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", err
@@ -166,16 +170,12 @@ func sendCoinToAddress(miningAddress string, amount float32) (string, error) {
 		return "", err
 	}
 
-	if result["message"] != "Funds sent successfully!" {
-		log.Println("Sent coin to address: ", miningAddress)
-		return result["txid"], err
-	} else {
-		return "", fmt.Errorf("Error sending coin: %s", result["message"])
-	}
+	log.Println("Sent coin to address: ", miningAddress)
+	return result["txid"], err
 }
 
 func checkBalance() (string, error) {
-	url := "http://localhost:8080/getBalance"
+	url := "http://host.docker.internal:8080/getBalance"
 	method := "GET"
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, nil)
@@ -188,6 +188,9 @@ func checkBalance() (string, error) {
 		return "", err
 	}
 	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return "", errors.New("failed to get balance: " + res.Status)
+	}
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
