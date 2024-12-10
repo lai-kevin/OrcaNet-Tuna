@@ -24,6 +24,7 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
     if (usingElectron) {
       try {
         const chosenFile = await window.electron.ipcRenderer.invoke('open-file-dialog');
+        // console.log(chosenFile);
         if (chosenFile) {
           setFile(chosenFile);
         }
@@ -63,6 +64,7 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
       const filePath = file.path;
       try{
         // const chosenFile = await window.electron.ipcRenderer.invoke('open-file-dialog');
+        // console.log(filePath);
         const result = await window.electron.ipcRenderer.invoke('copy-file-to-container', filePath );
         let submittedFile = {
           name: result.path,

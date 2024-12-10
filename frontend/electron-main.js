@@ -244,10 +244,12 @@ ipcMain.handle('open-file-dialog', async () => {
 
 const copyFileToContainer = (filePath) => {
   return new Promise((resolve, reject) => {
+    // console.log("HELLO ")
     const fileName = path.basename(filePath); // Extract filename
     const targetPath = `/media/${fileName}`;
-
-    const command = `docker cp "${filePath}" ${containerName}:${targetPath}`;
+    console.log(filePath);
+    console.log(fileName);
+    const command = `docker cp "${filePath}" ${containerName}:"${targetPath}"`;
     exec(command, (err, stdout, stderr) => {
       if (err) {
         reject(`Failed to copy file: ${stderr}`);
@@ -261,7 +263,7 @@ const copyFileToContainer = (filePath) => {
 ipcMain.handle('copy-file-to-container', async (event, filePath) => {
   try {
 
-    const targetPath = await copyFileToContainer(filePath, containerName);
+    const targetPath = await copyFileToContainer(filePath);
     return { success: true, path: targetPath };
   } catch (error) {
     console.error("Error in copy-file-to-container:", error.message);
