@@ -97,7 +97,7 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	time.Sleep(3 * time.Second)
 
 	// Step 7: Unlock the wallet with the generated password
-	unlockCmd := fmt.Sprintf("walletpassphrase %s %d", password, 60*60) // Unlock for 1 hour
+	unlockCmd := fmt.Sprintf("walletpassphrase %s %d", password, 24*60*60) // Unlock for 1 hour
 	if _, err := manager.CallBtcctlCmd(unlockCmd); err != nil {
 		http.Error(w, "Failed to unlock wallet: "+err.Error(), http.StatusInternalServerError)
 		return
