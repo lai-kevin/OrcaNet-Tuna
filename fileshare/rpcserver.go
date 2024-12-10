@@ -237,6 +237,11 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 
 	fileExt := fp.Ext(filepath)
 
+	miningAddress, err := getMiningAddress()
+	if err != nil {
+		log.Printf("Failed to get mining address: %v\n", err)
+	}
+
 	fileMetaData := FileDataHeader{
 		FileName:      fileInfo.Name(),
 		FileSize:      fileInfo.Size(),
@@ -245,8 +250,10 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 		Multiaddress:  globalNode.Addrs()[0].String(),
 		PeerID:        globalNode.ID().String(),
 		price:         float32(args.Price),
-		miningAddress: "",
+		miningAddress: miningAddress,
 	}
+
+	log.Printf("Providing file %s with price %f\n", filepath, fileMetaData.price)
 
 	providedFiles = append(providedFiles, fileMetaData)
 
