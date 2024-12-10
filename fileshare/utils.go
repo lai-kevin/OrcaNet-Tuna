@@ -204,7 +204,7 @@ func checkBalance() (string, error) {
 }
 
 func getMiningAddress() (string, error) {
-	url := "http://localhost:8080/getMiningAddress"
+	url := "http://host.docker.internal:8080/getMiningAddress"
 	method := "GET"
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, nil)

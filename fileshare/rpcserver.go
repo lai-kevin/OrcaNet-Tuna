@@ -235,6 +235,8 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 		log.Printf("Failed to get mining address: %v\n", err)
 	}
 
+	log.Printf("Mining address: %s\n", miningAddress)
+
 	fileMetaData := FileDataHeader{
 		FileName:      fileInfo.Name(),
 		FileSize:      fileInfo.Size(),
