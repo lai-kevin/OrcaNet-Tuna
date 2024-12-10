@@ -170,12 +170,8 @@ func sendCoinToAddress(miningAddress string, amount float32) (string, error) {
 		return "", err
 	}
 
-	if result["message"] != "Funds sent successfully!" {
-		log.Println("Sent coin to address: ", miningAddress)
-		return result["txid"], err
-	} else {
-		return "", fmt.Errorf("Error sending coin: %s", result["message"])
-	}
+	log.Println("Sent coin to address: ", miningAddress)
+	return result["txid"], err
 }
 
 func checkBalance() (string, error) {
