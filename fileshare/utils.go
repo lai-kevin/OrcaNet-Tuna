@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -203,7 +204,7 @@ func checkBalance() (string, error) {
 }
 
 func getMiningAddress() (string, error) {
-	url := "http://localhost:8080/getMiningAddress"
+	url := "http://host.docker.internal:8080/getMiningAddress"
 	method := "GET"
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, nil)
@@ -217,10 +218,16 @@ func getMiningAddress() (string, error) {
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != http.StatusOK {
+		return "", errors.New("failed to get mining address: " + res.Status)
+	}
+
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", err
 	}
+
+	log.Println("Response Body:", string(body))
 
 	var result map[string]string
 	if err = json.Unmarshal(body, &result); err != nil {
