@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -216,6 +217,10 @@ func getMiningAddress() (string, error) {
 		return "", err
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return "", errors.New("failed to get mining address: " + res.Status)
+	}
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
