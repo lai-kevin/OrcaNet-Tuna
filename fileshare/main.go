@@ -522,15 +522,15 @@ func loadState() error {
 	}
 
 	SBU_ID = state.SBU_ID
-	DOWNLOAD_DIRECTORY = state.DOWNLOAD_DIRECTORY
-	fileHashToPath = state.FileHashToPath
-	isFileHashProvided = state.IsFileHashProvided
-	downloadStatus = state.DownloadStatus
-	lastDownloadStatus = state.LastDownloadStatus
+	//DOWNLOAD_DIRECTORY = state.DOWNLOAD_DIRECTORY
+	//fileHashToPath = state.FileHashToPath
+	//isFileHashProvided = state.IsFileHashProvided
+	//downloadStatus = state.DownloadStatus
+	//lastDownloadStatus = state.LastDownloadStatus
 	metadataResponse = state.MetadataResponse
 	downloadHistory = state.DownloadHistory
 	fileRequests = state.FileRequests
-	providedFiles = state.ProvidedFiles
+	//providedFiles = state.ProvidedFiles
 
 	return nil
 }
