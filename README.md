@@ -60,7 +60,7 @@ This is used for each node to get their mining (wallet) address. This will be us
 ```
 
 ### Get Balance
-### http://localhost:8080/getMiningAddress
+### http://localhost:8080/getBalance
 Returns the balance of the user like this:
 ```
 {
