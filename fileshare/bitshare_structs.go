@@ -38,6 +38,7 @@ type FileDataHeader struct {
 	Price         float32
 	MiningAddress string
 	RequestID     string
+	Provided      bool
 }
 
 type FileRequest struct {
