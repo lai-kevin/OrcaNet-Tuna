@@ -1,4 +1,5 @@
 import { LuFile } from "react-icons/lu";
+import { LuFileX } from "react-icons/lu";
 import { LuFolder } from "react-icons/lu";
 import { LuFileImage } from "react-icons/lu";
 import { LuPlay } from "react-icons/lu";
@@ -303,7 +304,7 @@ const Files = () => {
     }
 
     const HandleRemoveUpload = () => {
-      setFileToRemove({ name, hashId, price, downloaders });
+      setFileToRemove({ name, hashId, price, downloaders, providing: isProviding[hashId] === true});
     }
     let tempSize = (size / (1024*2024)).toFixed(2);
     if(tempSize < 1){
@@ -317,9 +318,8 @@ const Files = () => {
     if (activeTab === "Uploads") {
       let nameForUploads = name.split('/').pop();//only need this if im storing the names locally api uses an explicit file name
       return (
-        <div className="fileCard" onClick={isFileProviding ? HandleRemoveUpload : undefined} style={{ cursor: isFileProviding ? 'pointer' : 'default',
-          opacity: isFileProviding ? 1 : 0.5 }}>
-          <div style={{ display: 'flex', alignItems: "center" }}><FileIcon style={{ width: '40%', height: '40%' }} /> </div>
+        <div className="fileCard" onClick={HandleRemoveUpload} style={{ cursor: 'pointer' }}>
+          <div style={{ display: 'flex', alignItems: "center" }}> {isFileProviding ? <FileIcon style={{ width: '40%', height: '40%' }} />: <LuFileX style={{ width: '40%', height: '40%' }}/> } </div>
           <div>
             <p>{nameForUploads}</p>
             <p style={{ color: "#9b9b9b" }} >{hashId}</p>

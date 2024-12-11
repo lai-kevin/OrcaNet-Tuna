@@ -92,6 +92,9 @@ export const getFileProvidersWMetaData = async (params) =>{
 export const stopProvidingRPC = (params) =>
   makeRPCRequest('FileShareService.StopProvidingFile', params);
 
+export const resumeProvidingRPC = (params) =>
+  makeRPCRequest('FileShareService.ResumeProvidingFile', params);
+
 
 //params can be: []
 export const getUpdatesFromGoNode = (params) =>
