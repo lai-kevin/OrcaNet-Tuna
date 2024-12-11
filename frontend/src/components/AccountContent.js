@@ -50,9 +50,11 @@ const Profile = ({mode})=>{
     useEffect(() => {
         const fetchBalance = async () => {
           try {
-            const bal = await Wallet.balance(); 
+            const bal = await Wallet.balance();
+            const fileShareStartupState = await getUpdatesFromGoNode([]);//set peer id here for now
+            const peer_Id = fileShareStartupState.result.peer_id;
             setUser((prev) => {
-                return { ...prev, balance: bal.balance};
+                return { ...prev, balance: bal.balance, peerId: peer_Id};
               });
           } catch (error) {
             console.error("Failed to fetch balance:", error); 
@@ -79,6 +81,10 @@ const Profile = ({mode})=>{
                 <span id = "type" style={{ color: mode === "dark" ? "white" : "black" }}>OrcaCoins</span>
                 {!mining && (<button type="button" id ="mine" onClick={()=>setOpen(true)}> Mine Coins </button>)}
                 {mining && (<button type="button" id ="mine1" onClick={()=>setView(true)}> View Mining Progress </button>)}
+                <br/>
+            </div>        
+            <div id='profile_peerid'>
+            <h4 id ="wID" >Peer ID: <span id="number" style={{ color: mode === "dark" ? "white" : "black" }}>{user.peerId}</span></h4>
             </div>
             {open && (<MineMenu setOpen={setOpen}/>)}
             {view && (<Progress setView = {setView}/>)}

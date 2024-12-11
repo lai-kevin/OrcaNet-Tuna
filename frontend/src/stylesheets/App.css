@@ -458,6 +458,11 @@
   margin-top: -100px;
   margin-left: 210px;
 }
+
+#profile_peerid{
+  display: flex;
+  margin-left: 210px;
+}
 .account{
   height: 550px;
   overflow-y: scroll;
