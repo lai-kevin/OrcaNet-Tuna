@@ -492,9 +492,6 @@ func saveState() error {
 		ProvidedFiles:      providedFiles,
 	}
 
-	fmt.Print("State: ")
-	fmt.Println(state)
-
 	file, err := os.Create("state" + SBU_ID + ".json")
 	if err != nil {
 		return fmt.Errorf("error occured while creating state file: %v", err)
