@@ -487,6 +487,8 @@ func sendFileToPeer(node host.Host, targetNodeId, filepath string, filehash stri
 		}
 	}
 
+	fileMetaData.RequestID = requestID
+
 	encoder := gob.NewEncoder(stream)
 	if err := encoder.Encode(fileMetaData); err != nil {
 		return fmt.Errorf("sendFileToPeer: %v", err)
