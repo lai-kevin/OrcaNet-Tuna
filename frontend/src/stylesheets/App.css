@@ -1989,3 +1989,28 @@ input:checked + .sl:before {
   100% { transform: rotate(360deg); }
 }
 
+.reputation-system {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+.reputation-system h2 {
+  margin-bottom: 20px;
+}
+
+.reputation-system table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.reputation-system table th, .reputation-system table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.reputation-system table th {
+  background-color: #f4f4f4;
+}
+
+

@@ -3,7 +3,7 @@ import axios from "axios";
 //'http://localhost:1234/rpc' old route
 // http://host.docker.internal:8081/rpc
 const rpcClient = axios.create({
-  baseURL: 'http://localhost:1234/rpc',
+  baseURL: 'http://localhost:8081/rpc',
   headers: {
     'Content-Type': 'application/json',
   }
