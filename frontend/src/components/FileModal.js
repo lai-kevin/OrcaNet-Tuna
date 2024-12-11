@@ -8,6 +8,7 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
   const [file, setFile] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [price, setPrice] = useState("");
+  const [loading,setLoading] = useState(false);
 
   //should probably change this to maybe make a copy of a file into the project directory
   //it might create a different hash for the same file since everyones user files will be different
@@ -32,7 +33,7 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
         console.log('Error dialog', error);
       }
     }
-    else{
+    else {
       setFile(testFile)
     }
 
@@ -58,23 +59,24 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
       // let submittedFile = new File([file], file.name, { type: file.type }) //necessary as I cant spread a file
       // submittedFile.price = Number(price);
       // submittedFile.timestamp = new Date();
-      
+
 
       // transfer into a docker container
       const filePath = file.path;
-      try{
+      setLoading(true);
+      try {
         // const chosenFile = await window.electron.ipcRenderer.invoke('open-file-dialog');
         // console.log(filePath);
-        const result = await window.electron.ipcRenderer.invoke('copy-file-to-container', filePath );
+        const result = await window.electron.ipcRenderer.invoke('copy-file-to-container', filePath);
         let submittedFile = {
           name: result.path,
           price: Number(price),
           timestamp: new Date(),
           size: file.size
         }
-  
+        setLoading(false);
         // const comm = 
-  
+
         setFileToUpload(submittedFile);
         setFile(null);
         setIsOpen(false);
@@ -82,9 +84,9 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
       catch (error) {
         console.log('Error dialog', error);
       }
-      
-  
-      
+
+
+
     }
 
   };
@@ -125,6 +127,12 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
         </div> : <></>}
         {(errorMsg !== "") && <p style={{ color: "red", fontWeight: "800" }}>{errorMsg}</p>}
         <br />
+        {loading &&<div>
+          <h3 style={{ color: "black" }}>Copying into Container & Registering to DHT... Do Not Close</h3>
+          <div className="spinner-container">
+            <div className="spinner" />
+          </div>
+        </div>}
         <br />
         <div style={{ display: "flex", gap: "10px" }}>
           <button className="primary_button" onClick={handleSubmit}>Submit</button>
