@@ -35,7 +35,7 @@ The purpose of this utility/package is to handle the distributed file sharing be
     docker run -v ~/Downloads:/downloads -p 8081:1234 fileshare:v<version> <SBU_ID>
 
     Windows:
-    docker run -v "${env:USERPROFILE}/Downloads:/downloads" -p 8081:1234 fileshare:v<version> <SBU_ID>
+    docker run -v "${env:USERPROFILE}/Downloads:/downloads" -p 8081:1234 fileshare:v<version> <SBU_ID> <OPTIONAL: BOOTSTRAP_MULTIADDRESS>
 
     ```
 2. Make requests to `http://host.docker.internal:8081/rpc`. See more in the postman doc.
