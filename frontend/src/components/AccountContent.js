@@ -12,6 +12,7 @@ import { GiMining } from "react-icons/gi";
 import { FaCoins } from "react-icons/fa";
 import { AppContext } from './AppContext';
 import * as Wallet from "../WalletAPI"
+import { getUpdatesFromGoNode } from '../RpcAPI';
 const AccountContent = ({mode}) => {
     return(
      <div className = "account">
@@ -267,6 +268,15 @@ const Transaction = ({mode})=>{
         const fetchtransaction = async () => {
             try {
                 const response = await Wallet.retrieve();  
+                const updates = await getUpdatesFromGoNode([]);
+                //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
+                // let downloadedFiles = updates.result.downloads;
+                // const downloadTxids = new Set(downloadedFiles.map((download) => download.txid));
+                // response.forEach( transaction => {
+                //     if(downloadTxids.has(transaction.txid))
+                //         transaction.category = 'Downloads';
+                // });
+                //IN PROGRESS ^
                 console.log(response.transactions)
                 setUser(prev => {
                     const updated = {
@@ -282,6 +292,32 @@ const Transaction = ({mode})=>{
         const interval = setInterval(fetchtransaction, 20000);  
         return () => clearInterval(interval);
     }, []);
+    useEffect(() =>{
+        const fetchtransaction = async () => {
+            try {
+                const response = await Wallet.retrieve();  
+                const updates = await getUpdatesFromGoNode([]);
+                //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
+                // let downloadedFiles = updates.result.downloads;
+                // const downloadTxids = new Set(downloadedFiles.map((download) => download.txid));
+                // response.forEach( transaction => {
+                //     if(downloadTxids.has(transaction.txid))
+                //         transaction.category = 'Downloads';
+                // });
+                //IN PROGRESS ^
+                console.log(response.transactions)
+                setUser(prev => {
+                    const updated = {
+                        ...prev,
+                        transactions: response.transactions!==null ? response.transactions : []
+                    };
+                    return updated;
+                });
+                setTrans(response.transactions!==null ? response.transactions : [])
+            } catch (error) {}
+        };
+        fetchtransaction();
+    }, [click]);
     console.log(trans)
     let current = [ ...info, ...trans]
     console.log(current)
@@ -350,8 +386,16 @@ const TransactionTable=({mode, setClick})=> {
     useEffect(() => {
         const fetchtransaction = async () => {
             try {
-                const response = await Wallet.retrieve();  
-                console.log(response.transactions)
+                const response = await Wallet.retrieve();
+                const updates = await getUpdatesFromGoNode([]);
+                //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
+                // let downloadedFiles = updates.result.downloads;
+                // const downloadTxids = new Set(downloadedFiles.map((download) => download.txid));
+                // response.forEach( transaction => {
+                //     if(downloadTxids.has(transaction.txid))
+                //         transaction.category = 'Downloads';
+                // });  
+                //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS ^
                 setUser(prev => {
                     const updated = {
                         ...prev,
