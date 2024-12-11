@@ -57,7 +57,19 @@ const Files = () => {
         timestamp: new Date()
       }
 
-      setUploadHistory([...uploadHistory, newFile]);
+      setUploadHistory((prevUploadHistory) => {
+        const existingFileIndex = prevUploadHistory.findIndex(
+            (file) => file.hashId === newFileHash
+        );
+
+        if (existingFileIndex !== -1) {
+            const updatedHistory = [...prevUploadHistory];
+            updatedHistory[existingFileIndex] = newFile;
+            return updatedHistory;
+        } else {
+            return [...prevUploadHistory, newFile];
+        }
+    });
       // const updatesRespond = await getUpdatesFromGoNode([]); //look at the list of prividing
       // const listOfProvidedFiles = updatesRespond.result.providing;
       // setUploadHistory(listOfProvidedFiles);
