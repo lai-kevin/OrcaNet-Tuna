@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Free bootstrap documentation template">
+    <title>Bitshare: OrcaNet-Tuna's File Sharing API</title>
+    <!-- using online links -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://malihu.github.io/custom-scrollbar/jquery.mCustomScrollbar.min.css">
+    <!-- using local links -->
+    <link rel="stylesheet" href="css/main.min.css">
+    <link rel="stylesheet" href="css/sidebar-themes.min.css">
+    <link rel="stylesheet" href="css/bootstrap-treeview.min.css">
+    <link rel="stylesheet" href="css/postman.min.css">
+
+    <link rel="shortcut icon" type="image/png" href="img/favicon.png" /> </head>
+
+<body>
+    <div class="page-wrapper toggled light-theme">
+        <div class="modal dark-background" id="snippetModal" tabindex="-1" role="dialog" aria-labelledby="documentation-response-modal" style="display: none;">
+        <div class="modal-dialog" role="document">
+          <div class="modal-header">
+            <div class="title">Example Response</div>
+            <button type="button" class="close btn-circle" data-dismiss="modal" aria-label="Close">
+              <div>
+              <span id="closeModal" aria-hidden="true">×</span>
+              </div>
+            </button>
+          </div>
+          <div class="modal-content">
+            <div class="modal-body" style="width: 540.5px;">
+              <pre class="  language-javascript">
+                  <code class=" language-javascript"></code>
+              </pre>
+            </div>
+          </div>
+        </div>
+      </div>
+        <nav id="sidebar" class="sidebar-wrapper">
+            <div class="sidebar-content">
+                <!-- sidebar-brand  -->
+                <div class="sidebar-item sidebar-brand text-white font-weight-bold">API Documentation</div>
+                <!-- sidebar-header  -->
+                <!-- sidebar-menu  -->
+                <div class=" sidebar-item sidebar-menu">
+                    <div id="tree"></div>
+                </div>
+                <!-- sidebar-menu  -->
+            </div>
+        </nav>
+        <!-- page-content  -->
+        <main class="page-content">
+            <div id="overlay" class="overlay"></div>
+            <div class="container-fluid">
+                <div class="row d-flex align-items-center p-3 border-bottom">
+                    <div class="col-md-1">
+                        <a id="toggle-sidebar" class="btn rounded-0 p-3" href="#"> <i class="fas fa-bars"></i> </a>
+                    </div>
+                    <div class="col-md-9"></div>
+                    <div class="col-md-2 text-left">
+                    </div>
+                </div>
+                <div class="row p-lg-4">
+                    <article class="main-content col-md-12 pr-lg-9" id="doc-body">
+                        <div class="row row-no-padding row-eq-height">
+                            <div class="col-md-6 col-xs-12">
+                                <div class="api-information">
+                                    <div class="collection-name">
+                                        <p>Bitshare: OrcaNet-Tuna's File Sharing API</p>
+                                    </div>
+                                    <div class="collection-description">
+                                        <p>Bitshare is a decentrailized p2p filesharing platform built on libp2p. This documentation contains information about how to make requests using our API. Use headers and the request body format included in examples.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row row-no-padding row-eq-height">
+                            <div class="col-md-6 col-xs-12 section">
+                                <div class="api-information" id="1">
+                                     <div class="heading">
+                                        <div class="name">
+                                            <span class="POST method" >POST</span>
+                                            PROVIDE_FILE <span class="lock-icon"></span>
+                                        </div>
+                                     </div>
+                                    <div class="url">http://localhost:8081/rpc</div>
+                                    
+                                    <div class="description request-description">
+                                        <p><p>Make a file available for download at set price</p>
+<h4 id="request-body">Request Body</h4>
+<ul>
+<li>
+<p>Type: Raw</p>
+</li>
+<li>
+<p>Description: JSON object with the following keys:</p>
+<ul>
+<li>
+<p><code>jsonrpc</code> (string): The version of the JSON-RPC protocol. Do not change this.</p>
+</li>
+<li>
+<p><code>method</code> (string): The method to be invoked. Do not change this.</p>
+</li>
+<li>
+<p><code>params</code> (array): An array of parameters for the method.</p>
+<ul>
+<li>
+<p><code>file_path</code> (string): The path of the file to be shared.</p>
+</li>
+<li>
+<p><code>price</code> (number): The price set for the file.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><code>id</code> (number): The request identifier.</p>
+</li>
+</ul>
+</li>
+</ul></p>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">HEADERS</div>
+                                        <hr>
+                                          <div class="param row">
+                                            <div class="name col-md-3 col-xs-12">Content</div>
+                                            <div class="value col-md-9 col-xs-12">application/json</div>
+                                            <div class="description col-md-9 col-xs-12"><p>None</p>
+                                            </div>
+                                          </div>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">BODY <span class="body-type">raw</span></div>
+                                        <hr>
+                                            <div class="raw-body code-snippet">
+                                              <pre class="body-block click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="PROVIDE_FILE">
+                                                  <code>
+                                                    
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.ProvideFile",
+    "params": [
+        {
+            "file_path": "media/test2.txt",
+            "price": 3
+        }
+    ],
+    "id": 1
+}
+                                                  </code>
+                                              </pre>
+                                            </div>
+                                        
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xs-12 examples">
+                                <div class="sample-request">
+                                    <div class="heading">
+                                        <span>Example Request</span>
+                                    </div>
+                                    <div class="responses-index">
+                                        <div class="dropdown response-name">
+                                            <button class="btn   responses-dropdown truncate" type="button" id="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                              <span id="selected" class="response-name-label">PROVIDE_FILE TEXT</span>
+                                                <span class="caret"></span>
+
+                                            </button>
+
+                                            <ul class="dropdown-menu" aria-labelledby="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown">
+                                                <li class="truncate" data-request-info="1" data-response-info="response_1">PROVIDE_FILE TEXT</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="formatted-requests " data-request-id="1"  data-id="response_1">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="PROVIDE_FILE TEXT">
+                                                <code class="is-highlighted">
+POST http://localhost:8081/rpc
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.ProvideFile",
+    "params": [
+        {
+            "file_path": "media/test.txt",
+            "price": 69
+        }
+    ],
+    "id": 1
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    <div class="sample-response">
+                                        <div class="heading">
+                                            <span>Example Response</span>
+                                        </div>
+                                        <div class="responses-index">
+                                            <div class="response-status">
+                                                <span>200 - OK</span>
+                                            </div>
+                                        </div>
+                                        <div class="responses code-snippet">
+                                            <div>
+                                                <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="PROVIDE_FILE TEXT">
+                                                    <code class="is-highlighted">
+{
+    "result": {
+        "success": true,
+        "message": "File is now available on OrcaNet",
+        "file_hash": "8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891"
+    },
+    "error": null,
+    "id": 1
+}</code>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="row row-no-padding row-eq-height">
+                            <div class="col-md-6 col-xs-12 section">
+                                <div class="api-information" id="2">
+                                     <div class="heading">
+                                        <div class="name">
+                                            <span class="POST method" >POST</span>
+                                            STOP_PROVIDING_FILE <span class="lock-icon"></span>
+                                        </div>
+                                     </div>
+                                    <div class="url">http://localhost:8081/rpc</div>
+                                    
+                                    <div class="description request-description">
+                                        <p><p>Stop Providing a File</p>
+<h4 id="request-body">Request Body</h4>
+<ul>
+<li>
+<p>Type: Raw</p>
+</li>
+<li>
+<p>Description: JSON object with the following keys:</p>
+<ul>
+<li>
+<p><code>jsonrpc</code> (string): The version of the JSON-RPC protocol. Do not change this.</p>
+</li>
+<li>
+<p><code>method</code> (string): The method to be invoked. Do not change this.</p>
+</li>
+<li>
+<p><code>params</code> (array): An array of parameters for the method.</p>
+<ul>
+<li><code>file_hash</code> (string): The hash of the file to stop providing</li>
+</ul>
+</li>
+<li>
+<p><code>id</code> (number): The request identifier.</p>
+</li>
+</ul>
+</li>
+</ul></p>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">HEADERS</div>
+                                        <hr>
+                                          <div class="param row">
+                                            <div class="name col-md-3 col-xs-12">Content</div>
+                                            <div class="value col-md-9 col-xs-12">application/json</div>
+                                            <div class="description col-md-9 col-xs-12"><p>None</p>
+                                            </div>
+                                          </div>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">BODY <span class="body-type">raw</span></div>
+                                        <hr>
+                                            <div class="raw-body code-snippet">
+                                              <pre class="body-block click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="STOP_PROVIDING_FILE">
+                                                  <code>
+                                                    
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.StopProvidingFile",
+    "params": [
+        {
+            "file_hash": "c5e1064872056c435c0aa2239a3c11bdbb32536615cef6a5a412fdb7e08c5f76"
+        }
+    ],
+    "id": 1
+}
+                                                  </code>
+                                              </pre>
+                                            </div>
+                                        
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xs-12 examples">
+                                <div class="sample-request">
+                                    <div class="heading">
+                                        <span>Example Request</span>
+                                    </div>
+                                    <div class="responses-index">
+                                        <div class="dropdown response-name">
+                                            <button class="btn   responses-dropdown truncate" type="button" id="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                              <span id="selected" class="response-name-label">PROVIDE_FILE</span>
+                                                <span class="caret"></span>
+
+                                            </button>
+
+                                            <ul class="dropdown-menu" aria-labelledby="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown">
+                                                <li class="truncate" data-request-info="2" data-response-info="response_2">PROVIDE_FILE</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="formatted-requests " data-request-id="2"  data-id="response_2">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="PROVIDE_FILE">
+                                                <code class="is-highlighted">
+POST http://localhost:8081/rpc
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.StopProvidingFile",
+    "params": [
+        {
+            "file_hash": "8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891"
+        }
+    ],
+    "id": 1
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    <div class="sample-response">
+                                        <div class="heading">
+                                            <span>Example Response</span>
+                                        </div>
+                                        <div class="responses-index">
+                                            <div class="response-status">
+                                                <span>200 - OK</span>
+                                            </div>
+                                        </div>
+                                        <div class="responses code-snippet">
+                                            <div>
+                                                <pre class="click-to-expand-wrapper is-snippet-wrapper " data-title="PROVIDE_FILE">
+                                                    <code class="is-highlighted">
+{
+    "result": {
+        "success": true,
+        "message": "File is no longer available on OrcaNet"
+    },
+    "error": null,
+    "id": 1
+}</code>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="row row-no-padding row-eq-height">
+                            <div class="col-md-6 col-xs-12 section">
+                                <div class="api-information" id="3">
+                                     <div class="heading">
+                                        <div class="name">
+                                            <span class="POST method" >POST</span>
+                                            RESUME_PROVIDING_FILE <span class="lock-icon"></span>
+                                        </div>
+                                     </div>
+                                    <div class="url">http://localhost:8081/rpc</div>
+                                    
+                                    <div class="description request-description">
+                                        <p><p>Resume providing a file.</p>
+<h4 id="request-body">Request Body</h4>
+<ul>
+<li>
+<p>Type: Raw</p>
+</li>
+<li>
+<p>Description: JSON object with the following keys:</p>
+<ul>
+<li>
+<p><code>jsonrpc</code> (string): The version of the JSON-RPC protocol. Do not change this.</p>
+</li>
+<li>
+<p><code>method</code> (string): The method to be invoked. Do not change this.</p>
+</li>
+<li>
+<p><code>params</code> (array): An array of parameters for the method.</p>
+<ul>
+<li><code>file_hash</code> (string): The file hash of the file to resume providing</li>
+</ul>
+</li>
+<li>
+<p><code>id</code> (number): The request identifier.</p>
+</li>
+</ul>
+</li>
+</ul></p>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">HEADERS</div>
+                                        <hr>
+                                          <div class="param row">
+                                            <div class="name col-md-3 col-xs-12">Content</div>
+                                            <div class="value col-md-9 col-xs-12">application/json</div>
+                                            <div class="description col-md-9 col-xs-12"><p>None</p>
+                                            </div>
+                                          </div>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">BODY <span class="body-type">raw</span></div>
+                                        <hr>
+                                            <div class="raw-body code-snippet">
+                                              <pre class="body-block click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="RESUME_PROVIDING_FILE">
+                                                  <code>
+                                                    
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.ResumeProvidingFile",
+    "params": [
+        {
+            "file_hash": "c5e1064872056c435c0aa2239a3c11bdbb32536615cef6a5a412fdb7e08c5f76"
+        }
+    ],
+    "id": 1
+}
+                                                  </code>
+                                              </pre>
+                                            </div>
+                                        
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xs-12 examples">
+                                <div class="sample-request">
+                                    <div class="heading">
+                                        <span>Example Request</span>
+                                    </div>
+                                    <div class="responses-index">
+                                        <div class="dropdown response-name">
+                                            <button class="btn   responses-dropdown truncate" type="button" id="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                              <span id="selected" class="response-name-label">STOP_PROVIDING_FILE Copy</span>
+                                                <span class="caret"></span>
+
+                                            </button>
+
+                                            <ul class="dropdown-menu" aria-labelledby="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown">
+                                                <li class="truncate" data-request-info="3" data-response-info="response_3">STOP_PROVIDING_FILE Copy</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="formatted-requests " data-request-id="3"  data-id="response_3">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="STOP_PROVIDING_FILE Copy">
+                                                <code class="is-highlighted">
+POST http://host.docker.internal:8081/rpc
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.ResumeProvidingFile",
+    "params": [
+        {
+            "file_hash": "8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891"
+        }
+    ],
+    "id": 1
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    <div class="sample-response">
+                                        <div class="heading">
+                                            <span>Example Response</span>
+                                        </div>
+                                        <div class="responses-index">
+                                            <div class="response-status">
+                                                <span>200 - OK</span>
+                                            </div>
+                                        </div>
+                                        <div class="responses code-snippet">
+                                            <div>
+                                                <pre class="click-to-expand-wrapper is-snippet-wrapper " data-title="STOP_PROVIDING_FILE Copy">
+                                                    <code class="is-highlighted">
+{
+    "result": {
+        "success": true,
+        "message": "File is now available on OrcaNet"
+    },
+    "error": null,
+    "id": 1
+}</code>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="row row-no-padding row-eq-height">
+                            <div class="col-md-6 col-xs-12 section">
+                                <div class="api-information" id="4">
+                                     <div class="heading">
+                                        <div class="name">
+                                            <span class="POST method" >POST</span>
+                                            GET_UPDATES <span class="lock-icon"></span>
+                                        </div>
+                                     </div>
+                                    <div class="url">http://localhost:8081/rpc</div>
+                                    
+                                    <div class="description request-description">
+                                        <p><h3 id="file-share-service-updates">File Share Service Updates</h3>
+<p>This endpoint allows you to retrieve updates for the File Share Service. Call this at regular intervals.</p>
+<h4 id="request-body-dont-change">Request Body (Don&rsquo;t change)</h4>
+<ul>
+<li>
+<p><strong>jsonrpc</strong> (string, required): The JSON-RPC protocol version.</p>
+</li>
+<li>
+<p><strong>method</strong> (string, required): The method to be called, in this case, &ldquo;FileShareService.GetUpdates&rdquo;.</p>
+</li>
+<li>
+<p><strong>params</strong> (array, required): An array of parameters for the method.</p>
+</li>
+<li>
+<p><strong>id</strong> (number, required): An identifier established by the client.</p>
+</li>
+</ul>
+<p>Example:</p>
+<p>``` json<br>
+{<br>
+  &ldquo;jsonrpc&rdquo;: &ldquo;2.0&rdquo;,<br>
+  &ldquo;method&rdquo;: &ldquo;FileShareService.GetUpdates&rdquo;,<br>
+  &ldquo;params&rdquo;: [],<br>
+  &ldquo;id&rdquo;: 1<br>
+}</p>
+<p>```</p>
+<h4 id="response">Response</h4>
+<p>The response will contain the following fields:</p>
+<ul>
+<li>
+<p><strong>result</strong> (object): The result of the method call.</p>
+<ul>
+<li>
+<p><strong>success</strong> (boolean): Indicates if the operation was successful.</p>
+</li>
+<li>
+<p><strong>peer_id</strong> (string): The peer ID.</p>
+</li>
+<li>
+<p><strong>multi_addr</strong> (string): The multi address.</p>
+</li>
+<li>
+<p><strong>status</strong> (string): The status.</p>
+</li>
+<li>
+<p><strong>private_ip</strong> (boolean): Indicates if the IP is private.</p>
+</li>
+<li>
+<p><strong>providing</strong> (array): An array of objects containing file information.</p>
+<ul>
+<li>
+<p><strong>FileName</strong> (string): The name of the file.</p>
+</li>
+<li>
+<p><strong>FileSize</strong> (number): The size of the file.</p>
+</li>
+<li>
+<p><strong>FileHash</strong> (string): The hash of the file.</p>
+</li>
+<li>
+<p><strong>FileExtension</strong> (string): The extension of the file.</p>
+</li>
+<li>
+<p><strong>Multiaddress</strong> (string): The multi address of the file.</p>
+</li>
+<li>
+<p><strong>PeerID</strong> (string): The peer ID of the file.</p>
+</li>
+<li>
+<p><strong>RequestID</strong> (string): The request ID of the file.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>requested_files</strong> (array): An array of requested files.</p>
+</li>
+<li>
+<p><strong>downloads</strong> (array): An array of downloaded files.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>error</strong> (null): Indicates if an error occurred.</p>
+</li>
+<li>
+<p><strong>id</strong> (number): The identifier established by the client.</p>
+</li>
+</ul></p>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">HEADERS</div>
+                                        <hr>
+                                          <div class="param row">
+                                            <div class="name col-md-3 col-xs-12">Content</div>
+                                            <div class="value col-md-9 col-xs-12">application/json</div>
+                                            <div class="description col-md-9 col-xs-12"><p>None</p>
+                                            </div>
+                                          </div>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">BODY <span class="body-type">raw</span></div>
+                                        <hr>
+                                            <div class="raw-body code-snippet">
+                                              <pre class="body-block click-to-expand-wrapper is-snippet-wrapper " data-title="GET_UPDATES">
+                                                  <code>
+                                                    
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.GetUpdates",
+    "params": [],
+    "id": 1
+}
+                                                  </code>
+                                              </pre>
+                                            </div>
+                                        
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xs-12 examples">
+                                <div class="sample-request">
+                                    <div class="heading">
+                                        <span>Example Request</span>
+                                    </div>
+                                    <div class="responses-index">
+                                        <div class="dropdown response-name">
+                                            <button class="btn dropdown-toggle  responses-dropdown truncate" type="button" id="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                              <span id="selected" class="response-name-label">GET_UPDATES (Downloads in progress)</span>
+                                                <span class="caret"></span>
+
+                                            </button>
+
+                                            <ul class="dropdown-menu" aria-labelledby="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown">
+                                                <li class="truncate" data-request-info="4" data-response-info="response_4">GET_UPDATES (Downloads in progress)</li>
+                                                <li class="truncate" data-request-info="4" data-response-info="response_5">GET_UPDATES (Download Completed)</li>
+                                                <li class="truncate" data-request-info="4" data-response-info="response_6">GET_UPDATES (Multiple Downloads)</li>
+                                                <li class="truncate" data-request-info="4" data-response-info="response_7">GET_UPDATES (File Provided)</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="formatted-requests " data-request-id="4"  data-id="response_4">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper " data-title="GET_UPDATES (Downloads in progress)">
+                                                <code class="is-highlighted">
+POST http://host.docker.internal:8081/rpc
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.GetUpdates",
+    "params": [],
+    "id": 1
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    <div class="sample-response">
+                                        <div class="heading">
+                                            <span>Example Response</span>
+                                        </div>
+                                        <div class="responses-index">
+                                            <div class="response-status">
+                                                <span>200 - OK</span>
+                                            </div>
+                                        </div>
+                                        <div class="responses code-snippet">
+                                            <div>
+                                                <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_UPDATES (Downloads in progress)">
+                                                    <code class="is-highlighted">
+{
+    "result": {
+        "success": true,
+        "wallet_id": "462dfsg46hlgsdjgpo3i5nhdfgsdfg2354",
+        "peer_id": "12D3KooWAQaSKDbemCmXZVJj7W6tdQob1m6Jd9Pc861DijNyrT8p",
+        "multi_addr": "/ip4/127.0.0.1/tcp/58005",
+        "status": "Online",
+        "private_ip": false,
+        "providing": [],
+        "requested_files": [
+            {
+                "RequestID": "9fc5a708-32f8-45bb-8697-eccbbcb09357",
+                "FileHash": "8d111b69632d3abc7ee3fd9cd215679c00b91ae6717f3be1bb9f7971bec2b911",
+                "RequesterID": "12D3KooWAQaSKDbemCmXZVJj7W6tdQob1m6Jd9Pc861DijNyrT8p",
+                "RequesterMultiAddress": "/ip4/127.0.0.1/tcp/58005",
+                "TimeSent": "2024-11-18T15:46:05.8443037-05:00"
+            }
+        ],
+        "downloads": [
+            {
+                "RequestID": "9fc5a708-32f8-45bb-8697-eccbbcb09357",
+                "FileHash": "8d111b69632d3abc7ee3fd9cd215679c00b91ae6717f3be1bb9f7971bec2b911",
+                "FileMetaData": {
+                    "FileName": "bigfile.zip",
+                    "FileSize": 11570148508,
+                    "FileHash": "8d111b69632d3abc7ee3fd9cd215679c00b91ae6717f3be1bb9f7971bec2b911",
+                    "FileExtension": ".zip",
+                    "Multiaddress": "/ip4/127.0.0.1/tcp/65451",
+                    "PeerID": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa",
+                    "RequestID": "9fc5a708-32f8-45bb-8697-eccbbcb09357"
+                },
+                "DownloadProgress": 0.013967907,
+                "DownloadSpeed": 8.216798,
+                "DownloadStart": "2024-11-18T15:46:05.8632318-05:00",
+                "RemainingTime": "22m40s",
+                "BytesDownloaded": 161610752
+            }
+        ]
+    },
+    "error": null,
+    "id": 1
+}</code>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                                <div class="formatted-requests hide" data-request-id="4"  data-id="response_5">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper " data-title="GET_UPDATES (Download Completed)">
+                                                <code class="is-highlighted">
+POST http://localhost:8081/rpc
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.GetUpdates",
+    "params": [],
+    "id": 1
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    <div class="sample-response">
+                                        <div class="heading">
+                                            <span>Example Response</span>
+                                        </div>
+                                        <div class="responses-index">
+                                            <div class="response-status">
+                                                <span>200 - OK</span>
+                                            </div>
+                                        </div>
+                                        <div class="responses code-snippet">
+                                            <div>
+                                                <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_UPDATES (Download Completed)">
+                                                    <code class="is-highlighted">
+{
+    "result": {
+        "success": true,
+        "peer_id": "12D3KooWAQaSKDbemCmXZVJj7W6tdQob1m6Jd9Pc861DijNyrT8p",
+        "multi_addr": "/ip4/127.0.0.1/tcp/43995",
+        "status": "Online",
+        "private_ip": false,
+        "providing": [],
+        "requested_files": [
+            {
+                "RequestID": "e5a0371d-d0a3-49e2-8619-1e700ec6280d",
+                "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                "RequesterID": "12D3KooWAQaSKDbemCmXZVJj7W6tdQob1m6Jd9Pc861DijNyrT8p",
+                "RequesterMultiAddress": "/ip4/127.0.0.1/tcp/43995",
+                "TimeSent": "2024-12-11T13:37:55.191703566Z",
+                "Complete": true
+            }
+        ],
+        "downloads": [
+            {
+                "RequestID": "e5a0371d-d0a3-49e2-8619-1e700ec6280d",
+                "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                "FileMetaData": {
+                    "FileName": "trace2.pcap",
+                    "FileSize": 2240708644,
+                    "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                    "FileExtension": ".pcap",
+                    "Multiaddress": "/ip4/127.0.0.1/tcp/46253",
+                    "PeerID": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa",
+                    "Price": 2,
+                    "MiningAddress": "16tkfiM9dLkkHQv7n4mKhvoKJHUEszt6tQ",
+                    "RequestID": "e5a0371d-d0a3-49e2-8619-1e700ec6280d"
+                },
+                "DownloadProgress": 1,
+                "DownloadSpeed": 12.136211,
+                "DownloadStart": "2024-12-11T13:37:55.214659205Z",
+                "RemainingTime": "Download Completed",
+                "BytesDownloaded": 2240708644
+            }
+        ]
+    },
+    "error": null,
+    "id": 1
+}</code>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                                <div class="formatted-requests hide" data-request-id="4"  data-id="response_6">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper " data-title="GET_UPDATES (Multiple Downloads)">
+                                                <code class="is-highlighted">
+POST http://localhost:8081/rpc
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.GetUpdates",
+    "params": [],
+    "id": 1
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    <div class="sample-response">
+                                        <div class="heading">
+                                            <span>Example Response</span>
+                                        </div>
+                                        <div class="responses-index">
+                                            <div class="response-status">
+                                                <span>200 - OK</span>
+                                            </div>
+                                        </div>
+                                        <div class="responses code-snippet">
+                                            <div>
+                                                <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_UPDATES (Multiple Downloads)">
+                                                    <code class="is-highlighted">
+{
+    "result": {
+        "success": true,
+        "peer_id": "12D3KooWAQaSKDbemCmXZVJj7W6tdQob1m6Jd9Pc861DijNyrT8p",
+        "multi_addr": "/ip4/127.0.0.1/tcp/43995",
+        "status": "Online",
+        "private_ip": false,
+        "providing": [],
+        "requested_files": [
+            {
+                "RequestID": "e5a0371d-d0a3-49e2-8619-1e700ec6280d",
+                "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                "RequesterID": "12D3KooWAQaSKDbemCmXZVJj7W6tdQob1m6Jd9Pc861DijNyrT8p",
+                "RequesterMultiAddress": "/ip4/127.0.0.1/tcp/43995",
+                "TimeSent": "2024-12-11T13:37:55.191703566Z",
+                "Complete": true
+            },
+            {
+                "RequestID": "1b1db335-e970-4f04-bde8-23614c2782b6",
+                "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                "RequesterID": "12D3KooWAQaSKDbemCmXZVJj7W6tdQob1m6Jd9Pc861DijNyrT8p",
+                "RequesterMultiAddress": "/ip4/127.0.0.1/tcp/43995",
+                "TimeSent": "2024-12-11T13:44:33.096859686Z",
+                "Complete": true
+            },
+            {
+                "RequestID": "637996e7-2d70-49be-b163-f2d7551a3e18",
+                "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                "RequesterID": "12D3KooWAQaSKDbemCmXZVJj7W6tdQob1m6Jd9Pc861DijNyrT8p",
+                "RequesterMultiAddress": "/ip4/127.0.0.1/tcp/43995",
+                "TimeSent": "2024-12-11T13:49:10.065448782Z",
+                "Complete": true
+            },
+            {
+                "RequestID": "19fc6de7-226a-41f5-a0ab-aa5dc2eeedaa",
+                "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                "RequesterID": "12D3KooWAQaSKDbemCmXZVJj7W6tdQob1m6Jd9Pc861DijNyrT8p",
+                "RequesterMultiAddress": "/ip4/127.0.0.1/tcp/43995",
+                "TimeSent": "2024-12-11T13:55:00.730696085Z",
+                "Complete": false
+            },
+            {
+                "RequestID": "b3cb62b6-dcc5-4165-9479-d35626a4c62d",
+                "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                "RequesterID": "12D3KooWAQaSKDbemCmXZVJj7W6tdQob1m6Jd9Pc861DijNyrT8p",
+                "RequesterMultiAddress": "/ip4/127.0.0.1/tcp/43995",
+                "TimeSent": "2024-12-11T13:55:15.249633391Z",
+                "Complete": false
+            }
+        ],
+        "downloads": [
+            {
+                "RequestID": "e5a0371d-d0a3-49e2-8619-1e700ec6280d",
+                "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                "FileMetaData": {
+                    "FileName": "trace2.pcap",
+                    "FileSize": 2240708644,
+                    "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                    "FileExtension": ".pcap",
+                    "Multiaddress": "/ip4/127.0.0.1/tcp/46253",
+                    "PeerID": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa",
+                    "Price": 2,
+                    "MiningAddress": "16tkfiM9dLkkHQv7n4mKhvoKJHUEszt6tQ",
+                    "RequestID": "e5a0371d-d0a3-49e2-8619-1e700ec6280d"
+                },
+                "DownloadProgress": 1,
+                "DownloadSpeed": 12.136211,
+                "DownloadStart": "2024-12-11T13:37:55.214659205Z",
+                "RemainingTime": "Download Completed",
+                "BytesDownloaded": 2240708644
+            },
+            {
+                "RequestID": "1b1db335-e970-4f04-bde8-23614c2782b6",
+                "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                "FileMetaData": {
+                    "FileName": "trace2.pcap",
+                    "FileSize": 2240708644,
+                    "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                    "FileExtension": ".pcap",
+                    "Multiaddress": "/ip4/127.0.0.1/tcp/46253",
+                    "PeerID": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa",
+                    "Price": 2,
+                    "MiningAddress": "16tkfiM9dLkkHQv7n4mKhvoKJHUEszt6tQ",
+                    "RequestID": "1b1db335-e970-4f04-bde8-23614c2782b6"
+                },
+                "DownloadProgress": 1,
+                "DownloadSpeed": 12.696688,
+                "DownloadStart": "2024-12-11T13:44:33.270580285Z",
+                "RemainingTime": "Download Completed",
+                "BytesDownloaded": 2240708644
+            },
+            {
+                "RequestID": "637996e7-2d70-49be-b163-f2d7551a3e18",
+                "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                "FileMetaData": {
+                    "FileName": "trace2.pcap",
+                    "FileSize": 2240708644,
+                    "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                    "FileExtension": ".pcap",
+                    "Multiaddress": "/ip4/127.0.0.1/tcp/46253",
+                    "PeerID": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa",
+                    "Price": 2,
+                    "MiningAddress": "16tkfiM9dLkkHQv7n4mKhvoKJHUEszt6tQ",
+                    "RequestID": "637996e7-2d70-49be-b163-f2d7551a3e18"
+                },
+                "DownloadProgress": 1,
+                "DownloadSpeed": 13.818787,
+                "DownloadStart": "2024-12-11T13:49:10.082411659Z",
+                "RemainingTime": "Download Completed",
+                "BytesDownloaded": 2240708644
+            },
+            {
+                "RequestID": "19fc6de7-226a-41f5-a0ab-aa5dc2eeedaa",
+                "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                "FileMetaData": {
+                    "FileName": "trace2.pcap",
+                    "FileSize": 2240708644,
+                    "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                    "FileExtension": ".pcap",
+                    "Multiaddress": "/ip4/127.0.0.1/tcp/46253",
+                    "PeerID": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa",
+                    "Price": 2,
+                    "MiningAddress": "16tkfiM9dLkkHQv7n4mKhvoKJHUEszt6tQ",
+                    "RequestID": "19fc6de7-226a-41f5-a0ab-aa5dc2eeedaa"
+                },
+                "DownloadProgress": 0.17601426,
+                "DownloadSpeed": 6.9287715,
+                "DownloadStart": "2024-12-11T13:55:00.749106268Z",
+                "RemainingTime": "4m53s",
+                "BytesDownloaded": 394396672
+            },
+            {
+                "RequestID": "b3cb62b6-dcc5-4165-9479-d35626a4c62d",
+                "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                "FileMetaData": {
+                    "FileName": "trace2.pcap",
+                    "FileSize": 2240708644,
+                    "FileHash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+                    "FileExtension": ".pcap",
+                    "Multiaddress": "/ip4/127.0.0.1/tcp/46253",
+                    "PeerID": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa",
+                    "Price": 2,
+                    "MiningAddress": "16tkfiM9dLkkHQv7n4mKhvoKJHUEszt6tQ",
+                    "RequestID": "b3cb62b6-dcc5-4165-9479-d35626a4c62d"
+                },
+                "DownloadProgress": 0.09209658,
+                "DownloadSpeed": 6.4401526,
+                "DownloadStart": "2024-12-11T13:55:15.488299744Z",
+                "RemainingTime": "5m23s",
+                "BytesDownloaded": 206361600
+            }
+        ]
+    },
+    "error": null,
+    "id": 1
+}</code>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                                <div class="formatted-requests hide" data-request-id="4"  data-id="response_7">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper " data-title="GET_UPDATES (File Provided)">
+                                                <code class="is-highlighted">
+POST http://localhost:8081/rpc
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.GetUpdates",
+    "params": [],
+    "id": 1
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    <div class="sample-response">
+                                        <div class="heading">
+                                            <span>Example Response</span>
+                                        </div>
+                                        <div class="responses-index">
+                                            <div class="response-status">
+                                                <span>200 - OK</span>
+                                            </div>
+                                        </div>
+                                        <div class="responses code-snippet">
+                                            <div>
+                                                <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_UPDATES (File Provided)">
+                                                    <code class="is-highlighted">
+{
+    "result": {
+        "success": true,
+        "peer_id": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa",
+        "multi_addr": "/ip4/127.0.0.1/tcp/40973",
+        "status": "Online",
+        "private_ip": false,
+        "providing": [
+            {
+                "FileName": "test2.txt",
+                "FileSize": 17,
+                "FileHash": "c5e1064872056c435c0aa2239a3c11bdbb32536615cef6a5a412fdb7e08c5f76",
+                "FileExtension": ".txt",
+                "Multiaddress": "/ip4/127.0.0.1/tcp/40973",
+                "PeerID": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa",
+                "Price": 3,
+                "MiningAddress": "16tkfiM9dLkkHQv7n4mKhvoKJHUEszt6tQ",
+                "RequestID": "",
+                "Provided": false
+            }
+        ],
+        "is_file_provided": {
+            "c5e1064872056c435c0aa2239a3c11bdbb32536615cef6a5a412fdb7e08c5f76": false
+        },
+        "requested_files": [],
+        "downloads": []
+    },
+    "error": null,
+    "id": 1
+}</code>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="row row-no-padding row-eq-height">
+                            <div class="col-md-6 col-xs-12 section">
+                                <div class="api-information" id="5">
+                                     <div class="heading">
+                                        <div class="name">
+                                            <span class="POST method" >POST</span>
+                                            GET_FILE <span class="lock-icon"></span>
+                                        </div>
+                                     </div>
+                                    <div class="url">http://localhost:8081/rpc</div>
+                                    
+                                    <div class="description request-description">
+                                        <p><p>Download a file from OrcaNet by a file hash. Sending this request is also confirms the user wants to proceed with the payment.</p>
+<h4 id="request-body">Request Body</h4>
+<ul>
+<li>
+<p>Type: Raw</p>
+</li>
+<li>
+<p>Description: JSON object with the following keys:</p>
+<ul>
+<li>
+<p><code>jsonrpc</code> (string): The version of the JSON-RPC protocol. Do not change this.</p>
+</li>
+<li>
+<p><code>method</code> (string): The method to be invoked. Do not change this.</p>
+</li>
+<li>
+<p><code>params</code> (array): An array of parameters for the method.</p>
+<ul>
+<li>
+<p><code>file_hash</code> (string): The hash of the file to be downloaded</p>
+</li>
+<li>
+<p>peer<em>id (string): The peer</em>id of a node providing the file.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><code>id</code> (number): The request identifier.</p>
+</li>
+</ul>
+</li>
+</ul></p>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">HEADERS</div>
+                                        <hr>
+                                          <div class="param row">
+                                            <div class="name col-md-3 col-xs-12">Content</div>
+                                            <div class="value col-md-9 col-xs-12">application/json</div>
+                                            <div class="description col-md-9 col-xs-12"><p>None</p>
+                                            </div>
+                                          </div>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">BODY <span class="body-type">raw</span></div>
+                                        <hr>
+                                            <div class="raw-body code-snippet">
+                                              <pre class="body-block click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_FILE">
+                                                  <code>
+                                                    
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.GetFile",
+    "params": [
+        {
+            "file_hash": "01dbf152ff052a370e44f670aaebffd0648e6ada9298e8881284d1217c254591",
+            "peer_id": "12D3KooWEAJJBuis6t6PjUHmfzxdToPwWTmYMCLozPumsEJZ2enm"
+        }
+    ],
+    "id": 1
+}
+                                                  </code>
+                                              </pre>
+                                            </div>
+                                        
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xs-12 examples">
+                                <div class="sample-request">
+                                    <div class="heading">
+                                        <span>Example Request</span>
+                                    </div>
+                                    <div class="responses-index">
+                                        <div class="dropdown response-name">
+                                            <button class="btn dropdown-toggle  responses-dropdown truncate" type="button" id="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                              <span id="selected" class="response-name-label">GET_FILE (Success)</span>
+                                                <span class="caret"></span>
+
+                                            </button>
+
+                                            <ul class="dropdown-menu" aria-labelledby="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown">
+                                                <li class="truncate" data-request-info="5" data-response-info="response_8">GET_FILE (Success)</li>
+                                                <li class="truncate" data-request-info="5" data-response-info="response_9">GET_FILE (Error Example)</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="formatted-requests " data-request-id="5"  data-id="response_8">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_FILE (Success)">
+                                                <code class="is-highlighted">
+POST http://localhost:8081/rpc
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.GetFile",
+    "params": [
+        {
+            "file_hash": "c5e1064872056c435c0aa2239a3c11bdbb32536615cef6a5a412fdb7e08c5f76",
+            "peer_id": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa"
+        }
+    ],
+    "id": 1
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    <div class="sample-response">
+                                        <div class="heading">
+                                            <span>Example Response</span>
+                                        </div>
+                                        <div class="responses-index">
+                                            <div class="response-status">
+                                                <span>200 - OK</span>
+                                            </div>
+                                        </div>
+                                        <div class="responses code-snippet">
+                                            <div>
+                                                <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_FILE (Success)">
+                                                    <code class="is-highlighted">
+{
+    "result": {
+        "success": true,
+        "message": "File dowloaded successfully",
+        "request_id": "9313593d-c814-47fa-9697-aa636c951dc7",
+        "file_hash": "c5e1064872056c435c0aa2239a3c11bdbb32536615cef6a5a412fdb7e08c5f76",
+        "txid": "8330d10448713ae101781abf1ac52875cc473cb32028b3e51d144eb46afb61b1"
+    },
+    "error": null,
+    "id": 1
+}</code>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                                <div class="formatted-requests hide" data-request-id="5"  data-id="response_9">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_FILE (Error Example)">
+                                                <code class="is-highlighted">
+POST http://localhost:8081/rpc
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.GetFile",
+    "params": [
+        {
+            "file_hash": "c5e1064872056c435c0aa2239a3c11bdbb32536615cef6a5a412fdb7e08c5f76",
+            "peer_id": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa"
+        }
+    ],
+    "id": 1
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    <div class="sample-response">
+                                        <div class="heading">
+                                            <span>Example Response</span>
+                                        </div>
+                                        <div class="responses-index">
+                                            <div class="response-status">
+                                                <span>200 - OK</span>
+                                            </div>
+                                        </div>
+                                        <div class="responses code-snippet">
+                                            <div>
+                                                <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_FILE (Error Example)">
+                                                    <code class="is-highlighted">
+{
+    "result": null,
+    "error": "failed to connect to peer through relay: failed to dial: failed to dial 12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa: all dials failed\n  * [/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN/p2p-circuit] dial backoff",
+    "id": 1
+}</code>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="row row-no-padding row-eq-height">
+                            <div class="col-md-6 col-xs-12 section">
+                                <div class="api-information" id="6">
+                                     <div class="heading">
+                                        <div class="name">
+                                            <span class="POST method" >POST</span>
+                                            GET_FILE_META_DATA <span class="lock-icon"></span>
+                                        </div>
+                                     </div>
+                                    <div class="url">http://localhost:8081/rpc</div>
+                                    
+                                    <div class="description request-description">
+                                        <p><p>Get the metadata, pricing, and status information of a file.</p>
+<h4 id="request-body">Request Body</h4>
+<ul>
+<li>
+<p>Type: Raw</p>
+</li>
+<li>
+<p>Description: JSON object with the following keys:</p>
+<ul>
+<li>
+<p><code>jsonrpc</code> (string): The version of the JSON-RPC protocol. Do not change this.</p>
+</li>
+<li>
+<p><code>method</code> (string): The method to be invoked. Do not change this.</p>
+</li>
+<li>
+<p><code>params</code> (array): An array of parameters for the method.</p>
+<ul>
+<li>
+<p><code>file_hash</code> (string): The path of the file to be shared.</p>
+</li>
+<li>
+<p>peer<em>id (string): The peer</em>id providing the file.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><code>id</code> (number): The request identifier.</p>
+</li>
+</ul>
+</li>
+</ul></p>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">HEADERS</div>
+                                        <hr>
+                                          <div class="param row">
+                                            <div class="name col-md-3 col-xs-12">Content-Type</div>
+                                            <div class="value col-md-9 col-xs-12">application/json</div>
+                                            <div class="description col-md-9 col-xs-12"><p>None</p>
+                                            </div>
+                                          </div>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">BODY <span class="body-type">raw</span></div>
+                                        <hr>
+                                            <div class="raw-body code-snippet">
+                                              <pre class="body-block click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_FILE_META_DATA">
+                                                  <code>
+                                                    
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.GetFileMetaData",
+    "params": [
+        {
+            "file_hash": "01dbf152ff052a370e44f670aaebffd0648e6ada9298e8881284d1217c254591",
+            "peer_id": "12D3KooWEAJJBuis6t6PjUHmfzxdToPwWTmYMCLozPumsEJZ2enm"
+        }
+    ],
+    "id": 1
+
+}
+                                                  </code>
+                                              </pre>
+                                            </div>
+                                        
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xs-12 examples">
+                                <div class="sample-request">
+                                    <div class="heading">
+                                        <span>Example Request</span>
+                                    </div>
+                                    <div class="responses-index">
+                                        <div class="dropdown response-name">
+                                            <button class="btn dropdown-toggle  responses-dropdown truncate" type="button" id="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                              <span id="selected" class="response-name-label">GET_FILE_META_DATA (Error Example)</span>
+                                                <span class="caret"></span>
+
+                                            </button>
+
+                                            <ul class="dropdown-menu" aria-labelledby="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown">
+                                                <li class="truncate" data-request-info="6" data-response-info="response_10">GET_FILE_META_DATA (Error Example)</li>
+                                                <li class="truncate" data-request-info="6" data-response-info="response_11">GET_FILE_META_DATA (Success)</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="formatted-requests " data-request-id="6"  data-id="response_10">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_FILE_META_DATA (Error Example)">
+                                                <code class="is-highlighted">
+POST http://localhost:8081/rpc
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.GetFileMetaData",
+    "params": [
+        {
+            "file_hash":"4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5",
+            "peer_id": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pRaS2fGovKbkMpFa"
+        }
+    ],
+    "id": 1
+
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    <div class="sample-response">
+                                        <div class="heading">
+                                            <span>Example Response</span>
+                                        </div>
+                                        <div class="responses-index">
+                                            <div class="response-status">
+                                                <span>200 - OK</span>
+                                            </div>
+                                        </div>
+                                        <div class="responses code-snippet">
+                                            <div>
+                                                <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_FILE_META_DATA (Error Example)">
+                                                    <code class="is-highlighted">
+{
+    "result": null,
+    "error": "failed to connect to peer through relay: failed to dial: failed to dial 12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pRaS2fGovKbkMpFa: all dials failed\n  * [/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN/p2p-circuit] error opening relay circuit: NO_RESERVATION (204)",
+    "id": 1
+}</code>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                                <div class="formatted-requests hide" data-request-id="6"  data-id="response_11">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_FILE_META_DATA (Success)">
+                                                <code class="is-highlighted">
+POST http://localhost:8081/rpc
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.GetFileMetaData",
+    "params": [
+        {
+            "file_hash":"c5e1064872056c435c0aa2239a3c11bdbb32536615cef6a5a412fdb7e08c5f76",
+            "peer_id": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa"
+        }
+    ],
+    "id": 1
+
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    <div class="sample-response">
+                                        <div class="heading">
+                                            <span>Example Response</span>
+                                        </div>
+                                        <div class="responses-index">
+                                            <div class="response-status">
+                                                <span>200 - OK</span>
+                                            </div>
+                                        </div>
+                                        <div class="responses code-snippet">
+                                            <div>
+                                                <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_FILE_META_DATA (Success)">
+                                                    <code class="is-highlighted">
+{
+    "result": {
+        "success": true,
+        "file_meta_data": {
+            "FileName": "test2.txt",
+            "FileSize": 17,
+            "FileHash": "c5e1064872056c435c0aa2239a3c11bdbb32536615cef6a5a412fdb7e08c5f76",
+            "FileExtension": ".txt",
+            "Multiaddress": "/ip4/127.0.0.1/tcp/40973",
+            "PeerID": "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa",
+            "Price": 3,
+            "MiningAddress": "16tkfiM9dLkkHQv7n4mKhvoKJHUEszt6tQ",
+            "RequestID": "",
+            "Provided": true
+        }
+    },
+    "error": null,
+    "id": 1
+}</code>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="row row-no-padding row-eq-height">
+                            <div class="col-md-6 col-xs-12 section">
+                                <div class="api-information" id="7">
+                                     <div class="heading">
+                                        <div class="name">
+                                            <span class="POST method" >POST</span>
+                                            PAUSE_DOWNLOAD <span class="lock-icon"></span>
+                                        </div>
+                                     </div>
+                                    <div class="url">http://host.docker.internal:8081/rpc</div>
+                                    
+                                    <div class="description request-description">
+                                        <p><p>Pause a download associated with a request id</p>
+<h4 id="request-body">Request Body</h4>
+<ul>
+<li>
+<p>Type: Raw</p>
+</li>
+<li>
+<p>Description: JSON object with the following keys:</p>
+<ul>
+<li>
+<p><code>jsonrpc</code> (string): The version of the JSON-RPC protocol. Do not change this.</p>
+</li>
+<li>
+<p><code>method</code> (string): The method to be invoked. Do not change this.</p>
+</li>
+<li>
+<p><code>params</code> (array): An array of parameters for the method.</p>
+<ul>
+<li>request_id (string): The request id of the request to pause a download for.</li>
+</ul>
+</li>
+<li>
+<p><code>id</code> (number): The request identifier.</p>
+</li>
+</ul>
+</li>
+</ul></p>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">HEADERS</div>
+                                        <hr>
+                                          <div class="param row">
+                                            <div class="name col-md-3 col-xs-12">Content</div>
+                                            <div class="value col-md-9 col-xs-12">application/json</div>
+                                            <div class="description col-md-9 col-xs-12"><p>None</p>
+                                            </div>
+                                          </div>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">BODY <span class="body-type">raw</span></div>
+                                        <hr>
+                                            <div class="raw-body code-snippet">
+                                              <pre class="body-block click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="PAUSE_DOWNLOAD">
+                                                  <code>
+                                                    
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.PauseDownload",
+    "params": [
+        {
+            "request_id": "b3cb62b6-dcc5-4165-9479-d35626a4c62d"
+        }
+    ],
+    "id": 1
+}
+                                                  </code>
+                                              </pre>
+                                            </div>
+                                        
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xs-12 examples">
+                                <div class="sample-request">
+                                    <div class="heading">
+                                        <span>Example Request</span>
+                                    </div>
+                                    <div class="responses-index">
+                                        <div class="dropdown response-name">
+                                            <button class="btn   responses-dropdown truncate" type="button" id="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                              <span id="selected" class="response-name-label">PAUSE_DOWNLOAD (Error)</span>
+                                                <span class="caret"></span>
+
+                                            </button>
+
+                                            <ul class="dropdown-menu" aria-labelledby="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown">
+                                                <li class="truncate" data-request-info="7" data-response-info="response_12">PAUSE_DOWNLOAD (Error)</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="formatted-requests " data-request-id="7"  data-id="response_12">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="PAUSE_DOWNLOAD (Error)">
+                                                <code class="is-highlighted">
+POST http://host.docker.internal:8081/rpc
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.PauseDownload",
+    "params": [
+        {
+            "request_id": "b3cb62b6-dcc5-4165-9479-d35626a4c62d"
+        }
+    ],
+    "id": 1
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    <div class="sample-response">
+                                        <div class="heading">
+                                            <span>Example Response</span>
+                                        </div>
+                                        <div class="responses-index">
+                                            <div class="response-status">
+                                                <span>200 - OK</span>
+                                            </div>
+                                        </div>
+                                        <div class="responses code-snippet">
+                                            <div>
+                                                <pre class="click-to-expand-wrapper is-snippet-wrapper " data-title="PAUSE_DOWNLOAD (Error)">
+                                                    <code class="is-highlighted">
+{
+    "result": null,
+    "error": "transaction does not exist for requestID b3cb62b6-dcc5-4165-9479-d35626a4c6ad",
+    "id": 1
+}</code>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="row row-no-padding row-eq-height">
+                            <div class="col-md-6 col-xs-12 section">
+                                <div class="api-information" id="8">
+                                     <div class="heading">
+                                        <div class="name">
+                                            <span class="POST method" >POST</span>
+                                            GET_PROVIDERS <span class="lock-icon"></span>
+                                        </div>
+                                     </div>
+                                    <div class="url">http://localhost:8081/rpc</div>
+                                    
+                                    <div class="description request-description">
+                                        <p><p>Get a list of peerID of providers of a file.</p>
+<h4 id="request-body">Request Body</h4>
+<ul>
+<li>
+<p>Type: Raw</p>
+</li>
+<li>
+<p>Description: JSON object with the following keys:</p>
+<ul>
+<li>
+<p><code>jsonrpc</code> (string): The version of the JSON-RPC protocol. Do not change this.</p>
+</li>
+<li>
+<p><code>method</code> (string): The method to be invoked. Do not change this.</p>
+</li>
+<li>
+<p><code>params</code> (array): An array of parameters for the method.</p>
+<ul>
+<li><code>file_hash</code> (string): The path of the file to get providers of</li>
+</ul>
+</li>
+<li>
+<p><code>id</code> (number): The request identifier.</p>
+</li>
+</ul>
+</li>
+</ul></p>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">HEADERS</div>
+                                        <hr>
+                                          <div class="param row">
+                                            <div class="name col-md-3 col-xs-12">Content</div>
+                                            <div class="value col-md-9 col-xs-12">application/json</div>
+                                            <div class="description col-md-9 col-xs-12"><p>None</p>
+                                            </div>
+                                          </div>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">BODY <span class="body-type">raw</span></div>
+                                        <hr>
+                                            <div class="raw-body code-snippet">
+                                              <pre class="body-block click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_PROVIDERS">
+                                                  <code>
+                                                    
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.GetProviders",
+    "params": [
+        {
+            "file_hash": "4f218aa0a9ec1235c74b6ab94188b0a06bc1aca127bc930235f308addd31c1d5"
+        }
+    ],
+    "id": 1
+}
+                                                  </code>
+                                              </pre>
+                                            </div>
+                                        
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xs-12 examples">
+                                <div class="sample-request">
+                                    <div class="heading">
+                                        <span>Example Request</span>
+                                    </div>
+                                    <div class="responses-index">
+                                        <div class="dropdown response-name">
+                                            <button class="btn   responses-dropdown truncate" type="button" id="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                              <span id="selected" class="response-name-label">GET_PROVIDERS (Success)</span>
+                                                <span class="caret"></span>
+
+                                            </button>
+
+                                            <ul class="dropdown-menu" aria-labelledby="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown">
+                                                <li class="truncate" data-request-info="8" data-response-info="response_13">GET_PROVIDERS (Success)</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="formatted-requests " data-request-id="8"  data-id="response_13">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_PROVIDERS (Success)">
+                                                <code class="is-highlighted">
+POST http://host.docker.internal:8081/rpc
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.GetProviders",
+    "params": [
+        {
+            "file_hash": "8d1987845d9c3ff3129f21d1a2d330312527ec6fd2a873d07e455df95b8e6891"
+        }
+    ],
+    "id": 1
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    <div class="sample-response">
+                                        <div class="heading">
+                                            <span>Example Response</span>
+                                        </div>
+                                        <div class="responses-index">
+                                            <div class="response-status">
+                                                <span>200 - OK</span>
+                                            </div>
+                                        </div>
+                                        <div class="responses code-snippet">
+                                            <div>
+                                                <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="GET_PROVIDERS (Success)">
+                                                    <code class="is-highlighted">
+{
+    "result": {
+        "success": true,
+        "providers": [
+            "",
+            "12D3KooWHsGbiL3GeM3SzaMjpk8gKfuAtbY3pR2S2fGovKbkMpFa",
+            "12D3KooWAQaSKDbemCmXZVJj7W6tdQob1m6Jd9Pc861DijNyrT8p"
+        ]
+    },
+    "error": null,
+    "id": 1
+}</code>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="row row-no-padding row-eq-height">
+                            <div class="col-md-6 col-xs-12 section">
+                                <div class="api-information" id="9">
+                                     <div class="heading">
+                                        <div class="name">
+                                            <span class="POST method" >POST</span>
+                                            RESUME_DOWNLOAD <span class="lock-icon"></span>
+                                        </div>
+                                     </div>
+                                    <div class="url">http://host.docker.internal:8081/rpc</div>
+                                    
+                                    <div class="description request-description">
+                                        <p><p>Resume a paused download associated with a download.</p>
+<h4 id="request-body">Request Body</h4>
+<ul>
+<li>
+<p>Type: Raw</p>
+</li>
+<li>
+<p>Description: JSON object with the following keys:</p>
+<ul>
+<li>
+<p><code>jsonrpc</code> (string): The version of the JSON-RPC protocol. Do not change this.</p>
+</li>
+<li>
+<p><code>method</code> (string): The method to be invoked. Do not change this.</p>
+</li>
+<li>
+<p><code>params</code> (array): An array of parameters for the method.</p>
+<ul>
+<li><code>request_id</code> (string): The request ID to resume a download.</li>
+</ul>
+</li>
+<li>
+<p><code>id</code> (number): The request identifier.</p>
+</li>
+</ul>
+</li>
+</ul></p>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">HEADERS</div>
+                                        <hr>
+                                          <div class="param row">
+                                            <div class="name col-md-3 col-xs-12">Content</div>
+                                            <div class="value col-md-9 col-xs-12">application/json</div>
+                                            <div class="description col-md-9 col-xs-12"><p>None</p>
+                                            </div>
+                                          </div>
+                                    </div>
+                                    
+                                    <div class="request-body">
+                                        <div class="body-heading">BODY <span class="body-type">raw</span></div>
+                                        <hr>
+                                            <div class="raw-body code-snippet">
+                                              <pre class="body-block click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="RESUME_DOWNLOAD">
+                                                  <code>
+                                                    
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.ResumeDownload",
+    "params": [
+        {
+            "request_id": "bd9d0abf-0646-4ec2-a79b-6a99aa53735c"
+        }
+    ],
+    "id": 1
+}
+                                                  </code>
+                                              </pre>
+                                            </div>
+                                        
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xs-12 examples">
+                                <div class="sample-request">
+                                    <div class="heading">
+                                        <span>Example Request</span>
+                                    </div>
+                                    <div class="responses-index">
+                                        <div class="dropdown response-name">
+                                            <button class="btn   responses-dropdown truncate" type="button" id="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                              <span id="selected" class="response-name-label">RESUME_DOWNLOAD</span>
+                                                <span class="caret"></span>
+
+                                            </button>
+
+                                            <ul class="dropdown-menu" aria-labelledby="f678f251-1750-4e3a-b5d8-05b4c6b0fb37_dropdown">
+                                                <li class="truncate" data-request-info="9" data-response-info="response_14">RESUME_DOWNLOAD</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="formatted-requests " data-request-id="9"  data-id="response_14">
+                                    <div class="request code-snippet">
+                                        <div>
+                                            <pre class="click-to-expand-wrapper is-snippet-wrapper is-expandable" data-title="RESUME_DOWNLOAD">
+                                                <code class="is-highlighted">
+POST http://host.docker.internal:8081/rpc
+
+{
+    "jsonrpc": "2.0",
+    "method": "FileShareService.ResumeDownload",
+    "params": [
+        {
+            "request_id": "bd9d0abf-0646-4ec2-a79b-6a99aa53735c"
+        }
+    ],
+    "id": 1
+}</code>
+                                            </pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </main>
+        <!-- page-content" -->
+    </div>
+    <!-- page-wrapper -->
+    <!-- using online scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous">
+    </script>
+    <script src="https://malihu.github.io/custom-scrollbar/jquery.mCustomScrollbar.concat.min.js"></script>
+    <script src="js/bootstrap-treeview.min.js"></script>
+    <script src="js/main.min.js"></script>
+    <script type="application/javascript">
+        var data = [{'text': 'PROVIDE_FILE', 'href': '#1', 'method': 'POST'}, {'text': 'STOP_PROVIDING_FILE', 'href': '#2', 'method': 'POST'}, {'text': 'RESUME_PROVIDING_FILE', 'href': '#3', 'method': 'POST'}, {'text': 'GET_UPDATES', 'href': '#4', 'method': 'POST'}, {'text': 'GET_FILE', 'href': '#5', 'method': 'POST'}, {'text': 'GET_FILE_META_DATA', 'href': '#6', 'method': 'POST'}, {'text': 'PAUSE_DOWNLOAD', 'href': '#7', 'method': 'POST'}, {'text': 'GET_PROVIDERS', 'href': '#8', 'method': 'POST'}, {'text': 'RESUME_DOWNLOAD', 'href': '#9', 'method': 'POST'}]
+        $('#tree').treeview({
+            data: data,
+            levels: 10,
+            expandIcon: 'fas fa-caret-right',
+            collapseIcon: 'fas fa-caret-down',
+            enableLinks: true,
+            showIcon: true,
+            showMethod: true
+        });
+    </script>
+
+</body>
+
+</html>
