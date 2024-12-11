@@ -29,52 +29,53 @@ const check = (callback) => {
 };
 let containerId = null
 const automate = () => {
-  check(() => {
-    exec('docker ps -q -f "ancestor=myapi"', (err, stdout, stderr) => {
-      if (err) {
-        console.error("Error checking running containers:", stderr);
-        return;
-      }
-
-      const running = stdout.trim();
-      if (running) {
-        console.log(`Container is already running with ID: ${running}`);
-        containerId = running; // Save the container ID
-        return;
-      }
-
-      exec('docker ps -a -q -f "ancestor=myapi"', (err, stdout, stderr) => {
+    check(() => {
+      exec('docker ps -q -f "ancestor=myapi"', (err, stdout, stderr) => {
         if (err) {
-          console.error("Error checking existing containers:", stderr);
+          console.error("Error checking running containers:", stderr);
           return;
         }
 
-        const exist = stdout.trim();
-        if (exist) {
-          console.log(`Found stopped container with ID: ${exist}. Restarting...`);
-          exec(`docker start ${exist}`, (err, stdout, stderr) => {
-            if (err) {
-              console.error(`Error starting container "${exist}":`, stderr);
-              return;
-            }
-            console.log(`Container "${exist}" started successfully.`);
-            containerId = exist; // Save the container ID
-          });
-        } else {
-          console.log("No existing container found. Running a new one...");
-
-          exec('docker run -p 8080:8080 -d myapi', { cwd: path.join(__dirname, '..') }, (err, stdout, stderr) => {
-            if (err) {
-              console.error("Error running Docker container:", stderr);
-              return;
-            }
-            containerId = stdout.trim(); // Save the container ID
-            console.log(`New container started with ID: ${containerId}`);
-          });
+        const running = stdout.trim();
+        if (running) {
+          console.log(`Container is already running with ID: ${running}`);
+          containerId = running; // Save the container ID
+          return;
         }
+
+        exec('docker ps -a -q -f "ancestor=myapi"', (err, stdout, stderr) => {
+          if (err) {
+            console.error("Error checking existing containers:", stderr);
+            return;
+          }
+
+          const exist = stdout.trim();
+          if (exist) {
+            console.log(`Found stopped container with ID: ${exist}. Restarting...`);
+
+            exec(`docker start ${exist}`, (err, stdout, stderr) => {
+              if (err) {
+                console.error(`Error starting container "${exist}":`, stderr);
+                return;
+              }
+              console.log(`Container "${exist}" started successfully.`);
+              containerId = exist; 
+            });
+          } else {
+            console.log("No existing container found. Running a new one...");
+
+            exec('docker run -p 8080:8080 -d myapi', { cwd: path.join(__dirname, '..') }, (err, stdout, stderr) => {
+              if (err) {
+                console.error("Error running Docker container:", stderr);
+                return;
+              }
+              containerId = stdout.trim(); // Save the container ID
+              console.log(`New container started with ID: ${containerId}`);
+            });
+          }
+        });
       });
     });
-  });
 };
 
 let containerName = null;
@@ -134,15 +135,15 @@ const automateFile = (id) => {
 };
 const terminate = () => {
   if (containerId) {
-    const stop = `docker stop ${containerId}`;
-    exec(stop, (err, stdout, stderr) => {
-      if (err) {
-        console.error(`Error stopping container "${containerId}":`, err);
-        console.error('stderr:', stderr);
-      } else {
-        console.log(`Container "${containerId}" stopped successfully.`);
-      }
-    });
+      const stop = `docker stop ${containerId}`;
+      exec(stop, (err, stdout, stderr) => {
+        if (err) {
+          console.error(`Error stopping container "${containerId}":`, err);
+          console.error('stderr:', stderr);
+        } else {
+          console.log(`Container "${containerId}" stopped successfully.`);
+        }
+      });
   } else {
     console.log("No container is running.");
   }
@@ -280,22 +281,15 @@ app.whenReady().then(() => {
 // explicitly with Cmd + Q.
 
 app.on('will-quit', (event) => {
-  terminate(); 
-  terminateFile();
-  app.quit();
-});
-
-app.on("window-all-closed", function () {
-  if (process.platform !== "darwin") {
     terminate();
-    terminateFile();
+    terminateFile(); 
     app.quit();
-  }
 });
 
-process.on("SIGINT", () => {
-  console.log("Caught interrupt signal (Ctrl+C). Cleaning up...");
-  terminate();
-  terminateFile();
-  app.quit();
+app.on("window-all-closed", () =>{
+  if (process.platform !== "darwin") {
+      terminate();
+      terminateFile(); 
+      app.quit();
+    }
 });

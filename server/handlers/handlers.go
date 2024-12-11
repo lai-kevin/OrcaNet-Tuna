@@ -107,7 +107,7 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	time.Sleep(3 * time.Second)
 
 	// Step 7: Unlock the wallet with the generated password
-	unlockCmd := fmt.Sprintf("walletpassphrase %s %d", password, 60*60) // Unlock for 1 hour
+	unlockCmd := fmt.Sprintf("walletpassphrase %s %d", password, 24*60*60) // Unlock for 1 hour
 	if _, err := manager.CallBtcctlCmd(unlockCmd); err != nil {
 		http.Error(w, "Failed to unlock wallet: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -190,6 +190,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
         return 
     }
 
+    if err := manager.StartOrcaNet(miningAddr); err != nil {
+        fmt.Println("Error: Failed to start btcd -", err)
+        http.Error(w, "Failed to start btcd with mining address: "+err.Error(), http.StatusInternalServerError)
+        return 
+    }
+
     // Step 1: Start btcwallet if needed
     if err := manager.StartWallet(); err != nil {
         fmt.Println("Error: Failed to start wallet -", err)
@@ -202,7 +208,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// create a session token
 	token := uuid.New().String()
-	duration := 60 * 60  
+	duration := 24 * 60 * 60  
 	exp:= time.Now().Add(1 * time.Hour)                 
 	if request.RememberMe {
 		exp = time.Now().Add(24 * time.Hour) // 24 hours 
@@ -669,10 +675,6 @@ func Shutdown(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Error while forcefully killing processes:", err)
 		}
 	}()
-
-	// Step 5: Exit the main program after shutdown
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "Shutdown initiated. Stopping services...")
 
 	// Exit the program, ensuring everything is stopped
 	os.Exit(0)

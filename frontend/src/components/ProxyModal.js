@@ -148,22 +148,26 @@ const Options = ({row, setRow, setClick, setContent}) =>{
     let info = { ...row, date: formatTime()};
     const {mode} = useMode();
     const handleYes = ()=>{
-        setCurr("progress");
+        setCurr("third");
     }
     const handleNo = ()=>{
         setRow(null)
         setContent("select")
     }
-    useEffect(() => {
-        let timer; 
-        if (curr === "progress") {
-            timer = setTimeout(() => {
-                setClick(false); 
-                setServer(info);
-            }, 3000);
-        }
-        return () => clearTimeout(timer); 
-    }, [curr]);
+    const handleClick1 = ()=>{
+        setClick(false); 
+        setServer(info);
+    }
+    // useEffect(() => {
+    //     let timer; 
+    //     if (curr === "progress") {
+    //         timer = setTimeout(() => {
+    //             setClick(false); 
+    //             setServer(info);
+    //         }, 3000);
+    //     }
+    //     return () => clearTimeout(timer); 
+    // }, [curr]);
     return(
         <div id="confirmation">
             {curr==="confirm" && (<><h3 style={{ color: mode === "dark" ? "black" : "black" }}>Are you sure you want to perform a proxy connection with a cost of {row.Price} OrcaCoins per MB?</h3>
@@ -171,13 +175,21 @@ const Options = ({row, setRow, setClick, setContent}) =>{
                 <button id="yes" onClick={handleYes}> Yes </button>
                 <button id="No" onClick={handleNo}> No </button>
             </div></>)}
-            {curr==="progress" && (
+            {/* {curr==="progress" && (
                 <>
                 <h3>Connecting to proxy node...</h3>
                 <div className="spinner-container">
                     <div className="spinner" />
                 </div>
                 </>
+            )} */}
+            {curr==="third" && (
+                <div id = "container1">
+                <div id="content3">
+                    <h3 style={{ color: "black"}}>Please connect to proxy manually. Click OK when successfully configured.</h3>
+                    <button onClick={handleClick1} className= "ok_button1"> OK </button>
+                </div>
+                </div>
             )}
         </div>
     )

@@ -17,9 +17,9 @@ const Home = () => {
     console.log("came here")
     const timeoutId = setTimeout(() => {
       setCurr("third");
-    }, 10000);
-
-    Wallet.mine(2).then((response)=>{
+    }, 15000);
+    setTimeout(()=>{
+      Wallet.mine(2).then((response)=>{
         console.log(response)
         console.log("done with 2 blocks")
         setMining(false)
@@ -33,6 +33,7 @@ const Home = () => {
         setBlocks(0)
         setMining(false)
     })
+    }, 6000)
   }
   const handleClick1=()=>{
     setEnter(false);

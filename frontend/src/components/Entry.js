@@ -153,14 +153,23 @@ const Login=({handleRegPage, setPage})=>{
                 Wallet.reenter()
                 .then((result) => {
                     startDocker(localStorage.getItem("id"))
+                    const storedData = localStorage.getItem(result.miningAddress);
+                    let served = []
+                    let prox = []
+                    if (storedData){
+                        const parsedData = JSON.parse(storedData);
+                        served = parsedData.servedHistory;
+                        prox = parsedData.proxied;
+                    }
                     const userData ={
                         walletID: result.miningAddress,
                         peer: localStorage.getItem("id"),
                         balance: result.balance, 
-                        transactions: result.transactions,
+                        transactions: result.transactions!==null ? result.transactions : [],
                         fileHistory:[],
-                        servedHistory:[], // the clients that it served before  
-                        proxied:[], // the peers that user proxied
+                        servedHistory: served,
+                        proxied: prox,
+                        mode: localStorage.getItem("mode")
                     };
                     setUser(userData);
                     setEnter(true);
@@ -173,7 +182,7 @@ const Login=({handleRegPage, setPage})=>{
                     setRestart(true)
                 });
                 
-            }, 5000);
+            }, 10000);
         } else {
             localStorage.removeItem("rem");
       }
@@ -190,15 +199,23 @@ const Login=({handleRegPage, setPage})=>{
         Wallet.enter({password: key, rem: rem}).then((result) => {
             setVerify(false);
             startDocker(localStorage.getItem("id"))
+            const storedData = localStorage.getItem(result.miningAddress);
+            let served = []
+            let prox = []
+            if (storedData){
+                const parsedData = JSON.parse(storedData);
+                served = parsedData.servedHistory;
+                prox = parsedData.proxied;
+            }
             const userData ={
                 walletID: result.miningAddress,
                 peer: localStorage.getItem("id"),
                 balance: result.balance, 
                 transactions: result.transactions!==null ? result.transactions : [],
                 fileHistory:[],
-                servedHistory:[], // the clients that it served before  
-                proxied:[], // the peers that user proxied
-                mode: "light"
+                servedHistory: served,
+                proxied: prox,
+                mode: localStorage.getItem("mode")
             };
             if(rem){
                 localStorage.setItem("rem", true);
@@ -319,9 +336,9 @@ const Register=({handleLoginPage, setPage})=>{
                 fileHistory:[],
                 servedHistory:[], // the clients that it served before  
                 proxied:[], // the peers that user proxied
+                mode: "light"
             };
-            const addr = result.miningAddress;
-            localStorage.setItem(addr, "light")
+            localStorage.setItem("mode", "light")
             localStorage.setItem("id", key)
             setPass(result.password)
             setData(userData)

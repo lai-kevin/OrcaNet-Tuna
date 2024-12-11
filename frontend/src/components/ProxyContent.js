@@ -118,7 +118,7 @@ useEffect(() => {
                 ...prev.transactions, result
             ]
         };
-        localStorage.setItem(prev.privateKey, JSON.stringify(updated));
+        localStorage.setItem(prev.walletID, JSON.stringify(updated));
         return updated;
     });
     handleUpdate(result); // add to the whole proxy history of packets
@@ -183,7 +183,7 @@ const generateClient = ()=>{
                 ...prev.transactions, result
             ]
         };
-        localStorage.setItem(prev.privateKey, JSON.stringify(updated));
+        localStorage.setItem(prev.walletID, JSON.stringify(updated));
         return updated;
     });
     handleUpdate(result); // add to the whole proxy
@@ -202,7 +202,7 @@ const generateClient = ()=>{
                     ...prev.proxied, curr
                 ]
             };
-            localStorage.setItem(prev.privateKey, JSON.stringify(updated));
+            localStorage.setItem(prev.walletID, JSON.stringify(updated));
             return updated;
         });
         console.log(user);
@@ -497,7 +497,7 @@ const Delete = ({setNodes}) => {
                   ...prev.servedHistory, ...conHist
               ],
           };
-          localStorage.setItem(prev.privateKey, JSON.stringify(updated));
+          localStorage.setItem(prev.walletID, JSON.stringify(updated));
           return updated;
       });
     };
@@ -949,7 +949,7 @@ const DisModal =({setOpen})=>{
                 ...prev,
                 proxied: [...prev.proxied, currData],
             };
-            localStorage.setItem(prev.privateKey, JSON.stringify(updated));
+            localStorage.setItem(prev.walletID, JSON.stringify(updated)); //saving the proxy history in local storage
             return updated;
         });
         setCurr("progress")
@@ -1163,7 +1163,7 @@ const Confirmation =({setPop})=>{
                 ],
                 //servedRequests: [...prev.servedRequests, ...serverHistory]
             };
-            localStorage.setItem(prev.privateKey, JSON.stringify(updated));
+            localStorage.setItem(prev.walletID, JSON.stringify(updated));
             return updated;
         });
         setStop([])

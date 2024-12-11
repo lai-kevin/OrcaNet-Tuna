@@ -96,6 +96,7 @@ const MineMenu=({setOpen})=>{
     const[amount, setAmount] = useState("")
     const [mess, setMess] = useState("")
     const[err, setErr] = useState(false)
+    const [e, setE] = useState()
     const {setMining, setBlocks, setTime} = useContext(AppContext)
     const exit = () => {
         setOpen(false);
