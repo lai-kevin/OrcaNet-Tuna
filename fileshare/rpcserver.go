@@ -192,6 +192,7 @@ func (s *FileShareService) GetUpdates(r *http.Request, args *GetUpdatesArgs, rep
 		Status:         status,
 		PrivateIP:      privateIP,
 		Providing:      providedFiles,
+		IsFileProvided: isFileHashProvided,
 		RequestedFiles: fileRequests,
 		Downloads:      downloadHistoryList,
 	}
@@ -205,9 +206,14 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 	filepath := args.FilePath
 	peerID := globalNode.ID().String()
 
-	fileHash := generateFileHash(filepath)
+	fileHash, err := generateFileHash(filepath)
+	if err != nil {
+		log.Printf("Failed to generate file hash: %v\n", err)
+		*reply = ProvideFileReply{Success: false, Message: "Failed to generate file hash"}
+		return err
+	}
 
-	err := provideFileOnDHT(fileHash, peerID)
+	err = provideFileOnDHT(fileHash, peerID)
 	if err != nil {
 		log.Printf("Failed to provide file: %v\n", err)
 		*reply = ProvideFileReply{Success: false, Message: "Failed to provide file"}
