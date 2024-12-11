@@ -40,46 +40,39 @@ func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *Ge
 	fileMetaData, exists := metadataResponse[args.FileHash+args.PeerID]
 	if !exists {
 		log.Printf("File price metadata does not exist for file hash %s and peer ID %s\n", args.FileHash, args.PeerID)
-		*reply = GetFileReply{Success: false}
+		*reply = GetFileReply{Success: false, Message: "File price metadata does not exist. Request file metadata first"}
 		return fmt.Errorf("file price metadata does not exist. Request file metadata first")
 	}
 
-	if balanceFloat32 < fileMetaData.price {
+	if balanceFloat32 < fileMetaData.Price {
 		log.Printf("Insufficient balance to download file: %v\n", err)
-		*reply = GetFileReply{Success: false}
-	}
+		*reply = GetFileReply{Success: false, Message: "Insufficient balance to download file"}
+	} else {
+		// Request file from peer
+		requestID := generateRequestID()
+		fileRequests = append(fileRequests, FileRequest{
+			RequestID:             requestID,
+			FileHash:              args.FileHash,
+			RequesterID:           globalNode.ID().String(),
+			RequesterMultiAddress: globalOrcaDHT.Host().Addrs()[0].String(),
+			TimeSent:              time.Now(),
+		})
+		err = connectAndRequestFileFromPeer(args.FileHash, requestID, args.PeerID)
+		if err != nil {
+			log.Printf("Failed to get file: %v\n", err)
+			*reply = GetFileReply{Success: false, Message: "Failed to get file. No response from peer"}
+			return err
+		}
 
-	// Request file from peer
-	requestID := generateRequestID()
-	fileRequests = append(fileRequests, FileRequest{
-		RequestID:             requestID,
-		FileHash:              args.FileHash,
-		RequesterID:           globalNode.ID().String(),
-		RequesterMultiAddress: globalOrcaDHT.Host().Addrs()[0].String(),
-		TimeSent:              time.Now(),
-	})
-	err = connectAndRequestFileFromPeer(args.FileHash, requestID, args.PeerID)
-	if err != nil {
-		log.Printf("Failed to get file: %v\n", err)
-		*reply = GetFileReply{Success: false}
-		return err
-	}
+		txid, err := sendCoinToAddress(fileMetaData.MiningAddress, metadataResponse[args.FileHash+args.PeerID].Price)
+		if err != nil {
+			log.Printf("Failed to send currency to peer: %v\n", err)
+			*reply = GetFileReply{Success: false}
+		}
 
-	// Send currency to peer
-	miningAddress, err := getMiningAddress()
-	if err != nil {
-		log.Printf("Failed to get mining address: %v\n", err)
-		*reply = GetFileReply{Success: false}
+		*reply = GetFileReply{Success: true, Message: "File dowloaded successfully", RequestID: requestID, FileHash: args.FileHash, Txid: txid}
+		saveState()
 	}
-
-	txid, err := sendCoinToAddress(miningAddress, metadataResponse[args.FileHash+args.PeerID].price)
-	if err != nil {
-		log.Printf("Failed to send currency to peer: %v\n", err)
-		*reply = GetFileReply{Success: false}
-	}
-
-	*reply = GetFileReply{Success: true, Message: "File dowloaded successfully", RequestID: requestID, FileHash: args.FileHash, Txid: txid}
-	saveState()
 	return nil
 }
 
@@ -238,11 +231,11 @@ func (s *FileShareService) ProvideFile(r *http.Request, args *ProvideFileArgs, r
 	fileExt := fp.Ext(filepath)
 
 	miningAddress, err := getMiningAddress()
-	log.Printf("Providing file %s with price %f\n", filepath, args.Price)
-
 	if err != nil {
 		log.Printf("Failed to get mining address: %v\n", err)
 	}
+
+	log.Printf("Mining address: %s\n", miningAddress)
 
 	fileMetaData := FileDataHeader{
 		FileName:      fileInfo.Name(),
