@@ -116,19 +116,6 @@ func receiveFileData(node host.Host) {
 			BytesDownloaded:  0,
 		}
 
-		// // Pause download if priority list is full, else update the priority list
-		// for !slices.Contains(downloadPriority, fileMetaData.RequestID) {
-		// 	if len(downloadPriority) < 4 {
-		// 		// Add request ID of oldest file request that isn't downloaded to download priority list
-		// 		for _, fileRequest := range fileRequests {
-		// 			if !fileRequest.Complete {
-		// 				downloadPriority = append(downloadPriority, fileRequest.RequestID)
-		// 				break
-		// 			}
-		// 		}
-		// 	}
-		// }
-
 		file, err := os.Create(DOWNLOAD_DIRECTORY + "/" + fileMetaData.FileName)
 		if err != nil {
 			log.Printf("Error creating file: %v", err)
@@ -182,7 +169,7 @@ func receiveFileData(node host.Host) {
 		ft.DownloadProgress = 1.0
 		downloadHistory[fileMetaData.RequestID] = ft
 
-		// Make as complete in fileRequests
+		// Mark as complete in fileRequests
 		for i, fileRequest := range fileRequests {
 			if fileRequest.RequestID == fileMetaData.RequestID {
 				fileRequest.Complete = true
@@ -505,6 +492,7 @@ func sendFileToPeer(node host.Host, targetNodeId, filepath string, filehash stri
 		return fmt.Errorf("sendFileToPeer: %v", err)
 	}
 
+	totalBytesWritten := 0
 	buffer := make([]byte, 1024)
 	for {
 		for !downloadStatus[requestID] {
@@ -523,8 +511,10 @@ func sendFileToPeer(node host.Host, targetNodeId, filepath string, filehash stri
 		if err != nil {
 			return fmt.Errorf("sendFileToPeer: failed to write buffer to stream: %v", err)
 		}
-
+		totalBytesWritten += bytesRead
 	}
+
+	log.Printf("Bytes written: %d", totalBytesWritten)
 
 	// Close the stream
 	err = stream.Close()

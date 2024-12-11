@@ -34,7 +34,7 @@ import (
 
 // Application state variables
 var SBU_ID string
-var DOWNLOAD_DIRECTORY = "downloads"
+var DOWNLOAD_DIRECTORY = "downloadstation"
 var fileHashToPath = make(map[string]string)           // map of file hashes to file paths on device
 var isFileHashProvided = make(map[string]bool)         // true if file hash is provided by this node, else false
 var downloadStatus = make(map[string]bool)             // proceed with download if true, else pause download
@@ -491,9 +491,6 @@ func saveState() error {
 		FileRequests:       fileRequests,
 		ProvidedFiles:      providedFiles,
 	}
-
-	fmt.Print("State: ")
-	fmt.Println(state)
 
 	file, err := os.Create("state" + SBU_ID + ".json")
 	if err != nil {
