@@ -192,6 +192,7 @@ func (s *FileShareService) GetUpdates(r *http.Request, args *GetUpdatesArgs, rep
 		Status:         status,
 		PrivateIP:      privateIP,
 		Providing:      providedFiles,
+		IsFileProvided: isFileHashProvided,
 		RequestedFiles: fileRequests,
 		Downloads:      downloadHistoryList,
 	}

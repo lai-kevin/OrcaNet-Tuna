@@ -79,14 +79,21 @@ func receiveFileRequests(node host.Host) {
 				log.Printf("Sent file not found message: %v", fileRequest.FileHash)
 			}
 		} else {
-			if lastDownloadStatus.IsZero() || lastDownloadStatus.Before(fileRequest.TimeSent) {
-				downloadStatus[fileRequest.RequestID] = true
-			}
-			err = sendFileToPeer(node, fileRequest.RequesterID, filePath, fileRequest.FileHash, fileRequest.RequestID)
-			if err != nil {
-				log.Printf("Error sending file: %v", err)
+			if !isFileHashProvided[fileRequest.FileHash] {
+				err = sendFileNotCurrentlyProvidedToPeer(node, fileRequest.RequesterID, fileRequest.RequestID)
+				if err != nil {
+					log.Printf("Error sending file not currently provided message: %v", err)
+				}
 			} else {
-				log.Printf("File sent")
+				if lastDownloadStatus.IsZero() || lastDownloadStatus.Before(fileRequest.TimeSent) {
+					downloadStatus[fileRequest.RequestID] = true
+				}
+				err = sendFileToPeer(node, fileRequest.RequesterID, filePath, fileRequest.FileHash, fileRequest.RequestID)
+				if err != nil {
+					log.Printf("Error sending file: %v", err)
+				} else {
+					log.Printf("File sent")
+				}
 			}
 		}
 	})
@@ -335,6 +342,33 @@ func sendFileNotFoundToPeer(node host.Host, targetNodeId string, RequestID strin
 	_, err = stream.Write(errorBytes)
 	if err != nil {
 		return fmt.Errorf("sendFileNotFoundToPeer: %v", err)
+	}
+	return nil
+}
+
+// Send a "file not currently provided" message to a peer from a given node.
+// node: the node sending the message
+// targetNodeId: the ID of the target peer
+func sendFileNotCurrentlyProvidedToPeer(node host.Host, targetNodeId string, RequestID string) error {
+	stream, err := createStream(node, targetNodeId, "/error/p2p")
+	if err != nil {
+		return fmt.Errorf("sendFileNotCurrentlyProvided: %v", err)
+	}
+	defer stream.Close()
+
+	errorStruct := Error{
+		ErrorMessage: "File currently not provided",
+		RequestID:    RequestID,
+	}
+
+	errorBytes, err := json.Marshal(errorStruct)
+	if err != nil {
+		return fmt.Errorf("sendFileNotCurrentlyProvided: %v", err)
+	}
+
+	_, err = stream.Write(errorBytes)
+	if err != nil {
+		return fmt.Errorf("sendFileNotCurrentlyProvided: %v", err)
 	}
 	return nil
 }
