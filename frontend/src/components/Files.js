@@ -70,15 +70,30 @@ const Files = () => {
     }
   }
   const handleSettingHistory = async () =>{
-    //leave it open to extracting other history we might want to render
-    let curUserHistory = await getHistory([]);
-    let downloadHistory = curUserHistory.result.download_history;
-    setDownloadHistory(downloadHistory);//can try inserting the Time Sent as needed from the requested files list
+    //In this case we are talking about setting history
+    //leave it open to extracting other history we might want to render in
+    let curUserHistory = await getUpdatesFromGoNode([]);
+    let downloadHistory = curUserHistory.result.downloads;
+    let filteredHistory = downloadHistory.filter(download => download.DownloadProgress !== 1); //tryna get rid of downloads that arent done
+    setDownloadHistory(filteredHistory);//can try inserting the Time Sent as needed from the requested files list
   }
   const handleSettingCurrentDownloads = async () => {
     let curUpdates = await getUpdatesFromGoNode([]);
-    let curDownloads = curUpdates.result.downloads
-    setDownloads(curDownloads)
+    let curDownloads = curUpdates.result.downloads;
+    setDownloads((prevDownloads) => {
+      const prevDownloadsMap = new Map(prevDownloads.map(download => [download.RequestId, download]));
+      const updatedDownloads = curDownloads.map(download => {
+          const prevDownload = prevDownloadsMap.get(download.RequestId);
+          if (prevDownload) {
+              if (prevDownload.BytesDownloaded === download.BytesDownloaded) {
+                  return { ...download, status: "paused" };//kinda jank but its the only thing somewhat consistent jst gonna compare prevState to currentState
+              }
+          }
+          return { ...download, status: "downloading" }; // default  "downloading" kinda jank but 
+      });
+
+      return updatedDownloads;
+  })
   }
   const handleSettingUploads = async () =>{
     // const updatesRespond = await getUpdatesFromGoNode([]); //look at the list of prividing
@@ -98,7 +113,7 @@ const Files = () => {
       handleSettingCurrentDownloads();
       const intervalId = setInterval(() => {
         handleSettingCurrentDownloads();
-      }, 500);
+      }, 1000);
 
       return () => clearInterval(intervalId);
     }
@@ -298,33 +313,24 @@ const Files = () => {
     );
 
   }
-  const handlePauseAsync = async(requestId,setStatus) =>{
+  const handlePauseAsync = async(requestId) =>{
     await pauseDownloadFileRPC([{request_id: requestId}]);
-    setStatus("paused")
   }
-  const handleResumeAsync = async(requestId,setStatus) =>{
+  const handleResumeAsync = async(requestId) =>{
     await resumeDownloadFileRPC([{request_id: requestId}])
-    setStatus("downloading")
   }
 
   const FileCardDownload = ({type,name,hashId,requestId,size,status,progress}) =>{
     //Variation of file cards meant for displaying files downloading
     //additional rendering for pause, resume, and cancel buttons based on status of download
     let FileIcon = LuFile; //image , folder, .pdf/.txt/everything else 
-    const [curStatus, setCurStatus] = useState(status);
     //OMG this is disgusting but its quick maybe I will move the cards to their own file
     const handlePause = () => {
-      handlePauseAsync(requestId,setCurStatus);
+      handlePauseAsync(requestId);
     }
     const handleResume = () => {
-      handleResumeAsync(requestId,setCurStatus);
+      handleResumeAsync(requestId);
     }
-    const handleCancel = () => {
-
-    }
-    useEffect(()=>{
-      setCurStatus("downloading");
-    },[])
 
 
     if(type === "image"){ 
@@ -334,14 +340,14 @@ const Files = () => {
       FileIcon = LuFolder;
     }
     let buttons = <></>;
-    if(curStatus === "downloading"){
-      buttons = <div> <button className="primary_button" onClick={handleCancel}><MdOutlineCancel/></button> <button className="primary_button" onClick={handlePause}><LuPause/></button> </div>
+    if(status === "downloading"){
+      buttons = <div> <button className="primary_button" onClick={handlePause}><LuPause/></button> </div>
     }
-    if(curStatus === "paused"){
-      buttons = <div> <button className="primary_button" onClick={handleCancel}><MdOutlineCancel/></button> <button className="primary_button" onClick={handleResume}><LuPlay/></button> </div>
+    if(status === "paused"){
+      buttons = <div> <button className="primary_button" onClick={handleResume}><LuPlay/></button> </div>
     }
     //Might need to take into account possible key confliction when rendering if lets say a person queues the same file for download again
-    let progressBarColor = curStatus === "paused" ? "#9b9b9b" : "#4CAF50";
+    let progressBarColor = status === "paused" ? "#9b9b9b" : "#4CAF50";
     return(
       <div className = "fileCard">
         <div style = {{display: 'flex', alignItems: "center"}}><FileIcon style={{ width: '40%', height: '40%' }}/> </div>
@@ -355,7 +361,7 @@ const Files = () => {
           ></div>
         </div>
         </div>
-        <div>{size} <> {buttons}</></div>
+        <div> {buttons}</div>
         
       </div>
 
@@ -415,7 +421,7 @@ const Files = () => {
                 hashId = {file.FileHash}
                 requestId = {file.RequestID}
                 size = {file.FileMetaData.FileSize}
-                status = {file.DownloadSpeed === 0 ? "paused" : "downloading"}
+                status = {file.status}
                 progress={file.DownloadProgress}
               />
             )
@@ -428,12 +434,12 @@ const Files = () => {
         return downloadHistory.map(file =>{
           return(
             <FileCard
-              key = {file.hashId}
-              type = {file.type}
-              name = {file.name}
-              hashId = {file.hashId}
-              size = {file.size}
-              timestamp={file.timestamp}
+              key = {i+ "."+file.FileHash}
+              type = {"file.FileMetaData.FileExtension"}
+              name = {"file.FileMetaData.FileName"}
+              hashId = {file.FileHash}
+              size = {"file.FileMetaData.FileSize"}
+              timestamp={new Date()}
             />
           )
         });
@@ -488,8 +494,8 @@ const Files = () => {
             <option value="" disabled>Select an option</option>
             <option value="A-Z">A-Z alphabetic</option>
             <option value="Z-A">Z-A reverse alphabetic</option>
-            {activeTab !== "Current Downloads" && <option value="Newest">Newest</option>}
-            {activeTab !== "Current Downloads" && <option value="Earliest">Earliest</option>}
+            {/* {activeTab !== "Current Downloads" && <option value="Newest">Newest</option>}
+            {activeTab !== "Current Downloads" && <option value="Earliest">Earliest</option>} */}
           </select>
           
         </div>

@@ -130,22 +130,21 @@ const DownloadModal = () =>{
     //Idea: maybe we also display here a reputation for the files so that the user can see it when they are looking thru possible file
     //Need to create a nice way of formatting dates for display and add highlighting for selected provider
     const generateListProviders = () =>{
+      let i = -1; //jank solution to avoid overlapping provider ids
       if(fileToDownload)
       return fileToDownload.providers.map((provider) =>{
+        i+=1;
         return(
-        <tr key = {provider.id} onClick={()=> setSelectedProvider(provider)} style={{
+        <tr key = {i.toString()+provider.id} onClick={()=> setSelectedProvider(provider)} style={{
           backgroundColor: (selectedProvider.id === provider.id) ? '#d3d3d3' : 'white', 
           cursor: 'pointer',
           
       }}
         className="provider-row"
       >
-          {/* <td>{(provider.status === "online") ? <FaCircle style={{color: "green"}} /> : <FaCircle style={{color: "red"}}/>}</td> */}
           <td>{provider.id}</td>
           <td>{provider.Price}</td>
           <td>{provider.MiningAddress}</td>
-          {/* <td>{String(provider.timestamp)}</td> */}
-          {/* <td>{provider.downloads}</td> */}
         </tr>
         );
       });
