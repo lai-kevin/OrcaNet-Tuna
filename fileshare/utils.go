@@ -14,22 +14,23 @@ import (
 	"github.com/google/uuid"
 )
 
-func generateFileHash(filepath string) string {
+func generateFileHash(filepath string) (string, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		fmt.Println("Error opening file: ", err)
+		return "", err
 	}
 	defer file.Close()
 
 	hash := sha256.New()
 
 	if _, err := io.Copy(hash, file); err != nil {
-		return "error"
+		return "", err
 	}
 
 	fileHash := fmt.Sprintf("%x", hash.Sum(nil))
 
-	return fileHash
+	return fileHash, nil
 }
 
 func generateRequestID() string {
