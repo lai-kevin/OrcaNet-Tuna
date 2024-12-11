@@ -22,6 +22,23 @@ import (
 type FileShareService struct{}
 
 var globalOrcaDHT *dht.IpfsDHT
+var peerReputations = make(map[string]int)
+
+func upvote(peerID string) {
+	peerReputations[peerID]++
+	fmt.Printf("Peer %s upvoted. Current reputation: %d\n", peerID, peerReputations[peerID])
+}
+
+// Subtract reputation points from a peer
+func downvotePeer(peerID string) {
+	peerReputations[peerID]--
+	fmt.Printf("Peer %s downvoted. Current reputation: %d\n", peerID, peerReputations[peerID])
+}
+
+// Get reputation for a peer
+func getPeerReputation(peerID string) int {
+	return peerReputations[peerID]
+}
 
 func (s *FileShareService) GetFile(r *http.Request, args *GetFileArgs, reply *GetFileReply) error {
 	log.Printf("Received GetFile request for file hash %s\n", args.FileHash)
@@ -308,11 +325,61 @@ func (s *FileShareService) ResumeDownload(r *http.Request, args *PauseDownloadAr
 	return nil
 }
 
+// UpvotePeer handles upvoting a peer
+func (s *FileShareService) UpvotePeer(r *http.Request, args *PeerReputationArgs, reply *ReputationReply) error {
+	log.Printf("Received UpvotePeer request for peer ID %s\n", args.PeerID)
+
+	upvote(args.PeerID)
+
+	*reply = ReputationReply{
+		Success:   true,
+		Message:   fmt.Sprintf("Peer %s upvoted successfully", args.PeerID),
+		PeerID:    args.PeerID,
+		Reputation: getPeerReputation(args.PeerID),
+	}
+	saveState()
+	return nil
+}
+
+// DownvotePeer handles downvoting a peer
+func (s *FileShareService) DownvotePeer(r *http.Request, args *PeerReputationArgs, reply *ReputationReply) error {
+	log.Printf("Received DownvotePeer request for peer ID %s\n", args.PeerID)
+
+	downvotePeer(args.PeerID)
+
+	*reply = ReputationReply{
+		Success:   true,
+		Message:   fmt.Sprintf("Peer %s downvoted successfully", args.PeerID),
+		PeerID:    args.PeerID,
+		Reputation: getPeerReputation(args.PeerID),
+	}
+	saveState()
+	return nil
+}
+
+// ViewReputation handles viewing a peer's reputation
+func (s *FileShareService) ViewReputation(r *http.Request, args *PeerReputationArgs, reply *ReputationReply) error {
+	log.Printf("Received ViewReputation request for peer ID %s\n", args.PeerID)
+
+	reputation := getPeerReputation(args.PeerID)
+
+	*reply = ReputationReply{
+		Success:   true,
+		Message:   fmt.Sprintf("Reputation of peer %s retrieved successfully", args.PeerID),
+		PeerID:    args.PeerID,
+		Reputation: reputation,
+	}
+	saveState()
+	return nil
+}
+
 func startRPCServer(orcaDHT *dht.IpfsDHT) {
 	globalOrcaDHT = orcaDHT
 	s := rpc.NewServer()
 	s.RegisterCodec(rpcjson.NewCodec(), "application/json")
+	log.Println("Registering FileShareService...")
 	s.RegisterService(new(FileShareService), "")
+	log.Println("FileShareService registered successfully")
 
 	r := mux.NewRouter()
 	r.Handle("/rpc", s)
@@ -326,5 +393,5 @@ func startRPCServer(orcaDHT *dht.IpfsDHT) {
 	handler := c.Handler(r)
 
 	fmt.Println("Starting JSON-RPC server on port 1234")
-	http.ListenAndServe(":1234", handler)
+http.ListenAndServe(":1234", handler)
 }

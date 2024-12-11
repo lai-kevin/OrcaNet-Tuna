@@ -95,3 +95,14 @@ type PauseDownloadReply struct {
 	Success  bool   `json:"success"`
 	Progress string `json:"progress"`
 }
+
+type PeerReputationArgs struct {
+	PeerID string `json:"peer_id"`
+}
+
+type ReputationReply struct {
+	Success    bool   `json:"success"`
+	Message    string `json:"message"`
+	PeerID     string `json:"peer_id"`
+	Reputation int    `json:"reputation"`
+}
