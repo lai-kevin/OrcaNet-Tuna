@@ -264,7 +264,7 @@ const Progress =({setView})=>{
     )
 }
 const Transaction = ({mode})=>{
-    const {user, setUser} = useContext(AppContext);
+    const {user, setUser, downloadTxids} = useContext(AppContext);
     const [click, setClick] = useState(false);
     const [trans, setTrans] = useState(user.transactions)
     const info =[{txid:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"down", Spent:"0.25", Earned:0},
@@ -273,15 +273,12 @@ const Transaction = ({mode})=>{
     useEffect(() => {
         const fetchtransaction = async () => {
             try {
-                const response = await Wallet.retrieve();  
-                const updates = await getUpdatesFromGoNode([]);
+                const response = await Wallet.retrieve();
                 //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
-                // let downloadedFiles = updates.result.downloads;
-                // const downloadTxids = new Set(downloadedFiles.map((download) => download.txid));
-                // response.forEach( transaction => {
-                //     if(downloadTxids.has(transaction.txid))
-                //         transaction.category = 'Downloads';
-                // });
+                response.forEach( transaction => {
+                    if(downloadTxids.has(transaction.txid))
+                        transaction.category = 'Downloads';
+                });
                 //IN PROGRESS ^
                 console.log(response.transactions)
                 setUser(prev => {
@@ -301,15 +298,12 @@ const Transaction = ({mode})=>{
     useEffect(() =>{
         const fetchtransaction = async () => {
             try {
-                const response = await Wallet.retrieve();  
-                const updates = await getUpdatesFromGoNode([]);
+                const response = await Wallet.retrieve();
                 //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
-                // let downloadedFiles = updates.result.downloads;
-                // const downloadTxids = new Set(downloadedFiles.map((download) => download.txid));
-                // response.forEach( transaction => {
-                //     if(downloadTxids.has(transaction.txid))
-                //         transaction.category = 'Downloads';
-                // });
+                response.forEach( transaction => {
+                    if(downloadTxids.has(transaction.txid))
+                        transaction.category = 'Downloads';
+                });
                 //IN PROGRESS ^
                 console.log(response.transactions)
                 setUser(prev => {
@@ -377,7 +371,7 @@ const Transaction = ({mode})=>{
     )
 }
 const TransactionTable=({mode, setClick})=> {
-    const {user, setUser} = useContext(AppContext);
+    const {user, setUser,downloadTxids} = useContext(AppContext);
     const [trans, setTrans] = useState(user.transactions)
     const info =[{txid:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"Download", Spent:"0.25", Earned:0},
         {txid:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"Upload", Spent: 0, Earned:"2.25"}
@@ -393,14 +387,11 @@ const TransactionTable=({mode, setClick})=> {
         const fetchtransaction = async () => {
             try {
                 const response = await Wallet.retrieve();
-                const updates = await getUpdatesFromGoNode([]);
                 //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
-                // let downloadedFiles = updates.result.downloads;
-                // const downloadTxids = new Set(downloadedFiles.map((download) => download.txid));
-                // response.forEach( transaction => {
-                //     if(downloadTxids.has(transaction.txid))
-                //         transaction.category = 'Downloads';
-                // });  
+                response.forEach( transaction => {
+                    if(downloadTxids.has(transaction.txid))
+                        transaction.category = 'Downloads';
+                });
                 //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS ^
                 setUser(prev => {
                     const updated = {

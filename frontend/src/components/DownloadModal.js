@@ -7,7 +7,7 @@ import { getFileRPC, uploadFileRPC } from "../RpcAPI";
 
 
 const DownloadModal = () =>{
-    const {user, fileToDownload, setDownloadOpen, setSearchResultsFound, setFileToDownload,downloads,setDownloads,setUploadHistory,uploadHistory,dummyFiles,setDummyFiles} = useContext(AppContext);
+    const {fileToDownload, setDownloadOpen, setSearchResultsFound, setFileToDownload,setUploadHistory,uploadHistory,downloadTxids,setDownloadTxids} = useContext(AppContext);
     const [activeStep, setActiveStep] = useState(0); //0 is choosing a provider, 1 is the confirm 
     const [selectedProvider, setSelectedProvider] = useState("--");
     const [errorMsg,setErrorMsg] = useState("");
@@ -29,8 +29,14 @@ const DownloadModal = () =>{
     
     const handleDownloadState = async ()=> {
       //preemptivvely adding this here so that i can in the future have a react hook trigger after rpc call is completed
-      await getFileRPC([{file_hash: selectedProvider.FileHash, peer_id: selectedProvider.PeerID }])
-      // await uploadFileRPC([{file_path: fileToDownload.f}])
+    const getFileRes  = await getFileRPC([{file_hash: selectedProvider.FileHash, peer_id: selectedProvider.PeerID }])
+    const txid = getFileRes.txid; //will save this in the global app context wont be persistent between sessions but ok for now
+    setDownloadTxids((prevTxids) => {
+      const newTxids = new Set(prevTxids); // is this expensive lol i figured itd make searching faster
+      newTxids.add(txid);
+      return newTxids;
+  });
+    // await uploadFileRPC([{file_path: fileToDownload.f}])
     }
 
     const handleDownload = () => {
@@ -45,46 +51,7 @@ const DownloadModal = () =>{
           fileForUploads.timestamp = new Date();
           // uploadFileRPC();
           let existingIndex = uploadHistory.findIndex(file => file.hashId === selectedProvider.FileHash); // might need to change this since i guess we want people to update their entries
-          // const updatedDummyFiles = dummyFiles.map(file => {
-          //   if (file.hashId === fileForUploads.hashId) {
-          //     const existingUserProviderIndex = file.providers.findIndex(provider => provider.id === user.walletID);
-              
-          //     if (existingUserProviderIndex !== -1) {
-          //       // Update existing provider 
-          //       alreadyAdded = 1;
-          //       const updatedProviders = [...file.providers];
-          //       updatedProviders[existingUserProviderIndex] = {
-          //         ...updatedProviders[existingUserProviderIndex],
-          //         price: Number(price),
-          //         timestamp: new Date(),
-          //         status: "online"
-          //         // Not going to reset the download count we will count it as a reregister
-          //       };
-                
-          //       return {
-          //         ...file,
-          //         providers: updatedProviders
-          //       };
-          //     } else {
-          //       // Add new provider // the current user
-          //       return {
-          //         ...file,
-          //         providers: [
-          //           ...file.providers,
-          //           {
-          //             id: user.walletID,
-          //             price: Number(price),
-          //             timestamp: new Date(),
-          //             downloads: 0,
-          //             status: "online"
-          //           }
-          //         ]
-          //       };
-          //     }
-          //   }
-          //   return file;
-          // });
-          // setDummyFiles([...updatedDummyFiles]);
+ 
           if(existingIndex != -1){
             setUploadHistory([...uploadHistory]);
           }
