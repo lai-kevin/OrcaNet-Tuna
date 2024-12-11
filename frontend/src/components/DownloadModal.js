@@ -130,16 +130,9 @@ const DownloadModal = () =>{
     //Idea: maybe we also display here a reputation for the files so that the user can see it when they are looking thru possible file
     //Need to create a nice way of formatting dates for display and add highlighting for selected provider
     const generateListProviders = () =>{
+      if(fileToDownload)
       return fileToDownload.providers.map((provider) =>{
         return(
-      //   <tr key = {provider.id} onClick={()=> provider.status !== "offline" && setSelectedProvider(provider)} style={{
-      //     backgroundColor: (selectedProvider.id === provider.id) ? '#d3d3d3' : 'white', 
-      //     cursor: provider.status === "offline" ? 'not-allowed' : 'pointer',
-      //     opacity: provider.status === "offline" ? 0.5 : 1
-          
-      // }}
-      //   className="provider-row"
-      // >
         <tr key = {provider.id} onClick={()=> setSelectedProvider(provider)} style={{
           backgroundColor: (selectedProvider.id === provider.id) ? '#d3d3d3' : 'white', 
           cursor: 'pointer',
@@ -149,7 +142,8 @@ const DownloadModal = () =>{
       >
           {/* <td>{(provider.status === "online") ? <FaCircle style={{color: "green"}} /> : <FaCircle style={{color: "red"}}/>}</td> */}
           <td>{provider.id}</td>
-          {/* <td>{provider.price}</td> */}
+          <td>{provider.Price}</td>
+          <td>{provider.MiningAddress}</td>
           {/* <td>{String(provider.timestamp)}</td> */}
           {/* <td>{provider.downloads}</td> */}
         </tr>
@@ -161,6 +155,20 @@ const DownloadModal = () =>{
 
     if(fileToDownload !== undefined && fileToDownload !== "" && fileToDownload !== null){
       if(activeStep === 0){
+        if(fileToDownload.providers.length === 0){
+          return(
+            <div className="modal">
+            <div className="modal_content">
+              <p>The file you searched does not exist or there are currently no providers try another hash</p>
+              <br/>              
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button className="primary_button" onClick={handleClose}>Close</button>
+              </div>
+            </div>
+          </div>
+
+          )
+        }
         return (
           <div className="modal">
             <div className="modal_content">
@@ -174,6 +182,8 @@ const DownloadModal = () =>{
                     <tr>
                       {/* <th>Status</th> */}
                       <th>File Provider</th>
+                      <th>Price</th>
+                      <th>Mining Address</th>
                       {/* <th>Price (OrcaCoins)</th> */}
                       {/* <th>Timestamp</th> */}
                       {/* <th>Downloads <FaArrowDown style={{color: 'red'}}/></th>                     */}
@@ -252,30 +262,5 @@ const DownloadModal = () =>{
 
 }; export default DownloadModal;
 
-//enable denable yourself as a proxy (register urself on the dht) nodeid; ip; price
-//set price for being a proxy on UI
-
-//List of users who have themselves as proxy enabled
-
-//open port to listen to http proxy requests
-
-//
-
-// 3rd layer execute request save and return to og user
-
-
-//Some things i want to do
-
-//move uploads to global context
-
-//add the modal to download a file
-
-
-//OPen a modal with the file to download asking would you like to download this file?
-//Then send the user to the files page and set the tab to downloads tab
-//There the cards will be different have information pause resume etc
-
-
-//set the thing to "" string also set the search bar to that
 
 

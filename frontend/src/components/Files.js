@@ -37,6 +37,7 @@ const Files = () => {
 
 
   const handleProvideFile = async () => {
+    console.log(fileToUpload.price)
     const shareResponse = await uploadFileRPC([{file_path: fileToUpload.name, price: fileToUpload.price}]);
     let newFileHash = shareResponse.result.file_hash;
     let newFile = {
@@ -291,7 +292,7 @@ const Files = () => {
           <p>{name}</p>
           <p style = {{color: "#9b9b9b"}} >{hashId}</p>
         </div>
-        <div> {size} <p style = {{color: "#9b9b9b"}}>{timestamp.toDateString()}</p></div>
+        {/* <div> {size} <p style = {{color: "#9b9b9b"}}>{timestamp.toDateString()}</p></div> */}
       </div>
 
     );
