@@ -17,11 +17,13 @@ const CancelUploadModal = () =>{
 
     const stopProviding = async () => {
       //gonna actually handle removing from ui on front end cuz dialing to self is sketchy
+      try{
       let stopProvidingRes = await stopProvidingRPC([{file_hash: fileToRemove.hashId}]);
       if(stopProvidingRes.result.success == true){
         const updatedHistory = uploadHistory.filter((upload) => upload.hashId !== fileToRemove.hashId);
         setUploadHistory([...updatedHistory]);  
       }
+    }catch(error){}
       
       setFileToRemove(null);
     }
