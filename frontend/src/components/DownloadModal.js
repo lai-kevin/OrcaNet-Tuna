@@ -45,23 +45,23 @@ const DownloadModal = () =>{
     const handleDownload = () => {
       handleDownloadState();
         let file = fileToDownload;
-        if(becomeProvider){
-          //add it to their uploads
-          //IN PROGRESS PROVIDE A FILE POST DOWNLOAD
-          uploadFileRPC([{file_path: "downloads/"+fileToDownload.name, price:Number(price)}]);
-          let fileForUploads = {...file};
-          fileForUploads.price = Number(price);
-          fileForUploads.timestamp = new Date();
-          // uploadFileRPC();
-          let existingIndex = uploadHistory.findIndex(file => file.hashId === selectedProvider.FileHash); // might need to change this since i guess we want people to update their entries
+        // if(becomeProvider){
+        //   //add it to their uploads
+        //   //IN PROGRESS PROVIDE A FILE POST DOWNLOAD
+        //   uploadFileRPC([{file_path: "downloads/"+fileToDownload.name, price:Number(price)}]);
+        //   let fileForUploads = {...file};
+        //   fileForUploads.price = Number(price);
+        //   fileForUploads.timestamp = new Date();
+        //   // uploadFileRPC();
+        //   let existingIndex = uploadHistory.findIndex(file => file.hashId === selectedProvider.FileHash); // might need to change this since i guess we want people to update their entries
  
-          if(existingIndex != -1){
-            setUploadHistory([...uploadHistory]);
-          }
-          else{
-            setUploadHistory([...uploadHistory,fileForUploads]);
-          }
-        }
+        //   if(existingIndex != -1){
+        //     setUploadHistory([...uploadHistory]);
+        //   }
+        //   else{
+        //     setUploadHistory([...uploadHistory,fileForUploads]);
+        //   }
+        // }
         // file.status = "downloading";
         // file.index = downloads.length;
         // file.progress = Math.random() * (100 - 10) + 10;
@@ -181,14 +181,14 @@ const DownloadModal = () =>{
             <br/>
             <p>From: {selectedProvider.id}</p>
             <br/>
-            {/* <p>Price: {selectedProvider.price} OrcaCoins</p> */}
+            <p>Price: {selectedProvider.Price} OrcaCoins</p>
             <br/>
 
-            <input id="ch" type="checkbox" 
+            {/* <input id="ch" type="checkbox" 
               checked={becomeProvider} 
-              onChange={handleBecomeProvider} style={{marginBottom: "30px"}} ></input> <label style={{fontWeight: "bold"}}>Become a provider after downloading?</label>
-              {becomeProvider === true ? <div className="input-wrapper">
-        <label htmlFor="orcaCoinInput" className="label">Set Price For File:</label>
+              onChange={handleBecomeProvider} style={{marginBottom: "30px"}} ></input> <label style={{fontWeight: "bold"}}>Become a provider after downloading?</label> */}
+              {/* {becomeProvider === true ? <div className="input-wrapper"> */}
+        {/* <label htmlFor="orcaCoinInput" className="label">Set Price For File:</label>
         <div>
           <input 
             type="number" 
@@ -200,7 +200,7 @@ const DownloadModal = () =>{
           />
           <span className="currency-label">Orca Coins</span>
         </div>
-      </div> : <></>}
+      </div> : <></>} */}
 
             <div style={{ display: "flex", gap: "10px" }}>
               <button className="primary_button" onClick={handleDownload}>Download <LiaDownloadSolid /></button>
