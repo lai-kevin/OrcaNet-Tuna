@@ -105,6 +105,8 @@ func receiveFileData(node host.Host) {
 			return
 		}
 
+		log.Printf("Receiving file for requestID: %s", fileMetaData.RequestID)
+
 		downloadHistory[fileMetaData.RequestID] = FileTransaction{
 			RequestID:        fileMetaData.RequestID,
 			FileHash:         fileMetaData.FileHash,
@@ -167,6 +169,7 @@ func receiveFileData(node host.Host) {
 
 		ft := downloadHistory[fileMetaData.RequestID]
 		ft.DownloadProgress = 1.0
+		ft.BytesDownloaded = int64(totalBytesRead)
 		downloadHistory[fileMetaData.RequestID] = ft
 
 		// Mark as complete in fileRequests
@@ -486,6 +489,10 @@ func sendFileToPeer(node host.Host, targetNodeId, filepath string, filehash stri
 			fileMetaData = providedFiles[i]
 		}
 	}
+
+	fileMetaData.RequestID = requestID
+
+	log.Printf("Sending file for requestID: %s", fileMetaData.RequestID)
 
 	encoder := gob.NewEncoder(stream)
 	if err := encoder.Encode(fileMetaData); err != nil {
