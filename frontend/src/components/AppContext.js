@@ -70,6 +70,7 @@ export function AppContextProvider(props){
     const [blocks, setBlocks] = useState(0)
     const [enter, setEnter] = useState(false)
     const [downloadTxids,setDownloadTxids] = useState(new Set());
+    const [isProviding, setIsProviding] = useState({});
 
     return(
         <AppContext.Provider value = {
@@ -97,7 +98,8 @@ export function AppContextProvider(props){
             time, setTime,
             blocks, setBlocks,
             enter, setEnter,
-            downloadTxids,setDownloadTxids
+            downloadTxids,setDownloadTxids,
+            isProviding, setIsProviding
             }}
             >
             {props.children}

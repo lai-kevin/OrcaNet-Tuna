@@ -4,11 +4,11 @@
 import { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { LiaDownloadSolid } from "react-icons/lia";
-import { stopProvidingRPC } from "../RpcAPI";
+import { getUpdatesFromGoNode, stopProvidingRPC } from "../RpcAPI";
 
 
 const CancelUploadModal = () =>{
-    const {uploadHistory,setUploadHistory,setFileToRemove, fileToRemove} = useContext(AppContext);
+    const {uploadHistory,setUploadHistory,setFileToRemove, fileToRemove, isProviding, setIsProviding} = useContext(AppContext);
     const [errMsg, setErrorMsg] = useState("");
     const handleClose = () => {
         setFileToRemove(null);
@@ -20,8 +20,9 @@ const CancelUploadModal = () =>{
       try{
       let stopProvidingRes = await stopProvidingRPC([{file_hash: fileToRemove.hashId}]);
       if(stopProvidingRes.result.success == true){
-        const updatedHistory = uploadHistory.filter((upload) => upload.hashId !== fileToRemove.hashId);
-        setUploadHistory([...updatedHistory]);  
+        const updatesRespond = await getUpdatesFromGoNode([]);
+        setIsProviding(updatesRespond.result.is_file_provided);
+          
       }
     }catch(error){}
       

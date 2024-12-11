@@ -23,7 +23,7 @@ import { getFileProvidersWMetaData, getHistory, getUpdatesFromGoNode, pauseDownl
 const Files = () => {
   const location = useLocation();
 
-  const { user, searchResultsFound, uploadHistory, setUploadHistory, downloads, setDownloads, setFileToRemove, fileToRemove, setSearchResultsFound, setFileToDownload } = useContext(AppContext);
+  const { user, searchResultsFound, uploadHistory, setUploadHistory, downloads, setDownloads, setFileToRemove, fileToRemove, setSearchResultsFound, setFileToDownload, isProviding, setIsProviding } = useContext(AppContext);
   const [downloadHistory, setDownloadHistory] = useState([]);// move to a global app context in the future?
   // const [proxyHistory, setProxyHistory] = useState([]);this should probably somewhere else now that we know what it is
 
@@ -34,7 +34,12 @@ const Files = () => {
   const [searchInput, setSearchInput] = useState("");
   const [popUpOpen, setPopUpOpen] = useState(false);
   const [downloadFinished, setDownloadFinished] = useState(false); //set to true for demo purposes
+  // const [isProviding, setIsProviding] = useState({});
 
+  useEffect(()=>{
+    handleSettingHistory();
+    handleSettingUploads();
+  },[])
 
   const handleProvideFile = async () => {
     try {
@@ -56,23 +61,7 @@ const Files = () => {
         price: fileToUpload.price,
         timestamp: new Date()
       }
-
-      setUploadHistory((prevUploadHistory) => {
-        const existingFileIndex = prevUploadHistory.findIndex(
-            (file) => file.hashId === newFileHash
-        );
-
-        if (existingFileIndex !== -1) {
-            const updatedHistory = [...prevUploadHistory];
-            updatedHistory[existingFileIndex] = newFile;
-            return updatedHistory;
-        } else {
-            return [...prevUploadHistory, newFile];
-        }
-    });
-      // const updatesRespond = await getUpdatesFromGoNode([]); //look at the list of prividing
-      // const listOfProvidedFiles = updatesRespond.result.providing;
-      // setUploadHistory(listOfProvidedFiles);
+      handleSettingUploads();
       
       console.log(shareResponse);
     } catch (error) {   }
@@ -127,9 +116,10 @@ const Files = () => {
 
   }
   const handleSettingUploads = async () => {
-    // const updatesRespond = await getUpdatesFromGoNode([]); //look at the list of prividing
-    // const listOfProvidedFiles = updatesRespond.result.providing;
-    // setUploadHistory(listOfProvidedFiles);
+    const updatesRespond = await getUpdatesFromGoNode([]); //look at the list of prividing
+    const listOfProvidedFiles = updatesRespond.result.providing;
+    setIsProviding(updatesRespond.result.is_file_provided);
+    setUploadHistory(listOfProvidedFiles);
   }
 
   //UseEffect hook to re request download history when switching tabs
@@ -150,7 +140,7 @@ const Files = () => {
     }
     //set the list in the uploads lets hope it doesnt take long
     if (activeTab === "Uploads") {
-      // handleSettingUploads();
+      handleSettingUploads();
     }
 
     //make cases for the rest
@@ -315,21 +305,6 @@ const Files = () => {
     const HandleRemoveUpload = () => {
       setFileToRemove({ name, hashId, price, downloaders });
     }
-
-    if (activeTab === "Uploads") {
-      let nameForUploads = name.split('/').pop();//only need this if im storing the names locally api uses an explicit file name
-      return (
-        <div className="fileCard" onClick={HandleRemoveUpload} style={{ cursor: 'pointer' }}>
-          <div style={{ display: 'flex', alignItems: "center" }}><FileIcon style={{ width: '40%', height: '40%' }} /> </div>
-          <div>
-            <p>{nameForUploads}</p>
-            <p style={{ color: "#9b9b9b" }} >{hashId}</p>
-          </div>
-          <div>{size}  <p style={{ color: "#9b9b9b" }}>{timestamp.toDateString()}</p></div>
-        </div>
-
-      );
-    }
     let tempSize = (size / (1024*2024)).toFixed(2);
     if(tempSize < 1){
       size = (size / (1024)).toFixed(2) + " KB";  
@@ -337,6 +312,24 @@ const Files = () => {
     else{
       size = tempSize + " MB";
     }
+    const isFileProviding = isProviding[hashId] === true;
+
+    if (activeTab === "Uploads") {
+      let nameForUploads = name.split('/').pop();//only need this if im storing the names locally api uses an explicit file name
+      return (
+        <div className="fileCard" onClick={isFileProviding ? HandleRemoveUpload : undefined} style={{ cursor: isFileProviding ? 'pointer' : 'default',
+          opacity: isFileProviding ? 1 : 0.5 }}>
+          <div style={{ display: 'flex', alignItems: "center" }}><FileIcon style={{ width: '40%', height: '40%' }} /> </div>
+          <div>
+            <p>{nameForUploads}</p>
+            <p style={{ color: "#9b9b9b" }} >{hashId}</p>
+          </div>
+          <div>{size} </div>
+        </div>
+
+      );
+    }
+    
     
     return (
       <div className="fileCard">
@@ -436,17 +429,18 @@ const Files = () => {
         //FileSize
         //FileHash
         //^object format in the file response if we use the objets in update providing
+        let k = 0;
         return uploadHistory.map(file => {
+          k+=1;
           return (
             <FileCard
-              key={file.hashId}
-              type={file.type}
-              name={file.name}
-              hashId={file.hashId}
-              size={file.size}
-              price={file.price}
+              key={k + "." + file.FileHash}
+              type={file.FileExtension}
+              name={file.FileName}
+              hashId={file.FileHash}
+              size={file.FileSize}
+              price={file.Price}
               downloaders={null}
-              timestamp={file.timestamp} //no longer used in the api nor file card
             />
           )
         });
