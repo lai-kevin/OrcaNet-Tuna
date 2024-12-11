@@ -518,7 +518,7 @@ const Files = () => {
     });
       return(
         <div ref={menu} className="popUp">
-            <p> Enter into the search bar the Hash associated with a file to download from a provider. <br />Here are some file hashes you may use for demo purposes... <br /> <br />Hash 1: Zxczv123kcbxvh14boadab<br />Hash 2: Asdasdxc5nksdhbvshba2315jhd</p>
+            <p> Enter into the search bar the Hash associated with a file to download from a provider.</p>
           <ul className= "menu_list">
           </ul>
         </div>
