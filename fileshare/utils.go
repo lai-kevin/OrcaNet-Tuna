@@ -248,7 +248,7 @@ func copyFromContainer(sourcePath, filename string) error {
 	}
 	defer source.Close()
 
-	destPath := filepath.Join("/"+DOWNLOAD_DIRECTORY, filename)
+	destPath := filepath.Join("/"+"downloads", filename)
 	destination, err := os.Create(destPath)
 	if err != nil {
 		return err
