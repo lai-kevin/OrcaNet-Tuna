@@ -32,7 +32,7 @@ The purpose of this utility/package is to handle the distributed file sharing be
 1. Start a container using the image:
     ```sh
     Linux:
-    docker run -v ~/Downloads:/downloads -p 8081:1234 fileshare:v<version> <SBU_ID>
+    docker run -v ~/Downloads:/downloads -p 8081:1234 fileshare:v<version> <SBU_ID> <OPTIONAL: BOOTSTRAP_MULTIADDRESS>
 
     Windows:
     docker run -v "${env:USERPROFILE}/Downloads:/downloads" -p 8081:1234 fileshare:v<version> <SBU_ID> <OPTIONAL: BOOTSTRAP_MULTIADDRESS>
