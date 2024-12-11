@@ -46,9 +46,26 @@ func searchFileOnDHT(fileHash string) (string, error) {
 		fmt.Printf("Failed to get existing value associated with file hash: %s\n", fileHash)
 		return "", nil
 	}
-	fmt.Printf("File found at peerID: %s\n", res)
 
-	return string(res), nil
+	// Remove duplicate providers
+	providers := strings.Split(string(res), ",")
+	uniqueProviders := make(map[string]bool)
+
+	for _, provider := range providers {
+		if _, exists := uniqueProviders[provider]; !exists {
+			uniqueProviders[provider] = true
+		}
+	}
+	providers = []string{}
+	for provider := range uniqueProviders {
+		providers = append(providers, provider)
+	}
+
+	providersStr := strings.Join(providers, ",")
+
+	fmt.Printf("File found at peerID: %s\n", providersStr)
+
+	return string(providersStr), nil
 }
 
 func provideFileOnDHT(fileHash string, peerID string) error {
