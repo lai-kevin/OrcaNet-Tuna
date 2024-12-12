@@ -1,42 +1,68 @@
-Team Tuna's README
+# OrcaCoin-Tuna: All-In-One Distributed File Share, Crypto, and Proxy Service
+# TEAM TUNA
 
-Instructions for running:
+## Description
+This project contains an independent distributed file sharing platform, OrcaCoin, and a Proxy Service for secure, anonymous data transfer. Built using libp2p and Electron.
 
-1. After cloning the repository, open IDE (VS Code recommended) and navigate to the frontend folder 
-2. Run 'npm install'
-3. After successful installation:
-    1. Download the Docker desktop application
-    2. Ensure it is open and runnning
-    2. Navigate back to the project folder
+
+## Features
+- Downloading Files by Hash
+- Requesting Metadata by Hash
+- Pausing/Resuming Downloads
+- Start/Stop Providing Files
+- Download Time Estimation
+- Download Speed
+- OrcaCoin Transfer
+
+## Installation and Getting Started
+
+1. Clone the repository:
+    ```sh
+    git clone https://github.com/lai-kevin/OrcaNet-Tuna.git
     ```
-    cd ..
-    ```
-    2. Build the docker image:
-    ```
-    docker build -t myapi .
-    ```
-    3. Navigate to the fileshare folder:
-    ```
+
+2. Navigate to the fileshare directory:
+    ```sh
     cd fileshare
     ```
-    4. Build the docker image:
+
+3. Install dependencies:
+    ```sh
+    go mod tidy
     ```
+
+4. Build fileshare image:
+    ```sh
     docker build -t fileshare:v1 .
     ```
-4. Navigate to the frontend folder
-    ```
+5. Navigate to the project directory:
+    ```sh
     cd ..
     ```
-5. Run "npm start"
-6. The above step should open an Electron app and our OrcaNet interface
-7. To begin, click on Register 
 
-To access some of the features as described in the design doc we have provided a few sample hashes that can be pasted into the search bar in the **Files** Tab to preview the workflow for downloading a file.
-```
-Hash 1: Zxczv123kcbxvh14boadab
+6. Build btcd wallet Image:
+    ```sh
+    docker build -t myapi .
+    ```
 
-Hash 2: Asdasdxc5nksdhbvshba2315jhd
-```
-You can also add your own files to the uploads and use the hash generated as well.
+7. Navigate to the frontend directory:
+    ```sh
+    cd frontend
+    ```
 
+8. Install dependencies:
+    ```sh
+    npm install
+    ```
+
+9. Start the Electron Application:
+    ```sh
+    npm start
+    ```
+
+10. To begin, click on Register and copy the private key. Enter your SBUID when prompted.
+
+11. Using the provided credentials, login! 
+
+## Note:
 For the proxy function, sample incoming/outgoing proxy requests are generated. Please wait a few seconds on the page to see the generated data.
