@@ -31,7 +31,7 @@ const DownloadModal = () =>{
       //preemptivvely adding this here so that i can in the future have a react hook trigger after rpc call is completed
       try{
         const getFileRes  = await getFileRPC([{file_hash: selectedProvider.FileHash, peer_id: selectedProvider.PeerID }])
-        const txid = getFileRes.txid; //will save this in the global app context wont be persistent between sessions but ok for now
+        const txid = getFileRes.result.txid; //will save this in the global app context wont be persistent between sessions but ok for now
         setDownloadTxids((prevTxids) => {
         const newTxids = new Set(prevTxids); // is this expensive lol i figured itd make searching faster
         newTxids.add(txid);
