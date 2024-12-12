@@ -276,7 +276,7 @@ const Transaction = ({mode})=>{
             try {
                 const response = await Wallet.retrieve();
                 //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
-                response.forEach( transaction => {
+                response.transactions.forEach( transaction => {
                     if(downloadTxids.has(transaction.txid))
                         transaction.category = 'Downloads';
                 });
@@ -301,7 +301,7 @@ const Transaction = ({mode})=>{
             try {
                 const response = await Wallet.retrieve();
                 //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
-                response.forEach( transaction => {
+                response.transactions.forEach( transaction => {
                     if(downloadTxids.has(transaction.txid))
                         transaction.category = 'Downloads';
                 });
@@ -389,7 +389,7 @@ const TransactionTable=({mode, setClick})=> {
             try {
                 const response = await Wallet.retrieve();
                 //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
-                response.forEach( transaction => {
+                response.transactions.forEach( transaction => {
                     if(downloadTxids.has(transaction.txid))
                         transaction.category = 'Downloads';
                 });
