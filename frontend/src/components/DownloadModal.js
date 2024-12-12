@@ -115,6 +115,7 @@ const DownloadModal = () =>{
           <td>{provider.id}</td>
           <td>{provider.Price}</td>
           <td>{provider.MiningAddress}</td>
+          <td>{provider.Provided === true ? "true" : "false"} </td>
         </tr>
         );
       });
@@ -153,6 +154,7 @@ const DownloadModal = () =>{
                       <th>File Provider</th>
                       <th>Price</th>
                       <th>Mining Address</th>
+                      <th>Providing</th>
                       {/* <th>Price (OrcaCoins)</th> */}
                       {/* <th>Timestamp</th> */}
                       {/* <th>Downloads <FaArrowDown style={{color: 'red'}}/></th>                     */}
