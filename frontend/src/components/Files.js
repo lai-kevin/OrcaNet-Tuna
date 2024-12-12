@@ -205,13 +205,13 @@ const Files = () => {
       sortedList = sortedList.sort((a, b) => {
         let nameA;
         let nameB;
-        if (activeTab === "Downloads" || activeTab === "Current Downloads") {
+        if (activeTab === "Downloads" || activeTab === "Current Downloads" ) {
           nameA = a.FileMetaData.FileName.toUpperCase();
           nameB = b.FileMetaData.FileName.toUpperCase();
         }
         else {
-          nameA = a.name.toUpperCase();
-          nameB = b.name.toUpperCase();
+          nameA = a.FileName.toUpperCase();
+          nameB = b.FileName.toUpperCase();
         }
 
         if (nameA < nameB) {
@@ -235,8 +235,8 @@ const Files = () => {
           nameB = b.FileMetaData.FileName.toUpperCase();
         }
         else {
-          nameA = a.name.toUpperCase();
-          nameB = b.name.toUpperCase();
+          nameA = a.FileName.toUpperCase();
+          nameB = b.FileName.toUpperCase();
         }
         if (nameA < nameB) {
           return 1;
