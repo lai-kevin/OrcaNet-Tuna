@@ -25,7 +25,9 @@ Start the proxy nodes:
    run .
 ```
 Currently two proxy nodes have started. Both are able to make requests
+
 Make a curl request to test http
+
 Open another terminal and run 
   ```
 curl --proxy 127.0.0.1:8085  -I http://www.example.com/
