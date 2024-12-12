@@ -89,7 +89,7 @@ useEffect(() => {
         return id;
     }
     const result ={
-        id: idgenerator(),
+        txid: idgenerator(),
         client: randomIP,
         location: randomLocation,
         Url: randomURL,
@@ -101,6 +101,7 @@ useEffect(() => {
         received: `${received} MB`,
         Spent: 0.00,
         Earned :` ${price}`,
+        amount: ` ${price}`,
         bandwidth: bandwidth, 
         to: to,
         from:from,
@@ -114,9 +115,9 @@ useEffect(() => {
         const updated = {
             ...prev,
             balance: (parseFloat(prev.balance) + parseFloat(price)).toFixed(2),
-            transactions: [
-                ...prev.transactions, result
-            ]
+            // transactions: [
+            //     ...prev.transactions, result
+            // ]
         };
         localStorage.setItem(prev.walletID, JSON.stringify(updated));
         return updated;
@@ -154,7 +155,7 @@ const generateClient = ()=>{
         return id;
     }
     const result ={
-        id: idgenerator(),
+        txid: idgenerator(),
         client: "None",
         Url: randomURL,
         method: randomMethod,
@@ -163,6 +164,7 @@ const generateClient = ()=>{
         size: size,
         sent: `${sent} MB`,
         received: `${received} MB`,
+        amount: ` ${-price}`,
         Spent:` ${price}`,
         Earned : 0.00, 
         bandwidth: bandwidth,
@@ -179,9 +181,9 @@ const generateClient = ()=>{
         const updated = {
             ...prev,
             balance: (parseFloat(prev.balance) - parseFloat(price)).toFixed(2), 
-            transactions: [
-                ...prev.transactions, result
-            ]
+            // transactions: [
+            //     ...prev.transactions, result
+            // ]
         };
         localStorage.setItem(prev.walletID, JSON.stringify(updated));
         return updated;
