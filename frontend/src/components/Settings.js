@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AccountContent from './AccountContent';
 import ConfigContent from './ConfigContent';
 import { useMode } from './Mode';
+import ReputationSystem from './ReputationContent';
 
 const Settings = () => {
   const [current, setCurrent] = useState('account'); 
@@ -25,12 +26,18 @@ const Settings = () => {
                 Configurations
               </a>
             </li>
+            <li className={current === 'reputation' ? 'current' : ''}>
+              <a onClick={() => handleTabChange('reputation')} className="tab">
+                Reputation
+              </a>
+            </li>
           </ul>
         </nav>
       </div>
       <div className="bottom_content">
         {current === 'account' && <AccountContent user={user} mode={mode}/>}
         {current === 'config' && <ConfigContent mode = {mode} chooseLight={chooseLight} chooseDark={chooseDark}/>}
+        {current === 'reputation' && <ReputationSystem/>}
       </div>
     </div>
   );
