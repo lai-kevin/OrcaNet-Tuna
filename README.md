@@ -14,7 +14,13 @@ This project contains an independent distributed file sharing platform, OrcaCoin
 - Download Speed
 - OrcaCoin Transfer
 
+## Dependencies:
+- Node.js        (8.19)
+- Docker Desktop (latest)
+- Go             (1.23 or higher)
+
 ## Installation and Getting Started
+Make sure to have Docker Desktop open during this installation and while running the application
 
 1. Clone the repository:
     ```sh
