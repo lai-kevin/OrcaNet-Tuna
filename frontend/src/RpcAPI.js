@@ -3,7 +3,7 @@ import axios from "axios";
 //'http://localhost:1234/rpc' old route
 // http://host.docker.internal:8081/rpc
 const rpcClient = axios.create({
-  baseURL: 'http://localhost:1234/rpc',
+  baseURL: 'http://localhost:8081/rpc',
   headers: {
     'Content-Type': 'application/json',
   }
@@ -56,12 +56,15 @@ export const getHistory = (params) =>
 //params should be: [{"file_hash" : "Hash"}]
 export const getFileProviders = (params) => 
   makeRPCRequest('FileShareService.GetProviders',params);
-
+//same as get file providers we are just gonna chain with calls for getting file metadata
 export const getFileProvidersWMetaData = async (params) =>{
   let providersFetch = await getFileProviders(params);
   let providers = providersFetch.result.providers
   providers = providers.filter(providerId => providerId !== "");//for some reason some files have a "" as a provider ?
-
+  console.log(providers);
+  if (providers.length === 0){
+    return {providers: []};
+  }
   const providersWithMetadata = await Promise.all(
     providers.map(async (providerId) => {
       // Call getFileMetaDataRPC with necessary parameters for each provider
@@ -70,7 +73,8 @@ export const getFileProvidersWMetaData = async (params) =>{
         file_hash: params[0].file_hash,
         peer_id: providerId
       }]);
-
+      console.log("heyo")
+      console.log(metadataResponse.result);
       return {
         id: providerId,
         ...metadataResponse.result.file_meta_data
@@ -78,7 +82,7 @@ export const getFileProvidersWMetaData = async (params) =>{
     })
   );
 
-  
+  console.log(providersWithMetadata);
   return {name: providersWithMetadata[0].FileName , size: providersWithMetadata[0].FileSize, providers: providersWithMetadata, success: true };
 
   
@@ -87,6 +91,9 @@ export const getFileProvidersWMetaData = async (params) =>{
 //params should be: [{"file_hash" : "HASH"}]
 export const stopProvidingRPC = (params) =>
   makeRPCRequest('FileShareService.StopProvidingFile', params);
+
+export const resumeProvidingRPC = (params) =>
+  makeRPCRequest('FileShareService.ResumeProvidingFile', params);
 
 
 //params can be: []

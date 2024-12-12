@@ -12,6 +12,7 @@ import { GiMining } from "react-icons/gi";
 import { FaCoins } from "react-icons/fa";
 import { AppContext } from './AppContext';
 import * as Wallet from "../WalletAPI"
+import { getUpdatesFromGoNode } from '../RpcAPI';
 const AccountContent = ({mode}) => {
     return(
      <div className = "account">
@@ -49,9 +50,11 @@ const Profile = ({mode})=>{
     useEffect(() => {
         const fetchBalance = async () => {
           try {
-            const bal = await Wallet.balance(); 
+            const bal = await Wallet.balance();
+            const fileShareStartupState = await getUpdatesFromGoNode([]);//set peer id here for now
+            const peer_Id = fileShareStartupState.result.peer_id;
             setUser((prev) => {
-                return { ...prev, balance: bal.balance};
+                return { ...prev, balance: bal.balance, peerId: peer_Id};
               });
           } catch (error) {
             console.error("Failed to fetch balance:", error); 
@@ -78,6 +81,10 @@ const Profile = ({mode})=>{
                 <span id = "type" style={{ color: mode === "dark" ? "white" : "black" }}>OrcaCoins</span>
                 {!mining && (<button type="button" id ="mine" onClick={()=>setOpen(true)}> Mine Coins </button>)}
                 {mining && (<button type="button" id ="mine1" onClick={()=>setView(true)}> View Mining Progress </button>)}
+                <br/>
+            </div>        
+            <div id='profile_peerid'>
+            <h4 id ="wID" >Peer ID: <span id="number" style={{ color: mode === "dark" ? "white" : "black" }}>{user.peerId}</span></h4>
             </div>
             {open && (<MineMenu setOpen={setOpen}/>)}
             {view && (<Progress setView = {setView}/>)}
@@ -89,6 +96,7 @@ const MineMenu=({setOpen})=>{
     const[amount, setAmount] = useState("")
     const [mess, setMess] = useState("")
     const[err, setErr] = useState(false)
+    const [e, setE] = useState()
     const {setMining, setBlocks, setTime} = useContext(AppContext)
     const exit = () => {
         setOpen(false);
@@ -217,7 +225,7 @@ const Progress =({setView})=>{
             }
         };
         fetchusage();
-        const interval = setInterval(fetchusage, 1000);  
+        const interval = setInterval(fetchusage, 500);  
         return () => clearInterval(interval);
     }, []);
     const calculate =()=>{
@@ -257,16 +265,22 @@ const Progress =({setView})=>{
     )
 }
 const Transaction = ({mode})=>{
-    const {user, setUser} = useContext(AppContext);
+    const {user, setUser, downloadTxids} = useContext(AppContext);
     const [click, setClick] = useState(false);
     const [trans, setTrans] = useState(user.transactions)
-    const info =[{txid:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"down", Spent:"0.25", Earned:0},
-        {txid:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"up", Spent: 0, Earned:"2.25"}
-    ]
+    // const info =[{txid:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"down", Spent:"0.25", Earned:0},
+    //     {txid:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"up", Spent: 0, Earned:"2.25"}
+    // ]
     useEffect(() => {
         const fetchtransaction = async () => {
             try {
-                const response = await Wallet.retrieve();  
+                const response = await Wallet.retrieve();
+                //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
+                response.transactions.forEach( transaction => {
+                    if(downloadTxids.has(transaction.txid))
+                        transaction.category = 'Download';
+                });
+                //IN PROGRESS ^
                 console.log(response.transactions)
                 setUser(prev => {
                     const updated = {
@@ -279,15 +293,38 @@ const Transaction = ({mode})=>{
             } catch (error) {}
         };
         fetchtransaction();
-        const interval = setInterval(fetchtransaction, 20000);  
+        const interval = setInterval(fetchtransaction, 10000);  
         return () => clearInterval(interval);
     }, []);
+    useEffect(() =>{
+        const fetchtransaction = async () => {
+            try {
+                const response = await Wallet.retrieve();
+                //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
+                response.transactions.forEach( transaction => {
+                    if(downloadTxids.has(transaction.txid))
+                        transaction.category = 'Download';
+                });
+                //IN PROGRESS ^
+                console.log(response.transactions)
+                setUser(prev => {
+                    const updated = {
+                        ...prev,
+                        transactions: response.transactions!==null ? response.transactions : []
+                    };
+                    return updated;
+                });
+                setTrans(response.transactions!==null ? response.transactions : [])
+            } catch (error) {}
+        };
+        fetchtransaction();
+    }, [click]);
     console.log(trans)
-    let current = [ ...info, ...trans]
+    let current = [...trans]
     console.log(current)
     const download = () => {
-        const fields =["txid", "from", "to", "time", "status", "size", "Type", "Spent", "Earned"]
-        const names =["TXID", "From", "To", "Time", "Status", "Size", "Type", "Spent", "Earned"]
+        const fields =["txid", "time", "status", "category", "Spent", "Earned"]
+        const names =["TXID", "Time", "Status", "Category", "Spent", "Earned"]
         const headers = names.join(",") + "\n";
         const rows = current.map(row =>
             fields.map(field => {
@@ -329,12 +366,12 @@ const Transaction = ({mode})=>{
     )
 }
 const TransactionTable=({mode, setClick})=> {
-    const {user, setUser} = useContext(AppContext);
+    const {user, setUser,downloadTxids} = useContext(AppContext);
     const [trans, setTrans] = useState(user.transactions)
-    const info =[{txid:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"Download", Spent:"0.25", Earned:0},
-        {txid:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"Upload", Spent: 0, Earned:"2.25"}
-    ]
-    let current = [ ...info, ...trans]
+    // const info =[{txid:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"Download", Spent:"0.25", Earned:0},
+    //     {txid:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"Upload", Spent: 0, Earned:"2.25"}
+    // ]
+    let current = [...trans]
     console.log(current);
     const [sort, setSort] = useState("")
     const [curr, setCurr] = useState(current);
@@ -344,8 +381,13 @@ const TransactionTable=({mode, setClick})=> {
     useEffect(() => {
         const fetchtransaction = async () => {
             try {
-                const response = await Wallet.retrieve();  
-                console.log(response.transactions)
+                const response = await Wallet.retrieve();
+                //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
+                response.transactions.forEach( transaction => {
+                    if(downloadTxids.has(transaction.txid))
+                        transaction.category = 'Download';
+                });
+                //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS ^
                 setUser(prev => {
                     const updated = {
                         ...prev,
@@ -357,12 +399,12 @@ const TransactionTable=({mode, setClick})=> {
             } catch (error) {}
         };
         fetchtransaction();
-        const interval = setInterval(fetchtransaction, 20000);  
+        const interval = setInterval(fetchtransaction, 10000);  
         return () => clearInterval(interval);
     }, []);
     useEffect(() => {
         const updateCurr = () => {
-          let current = [ ...info, ...trans]
+          let current = [...trans]
           let filteredList = current
           if (sort === "Latest") {
             filteredList.sort((a, b) => new Date(b.time) - new Date(a.time));
@@ -412,13 +454,13 @@ const TransactionTable=({mode, setClick})=> {
             <table id="transaction_table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>From</th>
-                        <th>To</th>
+                        <th>TXID</th>
+                        {/* <th>From</th>
+                        <th>To</th> */}
                         <th>Time</th>
                         <th>Status</th>
                         <th>Type</th>
-                        <th>File Size</th>
+                        {/* <th>File Size</th> */}
                         <th>Earned(OrcaCoins)</th>
                         <th>Spent(OrcaCoins)</th>
                     </tr>
@@ -427,20 +469,20 @@ const TransactionTable=({mode, setClick})=> {
                     {curr.map((item, index) => (
                         <tr key={index}>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.txid}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.from || "---"}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.to || "---"}</td>
+                            {/* <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.from || "---"}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.to || "---"}</td> */}
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.time}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.status || "Completed"}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Type === "Upload" ? (
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.category === "Upload" ? (
                                     <FaArrowUp style={{ color: "green" }} />
-                                ) : item.Type === "Download" ? (
+                                ) : item.category === "Download" ? (
                                     <FaArrowDown style={{ color: "red" }} />
-                                ) : item.Type === "Proxy" ? (
+                                ) : item.category === "Proxy" ? (
                                     <SiEnvoyproxy style={{ color: "grey" }} />
                                 ) : item.category === "generate" ? (
                                     <GiMining style={{ color: "black" }} />
                                 ): <FaCoins style={{ color: "black" }} />}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.size || "---"}</td>
+                            {/* <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.size || "---"}</td> */}
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.amount > 0 ? item.amount : "---"}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.amount < 0 ? Math.abs(item.amount) : "---"}</td>
                         </tr>

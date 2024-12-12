@@ -4,15 +4,15 @@ export const Mode = createContext();
 
 export const ModeProvider = ({ children}) => {
   const {user, setUser} = useContext(AppContext);
-  const [mode, setMode] = useState(user ===null ? "light" : localStorage.getItem(user.walletID));
+  const [mode, setMode] = useState(user ===null ? "light" : localStorage.getItem("mode"));
   useEffect(() => {
     console.log(user)
     if (user) {
-      setMode(localStorage.getItem(user.walletID)); 
+      setMode(localStorage.getItem("mode")); 
     }
   }, [user]);
   const update = (newMode) => {
-    localStorage.setItem(user.walletID, newMode);
+    localStorage.setItem("mode", newMode);
   };
   const chooseLight = () => {
     setMode("light");

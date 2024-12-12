@@ -8,6 +8,7 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
   const [file, setFile] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [price, setPrice] = useState("");
+  const [loading,setLoading] = useState(false);
 
   //should probably change this to maybe make a copy of a file into the project directory
   //it might create a different hash for the same file since everyones user files will be different
@@ -24,6 +25,7 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
     if (usingElectron) {
       try {
         const chosenFile = await window.electron.ipcRenderer.invoke('open-file-dialog');
+        // console.log(chosenFile);
         if (chosenFile) {
           setFile(chosenFile);
         }
@@ -31,7 +33,7 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
         console.log('Error dialog', error);
       }
     }
-    else{
+    else {
       setFile(testFile)
     }
 
@@ -45,7 +47,7 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
   }
   //Triggered when user confirms they want to upload this file
   //Sets a prop (fileToUpload) from the Files.js to the file object for it to handle
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (Number(price) < 0) {
       setErrorMsg("Invalid Input: Please select a Price Greater than or Equal to 0.\nEx: 0.25, 5, 100 etc.")
     }
@@ -57,15 +59,34 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
       // let submittedFile = new File([file], file.name, { type: file.type }) //necessary as I cant spread a file
       // submittedFile.price = Number(price);
       // submittedFile.timestamp = new Date();
-      let submittedFile = {
-        name: file.path,
-        price: Number(price),
-        timestamp: new Date(),
-        size: file.size
+
+
+      // transfer into a docker container
+      const filePath = file.path;
+      setLoading(true);
+      try {
+        // const chosenFile = await window.electron.ipcRenderer.invoke('open-file-dialog');
+        // console.log(filePath);
+        const result = await window.electron.ipcRenderer.invoke('copy-file-to-container', filePath);
+        let submittedFile = {
+          name: result.path,
+          price: Number(price),
+          timestamp: new Date(),
+          size: file.size
+        }
+        setLoading(false);
+        // const comm = 
+
+        setFileToUpload(submittedFile);
+        setFile(null);
+        setIsOpen(false);
       }
-      setFileToUpload(submittedFile);
-      setFile(null);
-      setIsOpen(false);
+      catch (error) {
+        console.log('Error dialog', error);
+      }
+
+
+
     }
 
   };
@@ -106,6 +127,12 @@ const FileModal = ({ setIsOpen, setFileToUpload }) => {
         </div> : <></>}
         {(errorMsg !== "") && <p style={{ color: "red", fontWeight: "800" }}>{errorMsg}</p>}
         <br />
+        {loading &&<div>
+          <h3 style={{ color: "black" }}>Copying into Container & Registering to DHT... Do Not Close</h3>
+          <div className="spinner-container">
+            <div className="spinner" />
+          </div>
+        </div>}
         <br />
         <div style={{ display: "flex", gap: "10px" }}>
           <button className="primary_button" onClick={handleSubmit}>Submit</button>

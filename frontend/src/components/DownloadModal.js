@@ -3,11 +3,11 @@ import { AppContext } from "./AppContext";
 import { LiaDownloadSolid } from "react-icons/lia";
 import { FaArrowDown } from "react-icons/fa";
 import { FaCircle } from "react-icons/fa";
-import { getFileRPC } from "../RpcAPI";
+import { getFileRPC, uploadFileRPC } from "../RpcAPI";
 
 
 const DownloadModal = () =>{
-    const {user, fileToDownload, setDownloadOpen, setSearchResultsFound, setFileToDownload,downloads,setDownloads,setUploadHistory,uploadHistory,dummyFiles,setDummyFiles} = useContext(AppContext);
+    const {fileToDownload, setDownloadOpen, setSearchResultsFound, setFileToDownload,setUploadHistory,uploadHistory,downloadTxids,setDownloadTxids} = useContext(AppContext);
     const [activeStep, setActiveStep] = useState(0); //0 is choosing a provider, 1 is the confirm 
     const [selectedProvider, setSelectedProvider] = useState("--");
     const [errorMsg,setErrorMsg] = useState("");
@@ -29,69 +29,43 @@ const DownloadModal = () =>{
     
     const handleDownloadState = async ()=> {
       //preemptivvely adding this here so that i can in the future have a react hook trigger after rpc call is completed
-      await getFileRPC([{file_hash: selectedProvider.FileHash, peer_id: selectedProvider.PeerID }])
+      try{
+        const getFileRes  = await getFileRPC([{file_hash: selectedProvider.FileHash, peer_id: selectedProvider.PeerID }])
+        const txid = getFileRes.result.txid; //will save this in the global app context wont be persistent between sessions but ok for now
+        setDownloadTxids((prevTxids) => {
+        const newTxids = new Set(prevTxids); // is this expensive lol i figured itd make searching faster
+        newTxids.add(txid);
+        return newTxids;
+      });
+      }catch(error){}
+    
+    // await uploadFileRPC([{file_path: fileToDownload.f}])
     }
 
     const handleDownload = () => {
       handleDownloadState();
         let file = fileToDownload;
-        if(becomeProvider){
-          //add it to their uploads
-          let fileForUploads = {...file};
-          fileForUploads.price = Number(price);
-          fileForUploads.timestamp = new Date();
-          let alreadyAdded = 0;
-          const updatedDummyFiles = dummyFiles.map(file => {
-            if (file.hashId === fileForUploads.hashId) {
-              const existingUserProviderIndex = file.providers.findIndex(provider => provider.id === user.walletID);
-              
-              if (existingUserProviderIndex !== -1) {
-                // Update existing provider 
-                alreadyAdded = 1;
-                const updatedProviders = [...file.providers];
-                updatedProviders[existingUserProviderIndex] = {
-                  ...updatedProviders[existingUserProviderIndex],
-                  price: Number(price),
-                  timestamp: new Date(),
-                  status: "online"
-                  // Not going to reset the download count we will count it as a reregister
-                };
-                
-                return {
-                  ...file,
-                  providers: updatedProviders
-                };
-              } else {
-                // Add new provider // the current user
-                return {
-                  ...file,
-                  providers: [
-                    ...file.providers,
-                    {
-                      id: user.walletID,
-                      price: Number(price),
-                      timestamp: new Date(),
-                      downloads: 0,
-                      status: "online"
-                    }
-                  ]
-                };
-              }
-            }
-            return file;
-          });
-          setDummyFiles([...updatedDummyFiles]);
-          if(alreadyAdded == 1){
-            setUploadHistory([...uploadHistory]);
-          }
-          else{
-            setUploadHistory([...uploadHistory,fileForUploads]);
-          }
-        }
-        file.status = "downloading";
-        file.index = downloads.length;
-        file.progress = Math.random() * (100 - 10) + 10;
-        file.priority = downloads.length + 1; //set the priority. By default is the lowest possible priority of all the ongoing downloads
+        // if(becomeProvider){
+        //   //add it to their uploads
+        //   //IN PROGRESS PROVIDE A FILE POST DOWNLOAD
+        //   uploadFileRPC([{file_path: "downloads/"+fileToDownload.name, price:Number(price)}]);
+        //   let fileForUploads = {...file};
+        //   fileForUploads.price = Number(price);
+        //   fileForUploads.timestamp = new Date();
+        //   // uploadFileRPC();
+        //   let existingIndex = uploadHistory.findIndex(file => file.hashId === selectedProvider.FileHash); // might need to change this since i guess we want people to update their entries
+ 
+        //   if(existingIndex != -1){
+        //     setUploadHistory([...uploadHistory]);
+        //   }
+        //   else{
+        //     setUploadHistory([...uploadHistory,fileForUploads]);
+        //   }
+        // }
+        // file.status = "downloading";
+        // file.index = downloads.length;
+        // file.progress = Math.random() * (100 - 10) + 10;
+        // file.priority = downloads.length + 1; //set the priority. By default is the lowest possible priority of all the ongoing downloads
         // setDownloads([...downloads,file]);
         setFileToDownload(null);
         setSelectedProvider("--");//maybe figure out if this would be nice to have somewhere else
@@ -126,28 +100,21 @@ const DownloadModal = () =>{
     //Idea: maybe we also display here a reputation for the files so that the user can see it when they are looking thru possible file
     //Need to create a nice way of formatting dates for display and add highlighting for selected provider
     const generateListProviders = () =>{
+      let i = -1; //jank solution to avoid overlapping provider ids
+      if(fileToDownload)
       return fileToDownload.providers.map((provider) =>{
+        i+=1;
         return(
-      //   <tr key = {provider.id} onClick={()=> provider.status !== "offline" && setSelectedProvider(provider)} style={{
-      //     backgroundColor: (selectedProvider.id === provider.id) ? '#d3d3d3' : 'white', 
-      //     cursor: provider.status === "offline" ? 'not-allowed' : 'pointer',
-      //     opacity: provider.status === "offline" ? 0.5 : 1
-          
-      // }}
-      //   className="provider-row"
-      // >
-        <tr key = {provider.id} onClick={()=> setSelectedProvider(provider)} style={{
+        <tr key = {i.toString()+provider.id} onClick={()=> setSelectedProvider(provider)} style={{
           backgroundColor: (selectedProvider.id === provider.id) ? '#d3d3d3' : 'white', 
           cursor: 'pointer',
           
       }}
         className="provider-row"
       >
-          {/* <td>{(provider.status === "online") ? <FaCircle style={{color: "green"}} /> : <FaCircle style={{color: "red"}}/>}</td> */}
           <td>{provider.id}</td>
-          {/* <td>{provider.price}</td> */}
-          {/* <td>{String(provider.timestamp)}</td> */}
-          {/* <td>{provider.downloads}</td> */}
+          <td>{provider.Price}</td>
+          <td>{provider.MiningAddress}</td>
         </tr>
         );
       });
@@ -157,10 +124,24 @@ const DownloadModal = () =>{
 
     if(fileToDownload !== undefined && fileToDownload !== "" && fileToDownload !== null){
       if(activeStep === 0){
+        if(fileToDownload.providers.length === 0){
+          return(
+            <div className="modal">
+            <div className="modal_content">
+              <p>The file you searched does not exist or there are currently no providers try another hash</p>
+              <br/>              
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button className="primary_button" onClick={handleClose}>Close</button>
+              </div>
+            </div>
+          </div>
+
+          )
+        }
         return (
           <div className="modal">
             <div className="modal_content">
-              <p>We sucessfully found the following file: {fileToDownload.name + " " + fileToDownload.size + " MB"}</p>
+              <p>We sucessfully found the following file: {fileToDownload.name + " " + (fileToDownload.size/ (1024 * 1024)).toFixed(2) + " MB"}</p>
               <br/>
               <p>Select a provider from the following list of providers</p>
               <br/>
@@ -170,6 +151,8 @@ const DownloadModal = () =>{
                     <tr>
                       {/* <th>Status</th> */}
                       <th>File Provider</th>
+                      <th>Price</th>
+                      <th>Mining Address</th>
                       {/* <th>Price (OrcaCoins)</th> */}
                       {/* <th>Timestamp</th> */}
                       {/* <th>Downloads <FaArrowDown style={{color: 'red'}}/></th>                     */}
@@ -198,14 +181,14 @@ const DownloadModal = () =>{
             <br/>
             <p>From: {selectedProvider.id}</p>
             <br/>
-            {/* <p>Price: {selectedProvider.price} OrcaCoins</p> */}
+            <p>Price: {selectedProvider.Price} OrcaCoins</p>
             <br/>
 
-            <input id="ch" type="checkbox" 
+            {/* <input id="ch" type="checkbox" 
               checked={becomeProvider} 
-              onChange={handleBecomeProvider} style={{marginBottom: "30px"}} ></input> <label style={{fontWeight: "bold"}}>Become a provider after downloading?</label>
-              {becomeProvider === true ? <div className="input-wrapper">
-        <label htmlFor="orcaCoinInput" className="label">Set Price For File:</label>
+              onChange={handleBecomeProvider} style={{marginBottom: "30px"}} ></input> <label style={{fontWeight: "bold"}}>Become a provider after downloading?</label> */}
+              {/* {becomeProvider === true ? <div className="input-wrapper"> */}
+        {/* <label htmlFor="orcaCoinInput" className="label">Set Price For File:</label>
         <div>
           <input 
             type="number" 
@@ -217,7 +200,7 @@ const DownloadModal = () =>{
           />
           <span className="currency-label">Orca Coins</span>
         </div>
-      </div> : <></>}
+      </div> : <></>} */}
 
             <div style={{ display: "flex", gap: "10px" }}>
               <button className="primary_button" onClick={handleDownload}>Download <LiaDownloadSolid /></button>
@@ -248,30 +231,5 @@ const DownloadModal = () =>{
 
 }; export default DownloadModal;
 
-//enable denable yourself as a proxy (register urself on the dht) nodeid; ip; price
-//set price for being a proxy on UI
-
-//List of users who have themselves as proxy enabled
-
-//open port to listen to http proxy requests
-
-//
-
-// 3rd layer execute request save and return to og user
-
-
-//Some things i want to do
-
-//move uploads to global context
-
-//add the modal to download a file
-
-
-//OPen a modal with the file to download asking would you like to download this file?
-//Then send the user to the files page and set the tab to downloads tab
-//There the cards will be different have information pause resume etc
-
-
-//set the thing to "" string also set the search bar to that
 
 

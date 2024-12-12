@@ -69,6 +69,8 @@ export function AppContextProvider(props){
     const [time, setTime] = useState("")
     const [blocks, setBlocks] = useState(0)
     const [enter, setEnter] = useState(false)
+    const [downloadTxids,setDownloadTxids] = useState(new Set());
+    const [isProviding, setIsProviding] = useState({});
 
     return(
         <AppContext.Provider value = {
@@ -95,7 +97,9 @@ export function AppContextProvider(props){
             mining, setMining,
             time, setTime,
             blocks, setBlocks,
-            enter, setEnter
+            enter, setEnter,
+            downloadTxids,setDownloadTxids,
+            isProviding, setIsProviding
             }}
             >
             {props.children}

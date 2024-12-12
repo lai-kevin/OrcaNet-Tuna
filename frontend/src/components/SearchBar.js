@@ -157,7 +157,7 @@ const Exit =({setOpen})=>{
       return parseFloat(acc) + parseFloat(transaction.Spent);
     }, 0);
     let curr = {...server, end: formatTime(), Spent: spent.toFixed(2), Earned:"--"};
-    const prev = JSON.parse(localStorage.getItem(user.privateKey));
+    const prev = JSON.parse(localStorage.getItem(user.walletID));
     
     // update the server requests history and served peers
     const updated = {
@@ -167,7 +167,7 @@ const Exit =({setOpen})=>{
           proxied: [...prev.proxied, curr],
           //proxyRequests: [...prev.proxyRequests, ownHistory]
     };
-    localStorage.setItem(prev.privateKey, JSON.stringify(updated));
+    localStorage.setItem(prev.walletID, JSON.stringify(updated));
     setOpen(false)
     setServer("--")
     setTotal(0)

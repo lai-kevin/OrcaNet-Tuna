@@ -4,11 +4,11 @@
 import { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { LiaDownloadSolid } from "react-icons/lia";
-import { stopProvidingRPC } from "../RpcAPI";
+import { getUpdatesFromGoNode, resumeProvidingRPC, stopProvidingRPC } from "../RpcAPI";
 
 
 const CancelUploadModal = () =>{
-    const {uploadHistory,setUploadHistory,setFileToRemove, fileToRemove} = useContext(AppContext);
+    const {uploadHistory,setUploadHistory,setFileToRemove, fileToRemove, isProviding, setIsProviding} = useContext(AppContext);
     const [errMsg, setErrorMsg] = useState("");
     const handleClose = () => {
         setFileToRemove(null);
@@ -17,12 +17,23 @@ const CancelUploadModal = () =>{
 
     const stopProviding = async () => {
       //gonna actually handle removing from ui on front end cuz dialing to self is sketchy
+      try{
       let stopProvidingRes = await stopProvidingRPC([{file_hash: fileToRemove.hashId}]);
       if(stopProvidingRes.result.success == true){
-        const updatedHistory = uploadHistory.filter((upload) => upload.hashId !== fileToRemove.hashId);
-        setUploadHistory([...updatedHistory]);  
+        const updatesRespond = await getUpdatesFromGoNode([]);
+        setIsProviding(updatesRespond.result.is_file_provided);
+          
       }
+    }catch(error){}
       
+      setFileToRemove(null);
+    }
+    const resumeProviding = async () => {
+      try{
+        let resumeProviding = await resumeProvidingRPC([{file_hash: fileToRemove.hashId}]);
+        const updatesRespond = await getUpdatesFromGoNode([]);
+        setIsProviding(updatesRespond.result.is_file_provided);
+      }catch(err){}
       setFileToRemove(null);
     }
 
@@ -34,12 +45,34 @@ const CancelUploadModal = () =>{
         setErrorMsg("The file you wish to stop serving is currently being downloaded by " + fileToRemove.downloaders.length + " users.")
       }
     }
+    const handleResume = () => {
+      resumeProviding();
+    }
+    if(fileToRemove.providing === false){
+      return (
+        <div className="modal">
+          <div className="modal_content">
+            <p>Would you like to resume serving the following file?</p>
+            <br/>
+            <p>{fileToRemove.name.split('/').pop()}</p>
+            <p>{"hash ID: " + fileToRemove.hashId}</p>
+            <p>{"Price: " + fileToRemove.price + " OrcaCoin"}</p>
+            <br/>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button className="primary_button" onClick={handleResume}>Resume Providing</button>
+              <button className="primary_button" onClick={handleClose}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      );
+
+    }
     return (
       <div className="modal">
         <div className="modal_content">
           <p>Would you like to stop serving the following file?</p>
           <br/>
-          <p>{fileToRemove.name}</p>
+          <p>{fileToRemove.name.split('/').pop()}</p>
           <p>{"hash ID: " + fileToRemove.hashId}</p>
           <p>{"Price: " + fileToRemove.price + " OrcaCoin"}</p>
           {errMsg &&  <div style={{color: "red", fontWeight: "800"}}><p>{errMsg}</p> <p>All transactions related to the above file must be complete prior to removal.</p></div>}
