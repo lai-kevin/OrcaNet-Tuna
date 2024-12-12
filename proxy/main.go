@@ -45,8 +45,6 @@ type ProxyClient struct {
 const (
 	ORCA_NET_CLIENT_ID_HEADER = "orca-net-client-id"
 	ORCA_NET_AUTH_KEY_HEADER  = "orca-net-token"
-	PROXY_PORT                = ":3001"
-	// UPLOAD_DIR                = "./uploads"
 )
 
 var (
@@ -361,7 +359,7 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT, node host.Host, proxyCli
 				fmt.Printf("Successfully advertised your proxy 'mine' in the DHT with key: %s\n", dhtKey)
 
 				log.Fatal(http.ListenAndServe(
-					":8081",
+					":8082",
 					http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						if r.Method == http.MethodConnect {
 							handleTunnel(w, r)
@@ -963,6 +961,7 @@ func transfer(stats interface{}, dst, src net.Conn, dstConnStr, srcConnStr strin
 	}
 	return bytesTransferred
 }
+
 func main() {
 	// Initialize proxy clients table
 	proxyClientsTable := NewProxyClientsTable()
@@ -1006,7 +1005,7 @@ func main() {
 	// Add proxies to the table
 	proxyClientsTable.AddProxyClient("proxy1", "127.0.0.1", "8085", false, node2.ID())
 	proxyClientsTable.AddProxyClient("proxy2", "127.0.0.1", "8084", false, node3.ID())
-	proxyClientsTable.AddProxyClient("mine", "127.0.0.1", "8081", true, node.ID())
+	proxyClientsTable.AddProxyClient("mine", "127.0.0.1", "8082", true, node.ID())
 
 	proxyPeerMap := map[string]peer.ID{
 		"proxy1": node2.ID(),
@@ -1041,8 +1040,8 @@ func main() {
 				log.Printf("Failed to serialize provider record for '%s': %v\n", proxy.Name, err)
 				return
 			}
-
 			// Start the HTTP server for the proxy
+
 			fmt.Printf("Starting proxy '%s' on %s:%s...\n", proxy.Name, proxy.IP, proxy.Port)
 			log.Fatal(http.ListenAndServe(
 				proxy.IP+":"+proxy.Port,
@@ -1050,7 +1049,12 @@ func main() {
 					if r.Method == http.MethodConnect {
 						handleTunnel(w, r)
 					} else {
-						handleHTTP(w, r)
+						if r.URL.Path == "/logs" {
+							getLoggedRequests(w, r)
+						} else {
+							handleHTTP(w, r)
+						}
+
 					}
 				}),
 			))
