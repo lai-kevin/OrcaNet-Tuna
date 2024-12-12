@@ -79,14 +79,21 @@ func receiveFileRequests(node host.Host) {
 				log.Printf("Sent file not found message: %v", fileRequest.FileHash)
 			}
 		} else {
-			if lastDownloadStatus.IsZero() || lastDownloadStatus.Before(fileRequest.TimeSent) {
-				downloadStatus[fileRequest.RequestID] = true
-			}
-			err = sendFileToPeer(node, fileRequest.RequesterID, filePath, fileRequest.FileHash, fileRequest.RequestID)
-			if err != nil {
-				log.Printf("Error sending file: %v", err)
+			if !isFileHashProvided[fileRequest.FileHash] {
+				err = sendFileNotCurrentlyProvidedToPeer(node, fileRequest.RequesterID, fileRequest.RequestID)
+				if err != nil {
+					log.Printf("Error sending file not currently provided message: %v", err)
+				}
 			} else {
-				log.Printf("File sent")
+				if lastDownloadStatus.IsZero() || lastDownloadStatus.Before(fileRequest.TimeSent) {
+					downloadStatus[fileRequest.RequestID] = true
+				}
+				err = sendFileToPeer(node, fileRequest.RequesterID, filePath, fileRequest.FileHash, fileRequest.RequestID)
+				if err != nil {
+					log.Printf("Error sending file: %v", err)
+				} else {
+					log.Printf("File sent")
+				}
 			}
 		}
 	})
@@ -102,6 +109,15 @@ func receiveFileData(node host.Host) {
 		decoder := gob.NewDecoder(stream)
 		if err := decoder.Decode(&fileMetaData); err != nil {
 			log.Printf("Error decoding file metadata in file data receiver: %v", err)
+			return
+		}
+
+		if fileMetaData.FileHash == "FILE NOT CURRENTLY PROVIDED" {
+			log.Printf("File not currently provided")
+			downloadHistory[fileMetaData.RequestID] = FileTransaction{
+				RequestID: fileMetaData.RequestID,
+				FileHash:  fileMetaData.FileHash,
+			}
 			return
 		}
 
@@ -339,6 +355,33 @@ func sendFileNotFoundToPeer(node host.Host, targetNodeId string, RequestID strin
 	return nil
 }
 
+// Send a "file not currently provided" message to a peer from a given node.
+// node: the node sending the message
+// targetNodeId: the ID of the target peer
+func sendFileNotCurrentlyProvidedToPeer(node host.Host, targetNodeId string, RequestID string) error {
+	stream, err := createStream(node, targetNodeId, "/senddata/p2p")
+	if err != nil {
+		return fmt.Errorf("sendFileNotCurrentlyProvided: %v", err)
+	}
+	defer stream.Close()
+
+	var errorStruct = FileDataHeader{
+		RequestID: RequestID,
+		FileHash:  "FILE NOT CURRENTLY PROVIDED",
+	}
+
+	errorBytes, err := json.Marshal(errorStruct)
+	if err != nil {
+		return fmt.Errorf("sendFileNotCurrentlyProvided: %v", err)
+	}
+
+	_, err = stream.Write(errorBytes)
+	if err != nil {
+		return fmt.Errorf("sendFileNotCurrentlyProvided: %v", err)
+	}
+	return nil
+}
+
 // Send an insufficient funds error message to a peer from a given node.
 // node: the node sending the insufficient funds message
 // targetNodeId: the ID of the target peer
@@ -553,6 +596,12 @@ func sendFileMetaDataToPeer(node host.Host, targetNodeId, filepath string, fileh
 		if providedFiles[i].FileHash == filehash {
 			fileMetaData = providedFiles[i]
 		}
+	}
+
+	if isFileHashProvided[filehash] {
+		fileMetaData.Provided = true
+	} else {
+		fileMetaData.Provided = false
 	}
 
 	encoder := gob.NewEncoder(stream)
