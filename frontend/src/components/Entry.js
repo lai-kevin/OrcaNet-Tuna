@@ -99,7 +99,7 @@ const Recover = ({setPage})=>{
          {confirm &&(
                 <div id = "container1">
                     <div id="content3">
-                        <h3>Are you sure you want to delete your account? You will lose all your coins.</h3>
+                        <h3 style={{color:"black"}}>Are you sure you want to delete your account? You will lose all your coins.</h3>
                         <div id="items">
                             <button id="yes2" onClick={handleYes}> Yes </button>
                             <button id="No2" onClick={handleNo}> No </button>
@@ -110,7 +110,7 @@ const Recover = ({setPage})=>{
           {curr=== "Error" &&(
                 <div id = "container1">
                     <div id="content3">
-                        <h3>Error encountered when deleting account. Please try again.</h3>
+                        <h3 style={{color:"black"}}>Error encountered when deleting account. Please try again.</h3>
                         <div id="items">
                             <button onClick={()=> {setCurr("recover"); setConfirm(false)}} className= "ok_button1"> OK </button>
                         </div>
@@ -120,7 +120,7 @@ const Recover = ({setPage})=>{
          {curr==="success" &&(
             <div id = "container1">
             <div id="content3">
-                <h3>Account deleted successfully. You can register a new account now.</h3>
+                <h3 style={{color:"black"}}>Account deleted successfully. You can register a new account now.</h3>
                 <div id="items">
                     <button onClick={()=>setPage("register")} className= "ok_button1"> OK </button>
                 </div>
@@ -240,15 +240,15 @@ const Login=({handleRegPage, setPage})=>{
          <form onSubmit={check}>
             <input type="text" id="key" value={input} onChange={handleInput} placeholder='Enter Password'></input><br></br>
             {err.present && (<p id="err">{err.message}</p>)}
-            <input type="checkbox" id="remember" checked={rem} onChange={() => setRem(!rem)}/> Remember Me
-            <a onClick={()=>setPage('recover')}id="recover">Forgot key?</a>
+            <input type="checkbox" id="remember" checked={rem} onChange={() => setRem(!rem)} style={{color:"black"}}/> Remember Me
+            <a onClick={()=>setPage('recover')} style={{color:"blue"}}id="recover">Forgot key?</a>
          </form>
          <button type="submit" id="log_button" onClick={check}> Login</button>
          <p className ="redirect" style={{ color: mode === "dark" ? "black" : "black" }}>Don't have an account? <a id="signup" onClick={handleRegPage}>Signup</a></p>
          {verify &&(
                 <div id = "container1">
                     <div id="content1">
-                        <h3>Verifying...</h3>
+                        <h3 style={{color:"black"}}>Verifying...</h3>
                         <div className="spinner-container">
                             <div className="spinner" />
                         </div>
@@ -360,7 +360,7 @@ const Register=({handleLoginPage, setPage})=>{
             {current === "second" &&
             (<div className = "register_page">
                 <div id="input_field">
-                <label id = "sbu">Enter your SBU ID:</label>
+                <label id = "sbu" style={{color:"black"}} >Enter your SBU ID:</label>
                 <input type="text" id="key" value={input} onChange={handleInput} placeholder='SBU ID'></input>
                 </div>
                 {e.present && (<p id="err">{e.message}</p>)}

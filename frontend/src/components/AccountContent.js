@@ -268,9 +268,9 @@ const Transaction = ({mode})=>{
     const {user, setUser, downloadTxids} = useContext(AppContext);
     const [click, setClick] = useState(false);
     const [trans, setTrans] = useState(user.transactions)
-    const info =[{txid:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"down", Spent:"0.25", Earned:0},
-        {txid:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"up", Spent: 0, Earned:"2.25"}
-    ]
+    // const info =[{txid:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"down", Spent:"0.25", Earned:0},
+    //     {txid:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"up", Spent: 0, Earned:"2.25"}
+    // ]
     useEffect(() => {
         const fetchtransaction = async () => {
             try {
@@ -278,7 +278,7 @@ const Transaction = ({mode})=>{
                 //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
                 response.transactions.forEach( transaction => {
                     if(downloadTxids.has(transaction.txid))
-                        transaction.category = 'Downloads';
+                        transaction.category = 'Download';
                 });
                 //IN PROGRESS ^
                 console.log(response.transactions)
@@ -293,7 +293,7 @@ const Transaction = ({mode})=>{
             } catch (error) {}
         };
         fetchtransaction();
-        const interval = setInterval(fetchtransaction, 20000);  
+        const interval = setInterval(fetchtransaction, 10000);  
         return () => clearInterval(interval);
     }, []);
     useEffect(() =>{
@@ -303,7 +303,7 @@ const Transaction = ({mode})=>{
                 //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
                 response.transactions.forEach( transaction => {
                     if(downloadTxids.has(transaction.txid))
-                        transaction.category = 'Downloads';
+                        transaction.category = 'Download';
                 });
                 //IN PROGRESS ^
                 console.log(response.transactions)
@@ -320,11 +320,11 @@ const Transaction = ({mode})=>{
         fetchtransaction();
     }, [click]);
     console.log(trans)
-    let current = [ ...info, ...trans]
+    let current = [...trans]
     console.log(current)
     const download = () => {
-        const fields =["txid", "from", "to", "time", "status", "size", "Type", "Spent", "Earned"]
-        const names =["TXID", "From", "To", "Time", "Status", "Size", "Type", "Spent", "Earned"]
+        const fields =["txid", "time", "status", "category", "Spent", "Earned"]
+        const names =["TXID", "Time", "Status", "Category", "Spent", "Earned"]
         const headers = names.join(",") + "\n";
         const rows = current.map(row =>
             fields.map(field => {
@@ -342,12 +342,6 @@ const Transaction = ({mode})=>{
                   return amount > 0 ? Math.abs(amount) :"---"; 
                 }
               }
-              else if (field === "From"){
-                return row["address"] ? row["category"] === "receive": row["category"] === "generate" ?  "---" : user.walletID;
-              }
-              else if (field === "To"){
-                return row["address"] ? row["category"] === "spent": row["category"] === "generate" ?  "---" : user.walletID;
-             }
               return row[field] ?? "---";
             }).join(",")
           ).join("\n");
@@ -374,10 +368,10 @@ const Transaction = ({mode})=>{
 const TransactionTable=({mode, setClick})=> {
     const {user, setUser,downloadTxids} = useContext(AppContext);
     const [trans, setTrans] = useState(user.transactions)
-    const info =[{txid:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"Download", Spent:"0.25", Earned:0},
-        {txid:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"Upload", Spent: 0, Earned:"2.25"}
-    ]
-    let current = [ ...info, ...trans]
+    // const info =[{txid:'3b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1H8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Pending', size: "1MB", Type:"Download", Spent:"0.25", Earned:0},
+    //     {txid:'4b3c30a72f4e48b916cb4cc9de063dbf2a3b75c1c68a7dcd7a930cb35b2dfbc4', from: '1B2zP1eP5QGefi2DMPTfTL5SLmv7DivfN', to:"1P8LxkY5N4B5H2qFsR8UQEN8pMxPLd3BR", time: "2024-10-19 14:59:10", status: 'Completed', size: "2MB", Type:"Upload", Spent: 0, Earned:"2.25"}
+    // ]
+    let current = [...trans]
     console.log(current);
     const [sort, setSort] = useState("")
     const [curr, setCurr] = useState(current);
@@ -391,7 +385,7 @@ const TransactionTable=({mode, setClick})=> {
                 //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS
                 response.transactions.forEach( transaction => {
                     if(downloadTxids.has(transaction.txid))
-                        transaction.category = 'Downloads';
+                        transaction.category = 'Download';
                 });
                 //IN PROGRESS COMMENT OUT IF CREATES PROBLEMS ^
                 setUser(prev => {
@@ -405,12 +399,12 @@ const TransactionTable=({mode, setClick})=> {
             } catch (error) {}
         };
         fetchtransaction();
-        const interval = setInterval(fetchtransaction, 20000);  
+        const interval = setInterval(fetchtransaction, 10000);  
         return () => clearInterval(interval);
     }, []);
     useEffect(() => {
         const updateCurr = () => {
-          let current = [ ...info, ...trans]
+          let current = [...trans]
           let filteredList = current
           if (sort === "Latest") {
             filteredList.sort((a, b) => new Date(b.time) - new Date(a.time));
@@ -460,13 +454,13 @@ const TransactionTable=({mode, setClick})=> {
             <table id="transaction_table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>From</th>
-                        <th>To</th>
+                        <th>TXID</th>
+                        {/* <th>From</th>
+                        <th>To</th> */}
                         <th>Time</th>
                         <th>Status</th>
                         <th>Type</th>
-                        <th>File Size</th>
+                        {/* <th>File Size</th> */}
                         <th>Earned(OrcaCoins)</th>
                         <th>Spent(OrcaCoins)</th>
                     </tr>
@@ -475,20 +469,20 @@ const TransactionTable=({mode, setClick})=> {
                     {curr.map((item, index) => (
                         <tr key={index}>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.txid}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.from || "---"}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.to || "---"}</td>
+                            {/* <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.from || "---"}</td>
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.to || "---"}</td> */}
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.time}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.status || "Completed"}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.Type === "Upload" ? (
+                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.category === "Upload" ? (
                                     <FaArrowUp style={{ color: "green" }} />
-                                ) : item.Type === "Download" ? (
+                                ) : item.category === "Download" ? (
                                     <FaArrowDown style={{ color: "red" }} />
-                                ) : item.Type === "Proxy" ? (
+                                ) : item.category === "Proxy" ? (
                                     <SiEnvoyproxy style={{ color: "grey" }} />
                                 ) : item.category === "generate" ? (
                                     <GiMining style={{ color: "black" }} />
                                 ): <FaCoins style={{ color: "black" }} />}</td>
-                            <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.size || "---"}</td>
+                            {/* <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.size || "---"}</td> */}
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.amount > 0 ? item.amount : "---"}</td>
                             <td style={{ color: mode === "dark" ? "black" : "black" }}>{item.amount < 0 ? Math.abs(item.amount) : "---"}</td>
                         </tr>
