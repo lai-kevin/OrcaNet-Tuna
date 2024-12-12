@@ -128,6 +128,10 @@ const Files = () => {
     //make a request and set the download history as needed
     if (activeTab === "Downloads") {
       handleSettingHistory();
+      const intervalId = setInterval(() => {
+        handleSettingCurrentDownloads();
+      }, 5000);
+      return () => clearInterval(intervalId);
     }
 
     //Got my foot up on the gas but somebody gotta do it
