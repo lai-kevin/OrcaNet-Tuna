@@ -11,7 +11,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -777,6 +776,7 @@ var (
 )
 
 func handleHTTP(w http.ResponseWriter, r *http.Request) {
+	// Create a new request based on the incoming one
 	req, err := http.NewRequest(r.Method, r.URL.String(), r.Body)
 	if err != nil {
 		log.Printf("Error during NewRequest() %s: %s\n", r.URL.String(), err)
@@ -792,21 +792,16 @@ func handleHTTP(w http.ResponseWriter, r *http.Request) {
 		"timestamp": time.Now().UTC(),
 	})
 
-	// Copy headers and forward the request
+	// Copy headers from the incoming request to the new request
 	for key, values := range r.Header {
 		for _, value := range values {
 			req.Header.Add(key, value)
 		}
 	}
 
-	remoteProxy := "http://127.0.0.1:9090"
-	proxyURL, _ := url.Parse(remoteProxy)
+	// Use a default HTTP client to perform the request
+	httpClient := &http.Client{}
 
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
-		},
-	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		log.Printf("Error during Do() %s: %s\n", r.URL.String(), err)
@@ -814,6 +809,14 @@ func handleHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer resp.Body.Close()
+
+	// Copy the response from the upstream server to the client
+	for key, values := range resp.Header {
+		for _, value := range values {
+			w.Header().Add(key, value)
+		}
+	}
+	w.WriteHeader(resp.StatusCode)
 
 	written, err := io.Copy(w, resp.Body)
 	if err != nil {
