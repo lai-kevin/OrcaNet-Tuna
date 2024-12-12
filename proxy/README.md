@@ -45,7 +45,7 @@ Go to http://localhost:8084/logs
 Click on Pretty-print.
 This page shows the url, the number of bytes from client to server and the number of bytes from server to client
 
-Congiure your device to the proxy
+Configure your device to the proxy
 
 Open your settings and set your IP to 127.0.0.1 
 
