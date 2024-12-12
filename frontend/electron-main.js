@@ -121,7 +121,7 @@ const automateFile = (id) => {
         } else {
           console.log("No existing container found. Creating a new one...");
 
-          exec(`docker run -p 8081:1234 --name ${containerName} -v ${downloadsPath}:/downloads -d fileshare:v ${id}`, { cwd: path.join(__dirname, '../fileshare') }, (err, stdout, stderr) => {
+          exec(`docker run -p 8081:1234 --name ${containerName} -v ${downloadsPath}:/downloads -d fileshare:v1 ${id}`, { cwd: path.join(__dirname, '../fileshare') }, (err, stdout, stderr) => {
             if (err) {
               console.error("Error running Docker container:", stderr);
               return;
