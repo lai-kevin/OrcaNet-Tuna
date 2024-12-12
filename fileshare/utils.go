@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -13,22 +14,23 @@ import (
 	"github.com/google/uuid"
 )
 
-func generateFileHash(filepath string) string {
+func generateFileHash(filepath string) (string, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		fmt.Println("Error opening file: ", err)
+		return "", err
 	}
 	defer file.Close()
 
 	hash := sha256.New()
 
 	if _, err := io.Copy(hash, file); err != nil {
-		return "error"
+		return "", err
 	}
 
 	fileHash := fmt.Sprintf("%x", hash.Sum(nil))
 
-	return fileHash
+	return fileHash, nil
 }
 
 func generateRequestID() string {
@@ -45,9 +47,26 @@ func searchFileOnDHT(fileHash string) (string, error) {
 		fmt.Printf("Failed to get existing value associated with file hash: %s\n", fileHash)
 		return "", nil
 	}
-	fmt.Printf("File found at peerID: %s\n", res)
 
-	return string(res), nil
+	// Remove duplicate providers
+	providers := strings.Split(string(res), ",")
+	uniqueProviders := make(map[string]bool)
+
+	for _, provider := range providers {
+		if _, exists := uniqueProviders[provider]; !exists {
+			uniqueProviders[provider] = true
+		}
+	}
+	providers = []string{}
+	for provider := range uniqueProviders {
+		providers = append(providers, provider)
+	}
+
+	providersStr := strings.Join(providers, ",")
+
+	fmt.Printf("File found at peerID: %s\n", providersStr)
+
+	return string(providersStr), nil
 }
 
 func provideFileOnDHT(fileHash string, peerID string) error {
@@ -133,7 +152,7 @@ func connectAndPauseRequestFromPeer(requestID string, status bool) error {
 }
 
 func sendCoinToAddress(miningAddress string, amount float32) (string, error) {
-	url := "http://localhost:8080/sendToAddress"
+	url := "http://host.docker.internal:8080/sendToAddress"
 	method := "GET"
 
 	payload := strings.NewReader(fmt.Sprintf(`{
@@ -155,6 +174,10 @@ func sendCoinToAddress(miningAddress string, amount float32) (string, error) {
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != http.StatusOK {
+		return "", errors.New("failed to send coin: " + res.Status)
+	}
+
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", err
@@ -165,16 +188,12 @@ func sendCoinToAddress(miningAddress string, amount float32) (string, error) {
 		return "", err
 	}
 
-	if result["message"] != "Funds sent successfully!" {
-		log.Println("Sent coin to address: ", miningAddress)
-		return result["txid"], err
-	} else {
-		return "", fmt.Errorf("Error sending coin: %s", result["message"])
-	}
+	log.Println("Sent coin to address: ", miningAddress)
+	return result["txid"], err
 }
 
 func checkBalance() (string, error) {
-	url := "http://localhost:8080/getBalance"
+	url := "http://host.docker.internal:8080/getBalance"
 	method := "GET"
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, nil)
@@ -187,6 +206,9 @@ func checkBalance() (string, error) {
 		return "", err
 	}
 	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return "", errors.New("failed to get balance: " + res.Status)
+	}
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -203,7 +225,7 @@ func checkBalance() (string, error) {
 }
 
 func getMiningAddress() (string, error) {
-	url := "http://localhost:8080/getMiningAddress"
+	url := "http://host.docker.internal:8080/getMiningAddress"
 	method := "GET"
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, nil)
@@ -217,10 +239,16 @@ func getMiningAddress() (string, error) {
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != http.StatusOK {
+		return "", errors.New("failed to get mining address: " + res.Status)
+	}
+
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", err
 	}
+
+	log.Println("Response Body:", string(body))
 
 	var result map[string]string
 	if err = json.Unmarshal(body, &result); err != nil {
@@ -238,7 +266,7 @@ func copyFromContainer(sourcePath, filename string) error {
 	}
 	defer source.Close()
 
-	destPath := filepath.Join("/"+DOWNLOAD_DIRECTORY, filename)
+	destPath := filepath.Join("/"+"downloads", filename)
 	destination, err := os.Create(destPath)
 	if err != nil {
 		return err

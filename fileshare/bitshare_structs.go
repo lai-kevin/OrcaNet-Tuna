@@ -35,9 +35,10 @@ type FileDataHeader struct {
 	FileExtension string
 	Multiaddress  string
 	PeerID        string
-	price         float32
-	miningAddress string
+	Price         float32
+	MiningAddress string
 	RequestID     string
+	Provided      bool
 }
 
 type FileRequest struct {

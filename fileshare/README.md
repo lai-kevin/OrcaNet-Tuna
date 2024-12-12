@@ -8,9 +8,11 @@ The purpose of this utility/package is to handle the distributed file sharing be
 - Downloading Files by Hash
 - Requesting Metadata by Hash
 - Pausing/Resuming Downloads
+- Start/Stop Providing Files
 - Download Time Estimation
 
 ## Installation
+
 1. Clone the repository:
     ```sh
     git clone https://github.com/lai-kevin/OrcaNet-Tuna.git
@@ -25,17 +27,16 @@ The purpose of this utility/package is to handle the distributed file sharing be
     ```
 4. Build image:
     ```sh
-    docker build -t fileshare:v<version> .
+    docker build -t fileshare:v1 .
     ```
 
-## Usage
 1. Start a container using the image:
     ```sh
     Linux:
-    docker run -v ~/Downloads:/downloads -p 8081:1234 fileshare:v<version> <SBU_ID>
+    docker run -v ~/Downloads:/downloads -p 8081:1234 fileshare:v1 <SBU_ID> <OPTIONAL: BOOTSTRAP_MULTIADDRESS>
 
     Windows:
-    docker run -v "${env:USERPROFILE}/Downloads:/downloads" -p 8081:1234 fileshare:v<version> <SBU_ID>
+    docker run -v "${env:USERPROFILE}/Downloads:/downloads" -p 8081:1234 fileshare:v1 <SBU_ID> <OPTIONAL: BOOTSTRAP_MULTIADDRESS>
 
     ```
-2. Make requests to `http://host.docker.internal:8081/rpc`. See more in the postman doc.
+2. Make requests to `http://localhost:8081/rpc`. See more in the postman doc or view the documentation is a beautiful html document by opening bitshare-doc.html

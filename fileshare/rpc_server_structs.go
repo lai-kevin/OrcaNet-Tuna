@@ -83,6 +83,7 @@ type GetUpdatesReply struct {
 	Status         string            `json:"status"`
 	PrivateIP      bool              `json:"private_ip"`
 	Providing      []FileDataHeader  `json:"providing"`
+	IsFileProvided map[string]bool   `json:"is_file_provided"`
 	RequestedFiles []FileRequest     `json:"requested_files"`
 	Downloads      []FileTransaction `json:"downloads"`
 }
