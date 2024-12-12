@@ -129,7 +129,7 @@ const Files = () => {
     if (activeTab === "Downloads") {
       handleSettingHistory();
       const intervalId = setInterval(() => {
-        handleSettingCurrentDownloads();
+        handleSettingHistory();;
       }, 5000);
       return () => clearInterval(intervalId);
     }
