@@ -360,7 +360,7 @@ const Files = () => {
     }catch(error){}
   }
 
-  const FileCardDownload = ({ type, name, hashId, requestId, size, status, progress }) => {
+  const FileCardDownload = ({ type, name, hashId, requestId, size, status, progress, speed }) => {
     //Variation of file cards meant for displaying files downloading
     //additional rendering for pause, resume, and cancel buttons based on status of download
     let FileIcon = LuFile; //image , folder, .pdf/.txt/everything else 
@@ -400,6 +400,7 @@ const Files = () => {
               style={{ width: `${progress * 100}%`, backgroundColor: progressBarColor }}
             ></div>
           </div>
+          <p style={{color: (speed< 5) ? "red" : "green"}}>{speed + " Bps"}</p>
         </div>
         <div> {buttons}</div>
 
@@ -464,6 +465,7 @@ const Files = () => {
                 size={file.FileMetaData.FileSize}
                 status={file.status}
                 progress={file.DownloadProgress}
+                speed = {file.DownloadSpeed}
               />
             )
           }
@@ -559,7 +561,7 @@ export const InfoPopUp = ({ handlePopUp }) => {
   });
   return (
     <div ref={menu} className="popUp">
-      <p> Enter into the search bar the Hash associated with a file to download from a provider.</p>
+      <p> Enter the File Hash of a file provided on the network into this search bar to view providers and select a file for download.</p>
       <ul className="menu_list">
       </ul>
     </div>
